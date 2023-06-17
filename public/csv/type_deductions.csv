@@ -1,0 +1,20 @@
+1	EPS	EPS	eps	NULL	NULL
+2	Pensión	PE	pension	NULL	NULL
+3	Fondo SP (Seguridad Pensional) 	FPS	fondossp	NULL	NULL
+4	Fondo de Subsistencia	FSUB	fondossp_sub	NULL	NULL
+5	Sindicato	SIN	array	labor_union	NULL
+6	Sanción Publica	SAP	sanction	sanctions	public_sanction
+7	Sanción Privada	SPR	sanction	sanctions	private_sanction
+8	Libranza	LB	array	orders	NULL
+9	Pago de Terceros	PT	array_atributos	third_party_payments	third_party_payment
+10	Anticipos	ANT	array_atributos	advances	advance
+11	Otras de Deducciones	OD	array_atributos	other_deductions	other_deduction
+12	Pensión Voluntaria	PV	atributo	voluntary_pension	NULL
+13	ReteFuente	RF	atributo	withholding_at_source	NULL
+14	AFC	AFC	atributo	afc	NULL
+15	Cooperativa	CP	atributo	cooperative	NULL
+16	Embargo Fiscal	EF	atributo	tax_liens	NULL
+17	Plan Complementario	PC	atributo	supplementary_plan	NULL
+18	Educación	EDU	atributo	education	NULL
+19	Reintegro	RIT	atributo	refund	NULL
+20	Deuda	DD	atributo	debt	NULL

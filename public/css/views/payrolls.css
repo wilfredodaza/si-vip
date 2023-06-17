@@ -1,0 +1,27 @@
+.container-sprint-email, .container-sprint-send{
+    background: rgba(0, 0, 0, 0.51);
+    z-index: 2000;
+    position:absolute;
+    width: 100%;
+    top:0px;
+    height: 100vh;
+    justify-content: center !important;
+    align-content: center !important;
+    flex-wrap: wrap;
+    display: none;
+}
+
+tr td, tr th {
+    padding: 5px 5px;
+}
+
+.ldBar{
+    display: flex;
+    justify-content: center;
+    text-align: center;
+}
+
+.ldBar .ldBar-label{
+    position: absolute;
+    top:40%;
+}

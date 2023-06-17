@@ -1,0 +1,27 @@
+{
+  "name": "resources",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "laravel-mix": "^6.0.5",
+    "laravel-mix-copy-watched": "^2.3.0",
+    "postcss": "^8.1.14",
+    "vue-loader": "^15.9.5",
+    "vue-template-compiler": "^2.6.12"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "chart.js": "^2.9.4",
+    "materialize-css": "^1.0.0-rc.2",
+    "numeral": "^2.0.6",
+    "vue": "^2.6.12",
+    "vue-chartjs": "^3.5.1"
+  }
+}

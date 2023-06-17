@@ -1,0 +1,155 @@
+@media print {
+    td {
+        position: relative;
+    }
+
+
+}
+
+p.job{
+    top:157spx;
+    left: 30px;
+    font-size: 8px;
+    position: absolute;
+    rotate: -90;
+    font-weight: bold;
+    letter-spacing: -0.5px;
+}
+
+p.retetion{
+    top:103px;
+    left: 30px;
+    font-size: 8px;
+    position: absolute;
+    rotate: -90;
+    font-weight: bold;
+}
+table {
+   /* border: 1px solid #2F5597;*/
+    width: 100%;
+    font-family: Arial;
+    height: 500px;
+    border-collapse: collapse;
+    padding:0px;
+}
+
+td {
+    border: 1px solid #2F5597;
+    padding-left: 3px ;
+    padding-right: 3px ;
+}
+
+
+tr {
+    border-top:  1px solid  white !important;
+    border-bottom:  1px solid  white !important;
+}
+
+
+.title{
+    font-weight: bold;
+    font-size: 11px;
+    text-align: center;
+    padding: 0px 10px !important;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.code{
+    font-weight: bold;
+    font-size: 38px;
+    text-align: center;
+    background: #2F5597;
+    color: white;
+    padding: 0px 30px !important;
+    border-radius:5px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.text-center {
+    text-align: center;
+
+}
+
+.text-justify{
+    text-align: justify;
+}
+
+.arial-10 {
+    font-size: 10px;
+}
+.arial-8 {
+    font-size: 9px;
+}
+
+.arial-6{
+    font-size: 8px;
+}
+
+.h-20 {
+    height: 40px;
+}
+
+.h-10 {
+    height: 15px !important;
+}
+
+.vertical-align{
+    vertical-align: text-top;
+
+}
+
+.vertical-align p {
+   background-color: red;
+   display: block;
+}
+
+.border-left {
+    border-left:  1px solid  white !important;
+}
+
+
+.border-right {
+    border-right: 1px solid  white !important;
+}
+
+
+.border-top {
+    border-top:1px solid  white !important;
+}
+
+
+.border-bottom {
+    border-bottom: 1px solid  white !important;
+}
+
+.border-top-bottom-none {
+    border-top:1px solid  white !important;
+    border-bottom: 1px solid  white !important;
+}
+
+.font-bold {
+    font-weight: bold;
+
+}
+.bg-blue{
+    background-color: #E0E7EF;
+}
+.bg-blue-sure {
+    background-color: #F0F3F8;
+}
+
+.bg-blue-black {
+    color: white;
+    background: #2F5597;
+}
+
+.text-right {
+    text-align: right;
+}
+.rotate
+{
+    display:block; 
+    -webkit-transform: rotate(-90deg); 
+    -moz-transform: rotate(-90deg); 
+    width:100px;
+}

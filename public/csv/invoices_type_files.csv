@@ -1,0 +1,4 @@
+id	name	description	block
+1	Entrada de almac�n	almacen	SC
+2	Orden de compra	oc	SC
+3	Remision	remision	SC

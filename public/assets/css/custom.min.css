@@ -1,0 +1,22 @@
+span.my-badge {
+    font-size: 12px;
+}
+
+.dropify-wrapper {
+    height: 90px !important;
+}
+
+.select2-container {
+    z-index: 1070;
+}
+
+.button-modal {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 600;
+}
+
+.button-modal svg {
+    margin-left: 5px;
+}

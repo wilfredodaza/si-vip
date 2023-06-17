@@ -1,0 +1,16 @@
+1	Guardada	La factura se encuentra guardata
+2	Enviada a la DIAN	Factura enviada a la dian
+3	Email Enviado	Email Enviado
+4	Recibido por el cliente	Recibido por el cliente
+5	Abierta	Abierta
+6	Cerrada	Cerrada
+7	Documento Externo	Documento Externo
+8	En proceso	En proceso
+9	Firmado	Firmado
+10	Aceptado	Aceptado
+11	Rechazado	Rechazado
+12	En proceso	La nomina se encuentra sin deducciones y devengados asociados.
+13	Por emitir	La nomina ya se encuentra lista para su emisión.
+14	Enviada a la DIAN	La factura se encuentra enviada a la DIAN
+15	Error al emitir	Se presento un error al emitir la nomina
+16	Cargando	Cargando facturas en segundo plano

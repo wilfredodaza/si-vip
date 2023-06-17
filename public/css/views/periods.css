@@ -1,0 +1,14 @@
+.input{
+    float:right;
+    width: calc(100% - 70px);
+}
+
+.button{
+    width: 70px;
+    float: right;
+}
+
+.deletes {
+    cursor: pointer;
+    color:red;
+}

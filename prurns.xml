@@ -1,0 +1,270 @@
+?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<Invoice
+    xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
+    xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"
+    xmlns:cbc="urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2"
+    xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
+    xmlns:ext="urn:oasis:names:specification:ubl:schema:xsd:CommonExtensionComponents-2"
+    xmlns:sts="http://www.dian.gov.co/contratos/facturaelectronica/v1/Structures"
+    xmlns:xades="http://uri.etsi.org/01903/v1.3.2#"
+    xmlns:xades141="http://uri.etsi.org/01903/v1.4.1#"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2     http://docs.oasis-open.org/ubl/os-UBL-2.1/xsd/maindoc/UBL-Invoice-2.1.xsd">
+    <ext:UBLExtensions>
+        <ext:UBLExtension>
+            <ext:ExtensionContent>
+                <sts:DianExtensions>
+                    <sts:InvoiceControl>
+                        <sts:InvoiceAuthorization>990003647</sts:InvoiceAuthorization>
+                        <sts:AuthorizationPeriod>
+                            <cbc:StartDate>2019-01-19</cbc:StartDate>
+                            <cbc:EndDate>2030-01-19</cbc:EndDate>
+                        </sts:AuthorizationPeriod>
+                        <sts:AuthorizedInvoices>
+                            <sts:Prefix>SETP</sts:Prefix>
+                            <sts:From>990000000</sts:From>
+                            <sts:To>995000000</sts:To>
+                        </sts:AuthorizedInvoices>
+                    </sts:InvoiceControl>
+                    <sts:InvoiceSource>
+                        <cbc:IdentificationCode listAgencyID="6" listAgencyName="United Nations Economic Commission for Europe" listSchemeURI="urn:oasis:names:specification:ubl:codelist:gc:CountryIdentificationCode-2.1">CO</cbc:IdentificationCode>
+                    </sts:InvoiceSource>
+                    <sts:SoftwareProvider>
+                        <sts:ProviderID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)"  schemeID="9"   schemeName="31"  >901005608</sts:ProviderID>
+                        <sts:SoftwareID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)">758f8331-6bc8-42a8-9c77-776e3af9ad96</sts:SoftwareID>
+                    </sts:SoftwareProvider>
+                    <sts:SoftwareSecurityCode schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)"/>
+                    <sts:AuthorizationProvider>
+                        <sts:AuthorizationProviderID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)" schemeID="4" schemeName="31">800197268</sts:AuthorizationProviderID>
+                    </sts:AuthorizationProvider>
+                    <sts:QRCode>NumFac: SETP990000000
+FecFac: 2021-01-06
+NitFac: 901005608
+DocAdq: 6465798779
+ValFac: 150000.00
+ValIva: 28500
+ValOtroIm: 0.00
+ValTotal: 178500.00
+CUFE: -----CUFECUDE-----
+https://catalogo-vpfe-hab.dian.gov.co/document/searchqr?documentkey=-----CUFECUDE-----</sts:QRCode>
+                </sts:DianExtensions>
+            </ext:ExtensionContent>
+        </ext:UBLExtension>
+        <ext:UBLExtension>
+            <ext:ExtensionContent/>
+        </ext:UBLExtension>
+    </ext:UBLExtensions>
+    <cbc:UBLVersionID>UBL 2.1</cbc:UBLVersionID>
+    <cbc:CustomizationID>10</cbc:CustomizationID>
+    <cbc:ProfileID>DIAN 2.1</cbc:ProfileID>
+    <cbc:ProfileExecutionID>2</cbc:ProfileExecutionID>
+    <cbc:ID>SETP990000000</cbc:ID>
+    <cbc:UUID schemeID="2" schemeName="CUFE-SHA384"/>
+    <cbc:IssueDate>2021-01-06</cbc:IssueDate>
+    <cbc:IssueTime>13:06:39-05:00</cbc:IssueTime>
+    <cbc:InvoiceTypeCode>01</cbc:InvoiceTypeCode>
+    <cbc:Note>&lt;ul&gt;	&lt;li&gt;&lt;strong&gt;BL/AWB:&lt;/strong&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp;&lt;/li&gt;	&lt;li&gt;&lt;strong&gt;N&amp;deg; DO&lt;/strong&gt;:&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&lt;/li&gt;	&lt;li&gt;&lt;strong&gt;PESO /VOLUMEN:&lt;/strong&gt;&amp;nbsp;&amp;nbsp;&lt;/li&gt;&lt;/ul&gt;&lt;p&gt;El pago de esta factura debera efectuarse en pesos colombianos utilizando la TRM de la fecha del pago mas $35, siempre y cuando no sea inferior al tipo de cambio referencia de la fecha de emision. Factura de venta asimilada a la letra de cambio. Articulo 744 C de C. Favor hacer su pago con cheque de gerencia a nombre de CONNECTING CARGO S.A.S.&lt;/p&gt;&lt;p&gt;Facturas por concepto de demoras, limpiezas y reparaciones de contenedores, al igual que impuestos de Aduana, deben ser cancelados el mismo dia de la emision.&lt;/p&gt;</cbc:Note>
+    <cbc:DocumentCurrencyCode listID="ISO 4217 Alpha" listAgencyID="6"
+                              listAgencyName="United Nations Economic Commission for Europe">COP</cbc:DocumentCurrencyCode>
+    <cbc:LineCountNumeric>1</cbc:LineCountNumeric>
+    <cac:AccountingSupplierParty>
+        <cbc:AdditionalAccountID>1</cbc:AdditionalAccountID>
+        <cac:Party>
+            <cac:PartyName>
+                <cbc:Name>MiFacturaLegal.COM</cbc:Name>
+            </cac:PartyName>
+            <cac:PhysicalLocation>
+                <cac:Address>
+                    <cbc:ID>11001</cbc:ID>
+                    <cbc:CityName>Bogotá, D.c. </cbc:CityName>
+                    <cbc:CountrySubentity>Bogotá</cbc:CountrySubentity>
+                    <cbc:CountrySubentityCode>11</cbc:CountrySubentityCode>
+                    <cac:AddressLine>
+                        <cbc:Line>calle 26 n 52 g 30</cbc:Line>
+                    </cac:AddressLine>
+                    <cac:Country>
+                        <cbc:IdentificationCode>CO</cbc:IdentificationCode>
+                        <cbc:Name languageID="es">Colombia</cbc:Name>
+                    </cac:Country>
+                </cac:Address>
+            </cac:PhysicalLocation>
+            <cac:PartyTaxScheme>
+                <cbc:RegistrationName>MiFacturaLegal.COM</cbc:RegistrationName>
+                <cbc:CompanyID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)" schemeID="9" schemeName="31">901005608</cbc:CompanyID>
+                <cbc:TaxLevelCode listName="48">O-23</cbc:TaxLevelCode>
+                <cac:RegistrationAddress>
+                    <cbc:ID>11001</cbc:ID>
+                    <cbc:CityName>Bogotá, D.c. </cbc:CityName>
+                    <cbc:CountrySubentity>Bogotá</cbc:CountrySubentity>
+                    <cbc:CountrySubentityCode>11</cbc:CountrySubentityCode>
+                    <cac:AddressLine>
+                        <cbc:Line>calle 26 n 52 g 30</cbc:Line>
+                    </cac:AddressLine>
+                    <cac:Country>
+                        <cbc:IdentificationCode>CO</cbc:IdentificationCode>
+                        <cbc:Name languageID="es">Colombia</cbc:Name>
+                    </cac:Country>
+                </cac:RegistrationAddress>
+                <cac:TaxScheme>
+                    <cbc:ID>01</cbc:ID>
+                    <cbc:Name>IVA</cbc:Name>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName>MiFacturaLegal.COM</cbc:RegistrationName>
+                <cbc:CompanyID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)" schemeID="9" schemeName="31">901005608</cbc:CompanyID>
+                <cac:CorporateRegistrationScheme>
+                    <cbc:ID>SETP</cbc:ID>
+                    <cbc:Name>0000-00</cbc:Name>
+                </cac:CorporateRegistrationScheme>
+            </cac:PartyLegalEntity>
+            <cac:Contact>
+                <cbc:Telephone>3013207088</cbc:Telephone>
+                <cbc:ElectronicMail>soporte@mifacturalegal.com</cbc:ElectronicMail>
+            </cac:Contact>
+        </cac:Party>
+    </cac:AccountingSupplierParty>
+    <cac:AccountingCustomerParty>
+        <cbc:AdditionalAccountID>2</cbc:AdditionalAccountID>
+        <cac:Party>
+            <cac:PartyIdentification>
+                <cbc:ID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)" schemeID="" schemeName="13">6465798779</cbc:ID>
+            </cac:PartyIdentification>
+            <cac:PartyName>
+                <cbc:Name>Pepito perez</cbc:Name>
+            </cac:PartyName>
+            <cac:PartyTaxScheme>
+                <cbc:RegistrationName>Pepito perez</cbc:RegistrationName>
+                <cbc:CompanyID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)" schemeID="" schemeName="13">6465798779</cbc:CompanyID>
+                <cbc:TaxLevelCode listName="48">R-99-PN</cbc:TaxLevelCode>
+                <cac:RegistrationAddress>
+                    <cbc:ID>11001</cbc:ID>
+                    <cbc:CityName>Bogotá, D.c. </cbc:CityName>
+                    <cbc:CountrySubentity>Bogotá</cbc:CountrySubentity>
+                    <cbc:CountrySubentityCode>11</cbc:CountrySubentityCode>
+                    <cac:AddressLine>
+                        <cbc:Line>calle 26 n 52 g 30</cbc:Line>
+                    </cac:AddressLine>
+                    <cac:Country>
+                        <cbc:IdentificationCode>CO</cbc:IdentificationCode>
+                        <cbc:Name languageID="es">Colombia</cbc:Name>
+                    </cac:Country>
+                </cac:RegistrationAddress>
+                <cac:TaxScheme>
+                    <cbc:ID>01</cbc:ID>
+                    <cbc:Name>IVA</cbc:Name>
+                </cac:TaxScheme>
+            </cac:PartyTaxScheme>
+            <cac:PartyLegalEntity>
+                <cbc:RegistrationName>Pepito perez</cbc:RegistrationName>
+                <cbc:CompanyID schemeAgencyID="195" schemeAgencyName="CO, DIAN (Dirección de Impuestos y Aduanas Nacionales)" schemeID="" schemeName="13">6465798779</cbc:CompanyID>
+                <cac:CorporateRegistrationScheme>
+                    <cbc:Name>00000</cbc:Name>
+                </cac:CorporateRegistrationScheme>
+            </cac:PartyLegalEntity>
+            <cac:Contact>
+                <cbc:Telephone>3013207088</cbc:Telephone>
+                <cbc:ElectronicMail>wilfredo.daza@gmail.com</cbc:ElectronicMail>
+            </cac:Contact>
+        </cac:Party>
+    </cac:AccountingCustomerParty>
+    <cac:PaymentMeans>
+        <cbc:ID>1</cbc:ID>
+        <cbc:PaymentMeansCode>10</cbc:PaymentMeansCode>
+        <cbc:PaymentID>1</cbc:PaymentID>
+    </cac:PaymentMeans>
+    <cac:PaymentTerms>
+        <cbc:ReferenceEventCode>1</cbc:ReferenceEventCode>
+    </cac:PaymentTerms>
+    <cac:TaxTotal>
+        <cbc:TaxAmount currencyID="COP">28500.00</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="COP">150000.00</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="COP">28500.00</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cbc:Percent>19.00</cbc:Percent>
+                <cac:TaxScheme>
+                    <cbc:ID>01</cbc:ID>
+                    <cbc:Name>IVA</cbc:Name>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:TaxTotal>
+    <cac:WithholdingTaxTotal>
+        <cbc:TaxAmount currencyID="COP">3000.000</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="COP">150000.000</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="COP">3000.000</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cbc:Percent>2.000</cbc:Percent>
+                <cac:TaxScheme>
+                    <cbc:ID>06</cbc:ID>
+                    <cbc:Name>ReteRenta</cbc:Name>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:WithholdingTaxTotal>
+    <cac:WithholdingTaxTotal>
+        <cbc:TaxAmount currencyID="COP">3000.000</cbc:TaxAmount>
+        <cac:TaxSubtotal>
+            <cbc:TaxableAmount currencyID="COP">150000.000</cbc:TaxableAmount>
+            <cbc:TaxAmount currencyID="COP">3000.000</cbc:TaxAmount>
+            <cac:TaxCategory>
+                <cbc:Percent>2.000</cbc:Percent>
+                <cac:TaxScheme>
+                    <cbc:ID>07</cbc:ID>
+                    <cbc:Name>ReteICA</cbc:Name>
+                </cac:TaxScheme>
+            </cac:TaxCategory>
+        </cac:TaxSubtotal>
+    </cac:WithholdingTaxTotal>
+    <cac:LegalMonetaryTotal>
+        <cbc:LineExtensionAmount currencyID="COP">150000.00</cbc:LineExtensionAmount>
+        <cbc:TaxExclusiveAmount currencyID="COP">150000.00</cbc:TaxExclusiveAmount>
+        <cbc:TaxInclusiveAmount currencyID="COP">178500.00</cbc:TaxInclusiveAmount>
+        <cbc:AllowanceTotalAmount currencyID="COP">0.00</cbc:AllowanceTotalAmount>
+        <cbc:ChargeTotalAmount currencyID="COP">0.00</cbc:ChargeTotalAmount>
+        <cbc:PayableAmount currencyID="COP">178500.00</cbc:PayableAmount>
+    </cac:LegalMonetaryTotal>
+    <cac:InvoiceLine>
+        <cbc:ID>1</cbc:ID>
+        <cbc:InvoicedQuantity unitCode="94">1.000000</cbc:InvoicedQuantity>
+        <cbc:LineExtensionAmount currencyID="COP">150000.00</cbc:LineExtensionAmount>
+        <cbc:FreeOfChargeIndicator>false</cbc:FreeOfChargeIndicator>
+        <cac:AllowanceCharge>
+            <cbc:ID>1</cbc:ID>
+            <cbc:ChargeIndicator>false</cbc:ChargeIndicator>
+            <cbc:AllowanceChargeReasonCode>00</cbc:AllowanceChargeReasonCode>
+            <cbc:AllowanceChargeReason>DESCUENTO GENERAL</cbc:AllowanceChargeReason>
+            <cbc:MultiplierFactorNumeric>0.00</cbc:MultiplierFactorNumeric>
+            <cbc:Amount currencyID="COP">0.00</cbc:Amount>
+            <cbc:BaseAmount currencyID="COP">150000.00</cbc:BaseAmount>
+        </cac:AllowanceCharge>
+        <cac:TaxTotal>
+            <cbc:TaxAmount currencyID="COP">28500.00</cbc:TaxAmount>
+            <cac:TaxSubtotal>
+                <cbc:TaxableAmount currencyID="COP">150000.00</cbc:TaxableAmount>
+                <cbc:TaxAmount currencyID="COP">28500.00</cbc:TaxAmount>
+                <cac:TaxCategory>
+                    <cbc:Percent>19.00</cbc:Percent>
+                    <cac:TaxScheme>
+                        <cbc:ID>01</cbc:ID>
+                        <cbc:Name>IVA</cbc:Name>
+                    </cac:TaxScheme>
+                </cac:TaxCategory>
+            </cac:TaxSubtotal>
+        </cac:TaxTotal>
+        <cac:Item>
+            <cbc:Description>asdf</cbc:Description>
+            <cbc:BrandName>No Aplica</cbc:BrandName>
+            <cbc:ModelName>No Aplica</cbc:ModelName>
+            <cac:StandardItemIdentification>
+                <cbc:ID schemeID="001" schemeName="EAN13" schemeAgencyID="10">S141001</cbc:ID>
+            </cac:StandardItemIdentification>
+        </cac:Item>
+        <cac:Price>
+            <cbc:PriceAmount currencyID="COP">150000.00</cbc:PriceAmount>
+            <cbc:BaseQuantity unitCode="94">1.000000</cbc:BaseQuantity>
+        </cac:Price>
+    </cac:InvoiceLine>
+</Invoice>

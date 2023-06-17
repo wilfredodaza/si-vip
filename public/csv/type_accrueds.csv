@@ -1,0 +1,41 @@
+1	Salario	S	atributo	salary	NULL
+2	Auxilio de Transporte	AT	atributo	transportation_allowance	NULL
+3	 Hora Extra Diurna	HED	array	HEDs	NULL
+4	Hora Extra Nocturna	HEN	array	HENs	NULL
+5	Hora Recargo Nocturno	HRN	array	HRNs	NULL
+6	Hora Extra Diurna Dominical y Festivos	HEDDF	array	HEDDFs	NULL
+7	Hora Recargo Diurno Dominical y Festivos	HRDDF	array	HRDDFs	NULL
+8	Hora Extra Nocturna Dominical y Festivos	HENDF	array	HENDFs	NULL
+9	Hora Recargo Nocturno Dominical y Festivos	HRNDF	array	HRNDFs	NULL
+10	Viáticos, Manutención y  Alojamiento de Carácter Salaria	VMAS	atributo	salary_viatics	NULL
+11	Viáticos, Manutención y Alojamiento de carácter No Salarial	VMANS	atributo	non_salary_viatics	NULL
+12	Vacaciones Comunes	VC	array_no_percentage	common_vacation	NULL
+13	Vacaciones Compensadas	VCOM	array_no_percentage	paid_vacation	NULL
+14	Prima (Salarial)	PS	service_bonus	service_bonus	NULL
+16	Cesantias	CST	severance	severance	NULL
+17	Incapacidad	INC	array_no_percentage	work_disabilities	NULL
+18	Licencias de Maternidad	LIM	array_no_percentage	maternity_leave	NULL
+19	Licencias Remunerada	LRM	array_no_percentage	paid_leave	NULL
+20	Licencia No Remunerada	LNM	array_no_percentage	non_paid_leave	NULL
+21	Bonificación (Salarial)	BOS	array_atributos	bonuses	salary_bonus
+22	Bonificación (No Salarial)	BNS	array_atributos	bonuses	non_salary_bonus
+23	Auxilio (Salarial)	AUS	array_atributos	aid	salary_assistance
+24	Auxilio (No Salarial)	AUNS	array_atributos	aid	non_salary_assistance
+25	Huelgas Legal	HUL	array_no_percentage	legal_strike	NULL
+26	Otros conceptos (Salarial).	OCS	array_atributos	other_concepts	salary_concept
+27	Otros conceptos (No Salarial).	OCNS	array_atributos	other_concepts	non_salary_concept
+28	Compensación Ordinaría	CPO	array_atributos	compensations	ordinary_compensation
+29	Compensación Extraordinaria	CPE	array_atributos	compensations	extraordinary_compensation
+30	BonoEPCTV (Salarial)	BEPCS	array_atributos	epctv_bonuses	paymentS
+31	BonoEPCTV (No Salarial)	BEPCNS	array_atributos	epctv_bonuses	paymentNS
+32	Bono Alimentación (Salarial)	BAS	array_atributos	epctv_bonuses	salary_food_payment
+33	Bono Alimentación (No Salarial)	BANS	array_atributos	epctv_bonuses	non_salary_food_payment
+34	Comisiones	COM	array_atributos	commissions	commission
+35	Pago a Terceros	PT	array_atributos	third_party_payments	third_party_payment
+36	Anticipos	AN	array_atributos	advances	advance
+37	Dotación	DT	atributo	endowment	NULL
+38	Apoyo de Sostenimiento	APS	atributo	sustenance_support	NULL
+39	Teletrabajo	TT	atributo	telecommuting	NULL
+40	Bonificación de Retiro	BR	atributo	withdrawal_bonus	NULL
+41	Indemnización	IND	atributo	compensation	NULL
+42	Reintegro	RIT	atributo	refund	NULL

@@ -1,0 +1,4 @@
+1	Cargado	El documento se encuentra cargado.	yellow darken-4
+2	Pendiente	Pendiente por subir productos.	yellow darken-2
+3	OK	Factura validada con éxito.	green
+4	Error 	Factura con inconsistencias.	red

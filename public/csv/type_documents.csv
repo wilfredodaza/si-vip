@@ -1,0 +1,22 @@
+1	Factura de Venta Nacional	01	CUFE-SHA384	fv
+2	Factura de Exportación	02	CUFE-SHA384	fv
+3	Factura de Contingencia	03	CUDE-SHA384	fv
+4	Nota Crédito	91	CUDE-SHA384	nc
+5	Nota Débito	92	CUDE-SHA384	nd
+6	ZIP			z
+7	AttachedDocument	89		at
+8	ApplicationResponse	88	CUDE-SHA384	ar
+9	Nomina Electronica	1	CUFE-SHA384	ni
+10	Nomina Individual de Ajuste	2	CUNE-SHA384	na
+11	Nomina Individual de Ajuste	2	CUNE-SHA384	na
+12	Nomina Individual de Ajuste	2	CUNE-SHA384	na
+13	Nomina Individual de Ajuste	2	CUNE-SHA384	na
+100	Cotizador	100	COT	COT
+101	Factura de Venta Nacional Externa	101	CUFE-SHA384	fv
+102	Factura de Exportacion Externa	102	CUFE-SHA384	fv
+103	Nota Crédito Externa	104	CUDE-SHA384	nc
+104	Nota Débito Externa	105	CUDE-SHA384	nd
+105	Documento Soporte Compañia			sp
+106	Documento Soporte Proveedor			sp
+107	Entrada por Remisión	107	ERM	ERM
+108	Salida por Remisión	108	SRM	SRM

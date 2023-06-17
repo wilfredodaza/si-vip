@@ -1,0 +1,7 @@
+1	Super Admin	NULL	NULL	NULL	NULL	NULL	Por Defecto
+2	Administrador	NULL	NULL	NULL	NULL	NULL	Por Defecto
+3	Facturador	NULL	NULL	NULL	NULL	NULL	Por Defecto
+4	Solicitudes	NULL	NULL	NULL	NULL	NULL	Por Defecto
+5	Proveedor	NULL	NULL	NULL	NULL	NULL	Por Defecto
+6	Vendedor	NULL	NULL	NULL	NULL	NULL	Por Defecto
+7	Empleado	5	NULL	NULL	NULL	NULL	Por Defecto

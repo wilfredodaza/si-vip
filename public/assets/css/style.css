@@ -1,0 +1,88 @@
+/*-------------------------------------------------
+	Style file contain theme components style
+-------------------------------------------------*/
+
+@import url(https://fonts.googleapis.com/css?family=Muli:300,300i,400,400i,500,600);
+
+/* alert card */
+
+.card-alert .card-content {
+    padding: 10px 20px;
+    position: relative;
+}
+
+.card-alert i {
+    font-size: 20px;
+    position: relative;
+    top: -1px;
+    vertical-align: middle;
+}
+
+.card-alert .alert-circle {
+    position: relative;
+    top: 0;
+    right: -2px;
+    display: inline-block;
+    width: 40px;
+    vertical-align: bottom;
+    white-space: nowrap;
+    border-radius: 1000px;
+}
+
+.card-alert .single-alert {
+    line-height: 42px;
+}
+
+.card-alert button {
+    font-size: 20px;
+    position: absolute;
+    top: 5px;
+    right: 10px;
+    color: #fff;
+    border: none;
+    background: none;
+}
+
+.card-alert .card .card-content {
+    padding: 20px 20px 20px 40px;
+}
+
+.card-alert .card-action i {
+    top: 0;
+    margin: 0;
+}
+
+.gradient-45deg-purple-deep-orange {
+    background: -webkit-linear-gradient(45deg, #8e24aa, #ff6e40)!important;
+    background: linear-gradient(45deg, #8e24aa, #ff6e40)!important
+}
+
+.gradient-45deg-purple-deep-orange.gradient-shadow {
+    box-shadow: 0 6px 20px 0 rgba(255, 110, 64, .5)!important
+}
+
+.container-sprint-email,
+.container-sprint-send {
+    background: rgba(0, 0, 0, 0.51);
+    z-index: 2000;
+    position: absolute;
+    width: 100%;
+    top: 0px;
+    height: 100vh;
+    justify-content: center !important;
+    align-content: center !important;
+    flex-wrap: wrap;
+    display: none;
+}
+
+.dropzone {
+    border: #a53394 dashed 2px;
+    height: 160px !important;
+    min-height: 160px !important;
+    padding: 3px 20px;
+}
+
+.dropzone .dz-message {
+    margin-top: 0px;
+    margin-bottom: 0px;
+}
