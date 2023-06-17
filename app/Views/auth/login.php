@@ -29,7 +29,7 @@
                                 </div>
                             <?php endif; ?>
                                 <h5 class="ml-4 " style="text-align:center;">
-                                    Nevado<small> lab</small>
+                                    SIVIP<small>lab</small>
                                     
                                 </h5>
                             </div>
