@@ -56,8 +56,8 @@
                 <ul class="navbar-list left">
                     <li style="width: 100px;">
                         <h1 class="logo-wrapper">
-                            <a class="brand-logo darken-1" href="index.html" style="padding-top: 11px ; padding-bottom: 11px;">
-                                <img src="<?= base_url('') ?>" alt="materialize logo" style="height: 40px;">
+                            <a class="brand-logo darken-1" href="<?= base_url('home') ?>" style="padding-top: 11px ; padding-bottom: 11px;">
+                                <img src="<?= base_url('assets/img/logo.png') ?>" alt="SIVIP" style="height: 40px;">
                             </a>
                         </h1>
                     </li>
