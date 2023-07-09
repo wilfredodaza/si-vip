@@ -13,6 +13,7 @@ use App\Models\Wallet;
 use App\Traits\ResponseApiTrait;
 use App\Traits\ValidationsTrait2;
 use App\Models\Resolution;
+use App\Models\Product;
 use CodeIgniter\RESTful\ResourceController;
 
 class Invoice extends ResourceController
@@ -26,6 +27,8 @@ class Invoice extends ResourceController
 
     public function create()
     {
+        // $json = $this->request->getJSON();
+        // return $this->respond(['status' => 201, 'code' => 201, 'data' => $json], 500);
         $headquartersController = new HeadquartersController();
         $manager = $headquartersController->permissionManager(session('user')->role_id);
         $input = $this->getRequestInput($this->request);
@@ -48,10 +51,10 @@ class Invoice extends ResourceController
             'invoice_lines.*.free_of_charge_indicator'      => 'required',
             'invoice_lines.*.description'                   => 'required',
             'invoice_lines.*.price_amount'                  => 'required|decimal',
-  //          'invoice_lines.*.tax_totals.*.tax_id'           => 'required|is_not_unique[taxes.id]',
-   //         'invoice_lines.*.tax_totals.*.tax_amount'       => 'required|decimal',
-    //        'invoice_lines.*.tax_totals.*.percent'          => 'required|decimal',
-   //         'invoice_lines.*.tax_totals.*.taxable_amount'   => 'required|decimal',
+            //          'invoice_lines.*.tax_totals.*.tax_id'           => 'required|is_not_unique[taxes.id]',
+            //         'invoice_lines.*.tax_totals.*.tax_amount'       => 'required|decimal',
+                //        'invoice_lines.*.tax_totals.*.percent'          => 'required|decimal',
+            //         'invoice_lines.*.tax_totals.*.taxable_amount'   => 'required|decimal',
             'invoice_lines.*.allowance_charges.*'           => 'required',
             'invoice_lines.*.allowance_charges.*.amount'    => 'required|decimal',
             'legal_monetary_totals.line_extension_amount'   => 'required|decimal',
@@ -65,11 +68,12 @@ class Invoice extends ResourceController
             return $this->respondHTTP422();
         } else {
             $walletDiscount = 0;
-            if($manager){
-                $idCompany = $headquartersController->idSearchBodega();
-            }else{
-               $idCompany = Auth::querys()->companies_id;
-            }
+            // if($manager){
+            //     $idCompany = $headquartersController->idSearchBodega();
+            // }else{
+            //    $idCompany = Auth::querys()->companies_id;
+            // }
+            $idCompany = Auth::querys()->role_id == 15 ? 69 : Auth::querys()->companies_id; 
             $json = $this->request->getJSON();
             $model = new \App\Models\Invoice();
             $invoice = $model->insert([
@@ -90,6 +94,7 @@ class Invoice extends ResourceController
                 'invoice_status_id'         => 1,
                 'notes'                     => $json->notes,
                 'companies_id'              => $idCompany,
+                'company_destination_id'    => 3,
                 'idcurrency'                => $json->currency_id ?? 35,
                 'calculationrate'           => isset($json->currency_rate) ? (float) $json->currency_rate : 1,
                 'calculationratedate'       => $json->currency_rate_date ?? date('Y-m-d'),
@@ -104,12 +109,19 @@ class Invoice extends ResourceController
             $id = $invoice;
 
             foreach ($json->invoice_lines as $value) {
+                $productM = new Product();
+                $productAux = $productM
+                        ->select(['products.cost', 'products_details.cost_value'])
+                        ->where(['products.id' => $value->product_id,])
+                        ->join('products_details', 'products_details.id_product = products.id and products_details.status = "active"', 'left')
+                        ->asObject()->first();
                 $line = [
                     'invoices_id'           => $id,
                     'discount_amount'       => $value->allowance_charges[0]->amount,
                     'quantity'              => $value->invoiced_quantity,
                     'line_extension_amount' => (float) $value->line_extension_amount,
                     'price_amount'          => (float) $value->price_amount,
+                    'cost_amount'           => (float) $productAux->cost_value ? $productAux->cost_value : $productAux->cost,
                     'products_id'           => $value->product_id,
                     'description'           => $value->description,
                     'discounts_id'           => 1,
@@ -168,6 +180,7 @@ class Invoice extends ResourceController
         }
 
         $data                                           = [];
+        $data['id']                                     = $invoice->id;
         $data['prefix']                                 = $invoice->prefix;
         $data['number']                                 = $invoice->resolution;
         $data['resolution']                             = $invoice->resolution_id;

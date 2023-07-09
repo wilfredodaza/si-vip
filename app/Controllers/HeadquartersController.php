@@ -21,8 +21,8 @@ class HeadquartersController extends BaseController
 
     public function permissionManager($rol_id){
         $data = false;
-        $rol = $this->tableRoles->asObject()->find($rol_id);
-        if(strtolower($rol->name) == 'gerente'){
+        // $rol = $this->tableRoles->asObject()->find($rol_id);
+        if($rol_id == 1 || $rol_id == 15 || $rol_id == 17 || $rol_id == 18){
             $data = true;
         }
         return $data;

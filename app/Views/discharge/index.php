@@ -29,10 +29,10 @@
             <?php
             $balance = 0;
             $count = 0;
-            $collected = 0;
+            $collected = 0; 
 
             foreach ($total as $value):
-                $balance += $value->payable_amount - ($value->withholdings + $value->balance);
+                $balance += $value->payable_amount; // - ($value->withholdings + $value->balance);
                 $collected += $value->balance;
                 $count += 1;
             endforeach;
@@ -221,7 +221,7 @@
                     </div>
                     <div class="col s12 m6 input-field">
                         <label for="headquarters" class="active">Sedes</label>
-                        <select class="select2 browser-default" name="headquarters" id="headquarters">
+                        <select class="select2 browser-default" name="headquarters_providers" id="headquarters">
                             <option value="">Seleccione ...</option>
                             <?php foreach ($headquarters as $item): ?>
                                 <option value="<?= $item->id ?>"><?= $item->company ?></option>

@@ -7,8 +7,8 @@
             <div class="container">
                 <div class="row">
                     <div class="col s12">
-                        <?= $this->include('layouts/alerts') ?>
-                        <?= $this->include('layouts/notification') ?>
+                        <!--  //$this->include('layouts/alerts') ?> -->
+                        <!--  // $this->include('layouts/notification') ?> -->
                     </div>
                     <div class="col s10 m12 l12 breadcrumbs-left">
                         <h5 class="breadcrumbs-title mt-0 mb-0 display-inline hide-on-small-and-down ">

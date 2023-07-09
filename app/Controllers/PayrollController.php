@@ -10,7 +10,9 @@ use App\Models\Customer;
 use App\Models\LineInvoice;
 use App\Models\LineInvoiceTax;
 use App\Models\Payroll;
+use App\Models\Wallet;
 use App\Models\Product;
+use App\Models\PaymentMethod;
 use App\Traits\PayrollTrait;
 use App\Traits\RequestAPITrait;
 use App\Traits\ValidateResponseAPITrait;
@@ -374,43 +376,81 @@ class  PayrollController extends BaseController
         ];
         $customer = (object)[];
         $seller = 0;
-        $month = 0;
-        $year = 0;
+        $month = $this->request->getGet('date') ? $this->request->getGet('date') : 0;
+        $year = $this->request->getGet('year') ? $this->request->getGet('year') : 0;
 
         if ($this->request->getGet('customer')) {
             $seller = $this->request->getGet('customer');
             $customer = $tableCustomers
                 ->select(['customers.name', 'customers.phone', 'customers.address', 'customers.status', 'customer_worker.salary'])
-                ->join('customer_worker', 'customers.id = customer_worker.customer_id')
+                ->join('customer_worker', 'customers.id = customer_worker.customer_id', 'left')
                 ->where(['customers.id' => $this->request->getGet('customer')])->asObject()->first();
         }
-        if ($this->request->getGet('date')) {
-            $month = $this->request->getGet('date');
-        }
-        if ($this->request->getGet('year')) {
-            $year = $this->request->getGet('year');
+
+        $data = $invoices
+        ->select([
+            'invoices.id',
+            'invoices.payment_due_date',
+            'invoices.notes',
+            'invoices.payable_amount',
+            'SUM(COALESCE(wallet.value, 0)) as valor_pagado',
+            'invoices.payable_amount - SUM(COALESCE(wallet.value, 0)) as balance'
+        ])
+        ->where([
+            'type_documents_id' => 118,
+            'seller_id' => $this->request->getGet('customer'),
+            'status_wallet' => 'Pendiente'
+        ])
+        ->join('wallet', 'invoices.id = wallet.invoices_id', 'left')
+        ->groupBy('invoices.id')
+        ->asObject()->get()->getResult();
+
+        foreach ($data as $key => $value) {
+            $value->line_invoice = $invoices->getLineInvoices($value->id);
+            foreach ($value->line_invoice as $key => $detail) {
+                $detail->payroll = false;
+                if(count($value->line_invoice) > 1){
+                    $detail->value_payroll = $detail->nomina == 'no' ? (int) -$detail->price_amount : (int) $detail->price_amount;
+                }else{
+                    $detail->value_payroll = $detail->nomina == 'no' ? (int) -$value->balance : (int) $value->balance;
+                }
+            }
         }
 
+        // var_dump($data); die();
+
         $db = db_connect();
-        $sql = 'SELECT invoices.created_at, invoices.id,payable_amount as total,products.name as product_name,line_invoices.start_date,line_invoices.line_extension_amount FROM line_invoices INNER JOIN invoices ON invoices.id = line_invoices.invoices_id INNER JOIN products ON products.id = line_invoices.products_id INNER JOIN category ON products.category_id = category.id WHERE invoices.type_documents_id = :id: AND MONTH(invoices.created_at) = :m: AND YEAR(invoices.created_at) = :y: AND  invoices.seller_id = :seller: AND category.payroll = "si"';
-        $data = $db->query($sql, [
-            'id' => 118,
-            'm' => $month,
-            'y' => $year,
-            'seller' => $this->request->getGet('customer')
-        ])->getResultObject();
-        // echo json_encode($data[0]->start_date);die();
+        $sql = 'SELECT invoices.created_at, invoices.id,payable_amount as total,products.name as product_name,line_invoices.start_date,line_invoices.line_extension_amount FROM line_invoices INNER JOIN invoices ON invoices.id = line_invoices.invoices_id INNER JOIN products ON products.id = line_invoices.products_id INNER JOIN category ON products.category_id = category.id WHERE invoices.type_documents_id = :id: AND invoices.status_wallet = "Pendiente" AND  invoices.seller_id = :seller: AND category.payroll = "si"';
+        // $data = $db->query($sql, )->getResultObject();
+        // echo json_encode($data);die();
         $customers = $tableCustomers->whereIn('type_customer_id', [3, 4])->asObject()->get()->getResult();
+        
         //$data = $invoices->where($querys)->asObject()->get()->getResult();
+        $companyM = new Company();
+        $controllerHeadquarters = new HeadquartersController();
+        $headquarters = $companyM
+                    ->select('companies.id, companies.company')
+                    ->whereIn('id', $controllerHeadquarters->idsCompaniesHeadquarters())
+                    ->asObject()->get()->getResult();
 
         if (count($data) == 0) {
             $data = [];
         }
+        // var_dump($data); die();
+
+        $paymentMethodM = new PaymentMethod();
+        $paymentMethod = $paymentMethodM->asObject()->get()->getResult();
+
+        // $paymentMethodCompanys = new AccountingAcount();
+        // $paymentMethod = $paymentMethodCompanys
+        // ->where(['companies_id' => Auth::querys()->companies_id, 'type_accounting_account_id' => 5])->asObject()->get()->getResult();
         return view('payroll/payroll', [
             'customers' => $customers,
             'customer' => $customer,
             'data' => $data,
-            'months' => $this->months()
+            'months' => $this->months(),
+            'sedes' => $headquarters,
+            'paymentMethod' => $paymentMethod
         ]);
     }
 
@@ -438,8 +478,9 @@ class  PayrollController extends BaseController
      * @param $valor
      * @return \CodeIgniter\HTTP\RedirectResponse
      */
-    public function createClosePayroll($seller, $valor)
+    public function createClosePayroll()//$seller, $valor
     {
+        $requests = $this->request->getJSON();
         try {
             $model = new Invoice();
             $categories = new Category();
@@ -466,25 +507,28 @@ class  PayrollController extends BaseController
             } else {
                 throw  new \Exception('No Existe categoria tipo nomina');
             }
+            
             $invoiceId = $model->insert([
                 'type_documents_id' => 118,
                 'invoice_status_id' => 8,
                 'companies_id' => Auth::querys()->companies_id,
                 'customers_id' => null,
-                'seller_id' => $seller,
+                'seller_id' => $requests->customer,
                 'payment_forms_id' => 1,
-                'payment_methods_id' => 10,
+                'payment_methods_id' => $requests->payment_method_id,
                 'payment_due_date' => date('Y-m-d'),
                 'duration_measure' => 0,
-                'line_extesion_amount' => $valor,
-                'tax_exclusive_amount' => $valor,
-                'tax_inclusive_amount' => $valor,
+                'line_extesion_amount' => ((int)$requests->salary + (int)$requests->expense),
+                'tax_exclusive_amount' => ((int)$requests->salary + (int)$requests->expense),
+                'tax_inclusive_amount' => ((int)$requests->salary + (int)$requests->expense),
                 'allowance_total_amount' => 0,
                 'charge_total_amount' => 0,
                 'notes' => 'Pago nomina',
                 'pre_paid_amount' => 0,
-                'payable_amount' => $valor,
+                'status_wallet' => 'Paga',
+                'payable_amount' => ((int)$requests->salary + (int)$requests->expense),
             ]);
+
             if (!isset($invoiceId)) {
                 throw  new \Exception('Inconveniente al crear gasto');
             }
@@ -494,29 +538,75 @@ class  PayrollController extends BaseController
                 'products_id' => $id_product,
                 'discount_amount' => (double)0,
                 'quantity' => 1,
-                'line_extension_amount' => (double)$valor,
-                'price_amount' => (double)$valor,
+                'line_extension_amount' => (double)$requests->salary,
+                'price_amount' => (double)$requests->salary,
                 'description' => 'Pago Nomina',
                 'type_generation_transmition_id' => null,
-                'start_date' => date('Y-m-d')
+                'start_date' => date('Y-m-d'),
             ]);
+            
+            
             if (!isset($lineInvoiceId)) {
                 throw  new \Exception('Inconveniente al crear linea de gasto');
             }
-            $model = new LineInvoiceTax();
-            if ($model->insert([
-                'line_invoices_id' => $lineInvoiceId,
-                'taxes_id' => 1,
-                'tax_amount' => 0,
-                'taxable_amount' => $valor,
-                'percent' => 0
-            ])) {
+            // $model = new LineInvoiceTax();
+            // if ($model->insert([
+            //     'line_invoices_id' => $lineInvoiceId,
+            //     'taxes_id' => 1,
+            //     'tax_amount' => 0,
+            //     'taxable_amount' => (int)$requests->salary,
+            //     'percent' => 0
+            // ])) {
+                foreach ($requests->detail as $key => $detail) {
+                    $lineInvoices = new LineInvoice();
+                    $lineInvoiceId = $lineInvoices->insert([
+                        'invoices_id' => $invoiceId,
+                        'discounts_id' => 1,
+                        'products_id' => $detail->products_id,
+                        'discount_amount' => (double)0,
+                        'quantity' => $detail->quantity,
+                        'line_extension_amount' => (double)$detail->value_payroll,
+                        'price_amount' => (double)$detail->value_payroll,
+                        'description' => $detail->description,
+                        'type_generation_transmition_id' => null,
+                        'start_date' => date('Y-m-d'),
+                    ]);
+                    if (!isset($lineInvoiceId)) {
+                        throw  new \Exception('Inconveniente al crear linea de gasto');
+                    }
+
+                    if((double)$detail->price_amount == ((double) $detail->value_payroll > 0 ? (double) $detail->value_payroll : (double) -$detail->value_payroll)) {
+                        $lineInvoices->save(['id' => $detail->id, 'payroll' => true]);
+                    }
+
+                    $walletM = new Wallet();
+                    $walletM->save([
+                        'invoices_id' => $detail->invoices_id,
+                        'payment_method_id' => $requests->payment_method_id,
+                        'description' => $detail->description ? "Pago: $detail->name [$detail->description]" : "Pago: $detail->name",
+                        'value' => (double) $detail->value_payroll > 0 ? (double) $detail->value_payroll : (double) -$detail->value_payroll,
+                        'user_id' => Auth::querys()->id
+                    ]);
+
+
+                    // $model = new LineInvoiceTax();
+                    // $model->insert([
+                    //     'line_invoices_id' => $lineInvoiceId,
+                    //     'taxes_id' => 1,
+                    //     'tax_amount' => 0,
+                    //     'taxable_amount' => (int)$detail->value_payroll,
+                    //     'percent' => 0
+                    // ]);
+
+                }
+                return $this->respond($requests);
                 return redirect()->to(base_url("payrolls?customer={$seller}&date={$_POST['date']}&year={$_POST['year']}"))->with('success', 'Nomina pagada con exito');
-            } else {
-                throw  new \Exception('Inconveniente al realizar proceso de pagar nomina');
-            }
+            // } else {
+            //     throw  new \Exception('Inconveniente al realizar proceso de pagar nomina');
+            // }
 
         } catch (\Exception $e) {
+            return $this->respond([$e->getMessage()], 200);
             return redirect()->to(base_url("payrolls?customer={$seller}&date={$_POST['date']}&year={$_POST['year']}"))->with('errors', $e->getMessage());
         }
 
@@ -544,7 +634,7 @@ class  PayrollController extends BaseController
                 'kind_product_id' => 3,
                 'entry_credit' => array_keys($this->_getAccountingAccount(1, 'Crédito'))[0],
                 'entry_debit' => array_keys($this->_getAccountingAccount(1, 'Débito'))[0],
-                'retefuente' =>array_keys($this->_getAccountingAccount(3))[0],
+                'retefuente' => array_keys($this->_getAccountingAccount(3))[0],
                 'reteica' => array_keys($this->_getAccountingAccount(3))[0],
                 'reteiva' => array_keys($this->_getAccountingAccount(3))[0],
                 'account_pay' => array_keys($this->_getAccountingAccount(4))[0],

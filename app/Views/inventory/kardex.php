@@ -63,7 +63,7 @@
                                 <span><strong>Producto:</strong> <?= $product->name ?> - <?= $product->tax_iva ?></span>
                                 <div id="kardex" class="col s12 section-data-tables">
                                     <table class="display" id="table_kardex">
-                                        <thead>
+                                        <!-- <thead>
                                         <tr style="padding-bottom: 30px !important">
                                             <th>Fecha</th>
                                             <th class="center">Tipo de Movimiento</th>
@@ -77,7 +77,7 @@
                                         </tr>
                                         </thead>
                                         <tbody>
-                                        </tbody>
+                                        </tbody> -->
                                     </table>
                                 </div>
                             </div>
@@ -109,15 +109,16 @@
             },
             "order": [[ 0, 'desc' ]],
             "columns": [
-                {data: 'created_at'},
-                {data: 'type_document_name'},
-                {data: 'resolution'},
-                {data: 'source'},
-                {data: 'destination'},
-                {data: 'input'},
-                {data: 'out'},
-                {data: 'balance'},
-                {data: 'customerOrProvider'},
+                {data: 'invoice_id', title: 'id'},
+                {data: 'created_at', title: 'Fecha'},
+                {data: 'type_document_name', title:'Tipo de Movimiento'},
+                {data: 'resolution', title:'Resolución'},
+                {data: 'source', title:'Origen'},
+                {data: 'destination', title:'Destino'},
+                {data: 'input', title:'Entrada'},
+                {data: 'out', title:'Salida'},
+                {data: 'balance', title:'Saldo'},
+                {data: 'customerOrProvider', title:'Cliente Proveedor'},
             ],
             "responsive": false,
             "scrollX": true,

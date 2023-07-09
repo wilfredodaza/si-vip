@@ -177,7 +177,7 @@ class TableController extends BaseController
                     $this->crud->fieldType('status', 'dropdown_search', ['Activo' => 'Activo', 'Inactivo' => 'Inactivo']);
                     $this->crud->fieldType('headquarters_id', 'hidden');
                     $rol = $this->headquartersController->permissionManager(session('user')->role_id);
-                    if(!$rol){
+                    if(!$rol || session('user')->role_id == 18){
                         $this->crud->unsetExport();
                         $this->crud->unsetPrint();
                     }else{
@@ -204,6 +204,8 @@ class TableController extends BaseController
                         $data->data['phone'] = $this->_clearNumber($data->data['phone']);
                         $data->data['dv'] = $this->calcularDV($data->data['identification_number']);
                         $data->data['status'] = 'Activo';
+                        // $errorMessage = new \GroceryCrud\Core\Error\ErrorMessage();
+                        // return $errorMessage->setMessage(json_encode($data->data));
                         return $data;
                     });
                     $this->crud->callbackBeforeUpdate(function ($data) {
@@ -267,18 +269,41 @@ class TableController extends BaseController
                 case 'accounting_account':
                     $this->crud->displayAs(lang('accounting_account.columns'));
                     $this->crud->setRelation('companies_id', 'companies', 'company');
-                    $this->crud->setRelation('type_accounting_account_id', 'type_accounting_account', 'name');
                     $this->crud->fieldType('updated_at', 'hidden');
-                    if (session('user')->role_id == 2 || session('user')->role_id >= 3) {
+                    if(session('user')->role_id == 15){
+                        $this->crud->setRelation('type_accounting_account_id', 'type_accounting_account', 'name', ['id' => '5']);
+                        // $this->crud->where(['type_accounting_account_id' => 5]);
                         $this->crud->fieldType('companies_id', 'hidden');
                         $this->crud->fieldType('created_at', 'hidden');
-                        $this->crud->unsetColumns(['companies_id']);
-                        $this->crud->where(['companies_id' => session('user')->companies_id]);
+                        $this->crud->fieldType('type_accounting_account_id', 'hidden');
+                        $this->crud->columns(['name', 'code', 'type_entry', 'status']);
+                        // $this->crud->unsetColumns(['companies_id','type_accounting_account_id','percent', 'nature', 'created_at', 'updated_at']);
+                        $this->crud->unsetAddFields(['percent', 'nature']);
+                        $this->crud->unsetEditFields(['companies_id','type_accounting_account_id', 'percent', 'nature']);
+                        $this->crud->fieldType('type_entry', 'dropdown_search', [
+                            '0' => 'Efectivo',
+                            '1' => 'Transferencia'
+                        ]);
+                        // $crud->unsetAddFields(['salesRepEmployeeNumber','creditLimit']);
                         $this->crud->callbackAddForm(function ($data) {
+                            $data['type_accounting_account_id'] = 5;
                             $data['companies_id'] = session('user')->companies_id;
                             $data['created_at'] = date('Y-m-d H:m:i');
+                            $data['updated_at'] = date('Y-m-d H:m:i');
                             return $data;
                         });
+                    }else{
+                        if (session('user')->role_id == 2 || session('user')->role_id >= 3) {
+                            $this->crud->fieldType('companies_id', 'hidden');
+                            $this->crud->fieldType('created_at', 'hidden');
+                            $this->crud->unsetColumns(['companies_id']);
+                            $this->crud->where(['companies_id' => session('user')->companies_id]);
+                            $this->crud->callbackAddForm(function ($data) {
+                                $data['companies_id'] = session('user')->companies_id;
+                                $data['created_at'] = date('Y-m-d H:m:i');
+                                return $data;
+                            });
+                        }
                     }
 
                     break;
@@ -532,7 +557,7 @@ class TableController extends BaseController
                     //$this->crud->where('type_customer_id IN(1,2)');
                     if (session('user')->role_id == 2 || session('user')->role_id >= 3) {
                         //$this->crud->unsetColumns(['companies_id']);
-                        if ($rol) {
+                        if ($rol || session('user')->role_id == 16) {
                             $idCompanies = $this->headquartersController->idsCompaniesHeadquarters();
                             $this->crud->where('companies_id IN(' . implode(",", $idCompanies) . ')');
                             $this->crud->where(['type_customer_id' => 3]);
@@ -734,7 +759,7 @@ class TableController extends BaseController
                         } else {
                             $this->crud->where(['companies_id' => session('user')->companies_id]);
                         }
-                        $this->crud->where(['type_customer_id' => 2, 'headquarters_id' => null]);
+                        $this->crud->where('type_customer_id IN(2)');
                         $this->crud->fieldType('companies_id', 'hidden');
                         $this->crud->callbackAddForm(function ($data) {
                             $data['companies_id'] = session('user')->companies_id;
@@ -746,7 +771,7 @@ class TableController extends BaseController
                         if ($rol) {
                             $idCompanies = $this->headquartersController->idsCompaniesHeadquarters();
                             $this->crud->where('companies_id IN(' . implode(",", $idCompanies) . ')');
-                            $this->crud->where(['type_customer_id' => 2, 'headquarters_id' => null]);
+                            $this->crud->where('type_customer_id IN(2)');
                         }
                         $this->crud->callbackAddForm(function ($data) {
                             $data['merchant_registration'] = '00000';

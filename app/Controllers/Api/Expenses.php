@@ -11,6 +11,7 @@ use CodeIgniter\RESTful\ResourceController;
 use App\Models\Invoice;
 use App\Models\Company;
 use App\Models\Customer;
+use App\Models\AccountingAcount;
 
 class Expenses extends ResourceController
 {
@@ -76,15 +77,19 @@ class Expenses extends ResourceController
     public function create()
     {
         $data = $this->request->getJSON();
+        $account = new AccountingAcount();
+        $account = $account->where(['id' => $data->payment_form->payment_method_id])->asObject()->first();
+        // return $this->respond($data);
         $model = new Invoice();
         $invoiceId = $model->insert([
             'type_documents_id'         => 118,
             'invoice_status_id'         => 8,
             'companies_id'              => Auth::querys()->companies_id,
-            'customers_id'              => $data->customer_id,
+            'company_destination_id'    => Auth::querys()->companies_id,
             'seller_id'                 => $data->seller_id,
+            'user_id'                   => Auth::querys()->id,
             'payment_forms_id'          => 1,
-            'payment_methods_id'        => 10,
+            'payment_methods_id'        => $account->type_entry == 0 ? 10:47,
             'payment_due_date'          => $data->payment_form->payment_due_date,
             'duration_measure'          => $data->payment_form->duration_measure,
             'line_extesion_amount'      => $data->legal_monetary_totals->line_extension_amount,
@@ -113,16 +118,16 @@ class Expenses extends ResourceController
                 'start_date'                        => $line->start_date
             ]);
 
-            foreach ($line->tax_totals as $tax) {
-                $model = new LineInvoiceTax();
-                $model->insert([
-                    'line_invoices_id'      => $lineInvoiceId,
-                    'taxes_id'              => $tax->tax_id,
-                    'tax_amount'            => $tax->tax_amount,
-                    'taxable_amount'        => $tax->taxable_amount,
-                    'percent'               => $tax->percent
-                ]);
-            }
+            // foreach ($line->tax_totals as $tax) {
+            //     $model = new LineInvoiceTax();
+            //     $model->insert([
+            //         'line_invoices_id'      => $lineInvoiceId,
+            //         'taxes_id'              => $tax->tax_id,
+            //         'tax_amount'            => $tax->tax_amount,
+            //         'taxable_amount'        => $tax->taxable_amount,
+            //         'percent'               => $tax->percent
+            //     ]);
+            // }
         }
 
         //$this->createDocument($invoiceId, null , true);
@@ -205,14 +210,15 @@ class Expenses extends ResourceController
     public function update($id =null )
     {
         $data = $this->request->getJSON();
+        $account = new AccountingAcount();
+        $account = $account->where(['id' => $data->payment_form->payment_method_id])->asObject()->first();
         $model = new Invoice();
         $invoiceId = $model
             ->set('notes', $data->notes)
             ->set('type_documents_id', 118)
-            ->set('customers_id', $data->customer_id)
             ->set('seller_id', (empty($data->seller_id) || $data->seller_id == 0)? null :$data->seller_id)
             ->set('payment_forms_id',$data->payment_form->payment_form_id)
-            ->set('payment_methods_id', $data->payment_form->payment_method_id)
+            ->set('payment_methods_id',$account->type_entry == 0 ? 10:47)
             ->set('payment_due_date', $data->payment_form->payment_due_date)
             ->set('duration_measure', $data->payment_form->duration_measure)
             ->set('line_extesion_amount', $data->legal_monetary_totals->line_extension_amount)

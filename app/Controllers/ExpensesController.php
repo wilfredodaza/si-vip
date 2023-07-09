@@ -60,7 +60,8 @@ class ExpensesController extends BaseController
             ->select([
                 'invoices.created_at',
                 'invoices.id',
-                'customers.name as  customer',
+                'companies.company',
+                'IFNULL(users.name, usr.name) as customer',
                 'payable_amount as total',
                 'invoice_status.name as status',
                 'invoices.invoice_status_id',
@@ -73,10 +74,12 @@ class ExpensesController extends BaseController
                 'line_invoices.line_extension_amount'
             ])
             ->join('invoices', 'invoices.id = line_invoices.invoices_id')
-            ->join('customers', 'customers.id = invoices.customers_id', 'left')
+            ->join('users', 'users.id = invoices.seller_id', 'left')
+            ->join('users as usr', 'usr.id = invoices.user_id', 'left')
             ->join('invoice_status', 'invoice_status.id = invoices.invoice_status_id', 'left')
             ->join('type_documents', 'type_documents.id = invoices.type_documents_id', 'left')
             ->join('products', ' products.id = line_invoices.products_id', 'left')
+            ->join('companies', 'companies.id = invoices.company_destination_id', 'left')
             ->where(['invoices.type_documents_id' => 118])
             ->where($querys);
         // var_dump($invoices->get()->getResult());die();

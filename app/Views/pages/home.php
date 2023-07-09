@@ -56,8 +56,10 @@
                 <ul class="navbar-list left">
                     <li style="width: 100px;">
                         <h1 class="logo-wrapper">
-                            <a class="brand-logo darken-1" href="<?= base_url('home') ?>" style="padding-top: 11px ; padding-bottom: 11px;">
-                                <img src="<?= base_url('assets/img/logo.png') ?>" alt="SIVIP" style="height: 40px;">
+
+                            <a class="brand-logo darken-1" href="index.html">
+                                <?= configInfo()['name_app'] ?>
+
                             </a>
                         </h1>
                     </li>
@@ -70,11 +72,11 @@
                             </a>
                         </li>-->
                     <?php endif; ?>
-                    <li class="hide-on-med-and-down">
+                    <!-- <li class="hide-on-med-and-down">
                         <a class="waves-effect waves-block waves-light module" data-url="<?= base_url('table/customers') ?>"  data-position="12" href="#"  style="height: 64px;">
                             <i class="material-icons">settings</i>
                         </a>
-                    </li>
+                    </li> -->
                     <li>
                         <a class="waves-effect waves-block waves-light notification-button" href="javascript:void(0);" data-target="notifications-dropdown">
                             <i class="material-icons">notifications_none
@@ -177,7 +179,9 @@
         <div class="row center">
             <?php foreach($modules as $module): ?>
                 <?php if($module->status == "Active"): ?>
-                <a href="#"  data-url="<?= $module->url != '=soporte' ? base_url($module->url) : 'https://lonoo.co/support.php' ?>" class="module" data-position="<?= $module->id ?>">
+                    <?php ?>
+                    <?php ?>
+                <a href="#"  data-url="<?= base_url('menu') ?>" class="module" data-position="<?= $module->id ?>">
                     <div class="col s6 m3 l2" >
                         <div class="card">
                             <div class="card-content">

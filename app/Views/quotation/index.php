@@ -54,7 +54,7 @@
                                     <?php foreach ($invoices as $item): ?>
                                         <tr>
                                             <td class="center"><?= $item['resolution'] ?>
-                                            <td class="center"><?= $item['created_at'] ?></td>
+                                            <td class="center"><?= $item['invoice_created'] ?></td>
                                             <td class="center"><?= ucwords($item['customer']) ?></td>
                                             <td class="center" width="100px">
                                                 $ <?= number_format($item['payable_amount'], '0', '.', '.') ?>
@@ -78,11 +78,13 @@
                                                       data-position="top"
                                                        data-tooltip="Descargar cotización" target="_blank"
                                                     ><i class="material-icons">insert_drive_file</i></a>
-                                                    <a href="<?= base_url() ?>/quotation/edit/<?= $item['id_invoice'] ?>"
-                                                       class="btn btn-small yellow darken-2 tooltipped"
-                                                       data-position="top"
-                                                       data-tooltip="Editar factura"><i
-                                                                class="material-icons">create</i></a>
+                                                    <?php if($item['invoice_status_id'] != 6): ?>
+                                                        <a href="<?= base_url() ?>/quotation/edit/<?= $item['id_invoice'] ?>"
+                                                        class="btn btn-small yellow darken-2 tooltipped"
+                                                        data-position="top"
+                                                        data-tooltip="Editar factura"><i
+                                                                    class="material-icons">create</i></a>
+                                                    <?php endif ?>
                                                     <a href="<?= base_url() ?>/quotation/email/<?= $item['id_invoice'] ?>"
                                                        class="btn btn-small tooltipped email  blue darken-1"
                                                        data-position="top" data-tooltip="Enviar correo electrónico">

@@ -30,11 +30,11 @@
                                 </span>
                         </a>
                     </li>
-                    <li class="hide-on-med-and-down">
+                    <!-- <li class="hide-on-med-and-down">
                         <a class="waves-effect waves-block waves-light module" data-url="<?= session('module') != 12 ? base_url('table/customers') : $_SERVER['HTTP_REFERER'] ?>"  data-position="<?= session('module') != 12 ? 12 : session('module_after')?>" href="#"  style="height: 64px;">
                             <?php if(session('module') != 12): ?><i class="material-icons">settings</i><?php else: ?><i class="material-icons">keyboard_return</i><?php endif; ?>
                         </a>
-                    </li>
+                    </li> -->
                     <li>
                         <a class="waves-effect waves-block waves-light notification-button" href="javascript:void(0);" data-target="notifications-dropdown">
                             <i class="material-icons">notifications_none
@@ -67,7 +67,7 @@
                     <?php foreach (notification('companies') as $item): ?>
                         <?php  if($item->view != 'true'): ?>
                             <li class="notification-active"  data-id="<?= $item->id ?>">
-                                <a class="black-text" href="#">
+                                <a class="black-text" href="#"> 
                                     <span class="material-icons icon-bg-circle <?= $item->color ?> small"><?= $item->icon ?></span> <?= $item->title ?>
                                 </a>
                                 <time class="media-meta grey-text darken-2 " datetime="2015-06-12T20:50:48+08:00"><?= strip_tags($item->body) ?> <br>

@@ -45,15 +45,15 @@
                     <div class="col s12 m6 l6">
                         <div class="card padding-4 animate fadeLeft shop">
                             <div class="row">
-                                <div class="col s6 align-items-center" id="indicador-<?= $indicador->id ?>">
-                                    <h4 class="mb-0"><?= '$ '.number_format(($indicador->total), '2', ',', '.') ?></h4>
+                                <div class="col s9 align-items-center" id="indicador-<?= $indicador->id ?>">
+                                    <h5 class="mb-0"><?= '$ '.number_format(($indicador->total), '0', ',', '.') ?></h5>
                                     <p class="no-margin"><?= $indicador->name ?></p>
                                     <!-- <p class="mb-0 pt-8 tooltipped" data-position="bottom" data-delay="50" data-html="true" data-tooltip="  <i class='material-icons text-green green-text tiny'>brightness_1</i> 2 Por vencerse
                                     <br><i class='material-icons text-yellow yellow-text tiny'>brightness_1</i> 0 Por vencerse
                                     <br><i class='material-icons text-red red-text tiny'>brightness_1</i> 1 Por vencerse "> <strong> 3 </strong> por vencer <i class="material-icons text-red red-text tiny">brightness_1</i></p> -->
                                 </div>
 
-                                <div class="col s6 icon align-items-center">
+                                <div class="col s3 icon align-items-center">
                                     <i class="material-icons <?= $indicador->color ?> background-round mt-5 white-text"><?= $indicador->icon ?></i>
                                 </div>
                             </div>

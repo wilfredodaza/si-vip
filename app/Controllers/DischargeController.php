@@ -59,7 +59,7 @@ class DischargeController extends WalletController
 
         //sedes
         $companies = new Company();
-        $headquarters = $companies->whereIn('id', $this->controllerHeadquarters->idsCompaniesHeadquarters())->where(['id !=' => 1])->asObject()->get()->getResult();
+        $headquarters = $companies->whereIn('id', $this->controllerHeadquarters->idsCompaniesHeadquarters())->where(['headquarters_id !=' => 1])->asObject()->get()->getResult();
         //
         $invoicesPay = new Invoice();
         $paysInvoices = $this->getPaysInvoices($invoicesPay);
@@ -71,12 +71,12 @@ class DischargeController extends WalletController
             '(SELECT IFNULL(SUM(tax_amount), 0) FROM line_invoices INNER JOIN line_invoice_taxs ON line_invoice_taxs.line_invoices_id  =  line_invoices.id WHERE line_invoices.invoices_id = invoices.id AND line_invoice_taxs.taxes_id IN (5,6,7) GROUP BY line_invoices.invoices_id) AS withholdings'
         ]);
         if ($this->manager) {
-            $total->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
+            $total->whereIn('invoices.company_destination_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
         } else {
-            $total->where('invoices.companies_id', Auth::querys()->companies_id);
+            $total->where('invoices.company_destination_id', Auth::querys()->companies_id);
         }
 
-        $total->whereIn('invoices.type_documents_id', [11, 105, 106, 107, 118])
+        $total->whereIn('invoices.type_documents_id', [11, 105, 106, 107])
             ->where('invoices.deleted_at', null);
 
         $this->extracted($total);
@@ -85,6 +85,8 @@ class DischargeController extends WalletController
             ->groupBy('invoices.id')
             ->asObject();
 
+        // var_dump($total->get()->getResult());die();
+
         //echo json_encode($total->get()->getResult());die();
 
         $model = new Invoice();
@@ -92,12 +94,12 @@ class DischargeController extends WalletController
         array_push($select, 'companies.company as nameCompany');
         $data = $model->select($select)
             ->join('customers', 'customers.id = invoices.customers_id')
-            ->join('companies', 'companies.id = invoices.companies_id')
-            ->whereIn('invoices.type_documents_id', [11, 105, 106, 107, 118]);
+            ->join('companies', 'companies.id = invoices.company_destination_id')
+            ->whereIn('invoices.type_documents_id', [11, 105, 106, 107]);
         if ($this->manager) {
-            $data->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
+            $data->whereIn('invoices.company_destination_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
         } else {
-            $data->where('invoices.companies_id', Auth::querys()->companies_id);
+            $data->where('invoices.company_destination_id', Auth::querys()->companies_id);
         }
         $data->where('invoices.deleted_at', null)
             ->orderBy('invoices.created_at', 'DESC');
@@ -227,7 +229,8 @@ class DischargeController extends WalletController
             'payment_method_id' => $payment,
             'invoices_id' => $this->request->uri->getSegment(3),
             'created_at' => date("Y-m-d H:i:s"),
-            'user_id' => Auth::querys()->id
+            'user_id' => Auth::querys()->id,
+            'companies_id' => Auth::querys()->companies_id,
         ];
         if (isset($validate[1])) {
             $data['invoices_pay'] = $payment;

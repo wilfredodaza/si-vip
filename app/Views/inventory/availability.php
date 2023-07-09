@@ -67,7 +67,7 @@
                                         Quitar Filtro
                                     </a>
                                 <?php endif; ?>
-                                <button <?= (!$manager) ? 'disabled' : '' ?> data-target="filter"
+                                <button data-target="filter"
                                                                              style="margin-left: 5px;"
                                                                              class="right btn btn-small btn-light-indigo modal-trigger step-5 active-red">
                                     Filtrar <i class="material-icons right">filter_list</i>
@@ -82,9 +82,10 @@
                             </p>
                             <div class="row">
                                 <div class="col s12">
-                                    <table>
+                                    <table class="centered">
                                         <thead>
                                         <tr>
+                                            <th>Código</th>
                                             <th>Productos</th>
                                             <th class="center">Entradas</th>
                                             <th class="center">Salidas</th>
@@ -100,6 +101,7 @@
                                             // $available = ($item->availability_input + $item->availability_input_transfer) - ($item->availability_output + $item->availability_output_transfer);
                                             ?>
                                             <tr>
+                                                <td><?= $item->code ?></td>
                                                 <td><?= $item->name ?> - <?= $item->tax_iva ?></td>
                                                 <td class="center"><?= $input ?></td>
                                                 <td class="center"><?= $output ?></td>
@@ -216,7 +218,7 @@
                         <option <?= (isset($_GET['orderBy']) && $_GET['orderBy'] == 'disponibility') ? 'selected' : '' ?>
                                     value="disponibility">Disponibilidad</option>
                     </select>
-                    <label for="orderBy">Sedes</label>
+                    <label for="orderBy">Ordenar</label>
                 </div>
                 <div class="col s12" style="display: flex;justify-content: space-around;">
                         <label>

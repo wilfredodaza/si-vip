@@ -8,14 +8,14 @@ use CodeIgniter\Model;
 
 class Wallet extends Model
 {
-    protected $table = 'wallet';
-    protected $primaryKey = 'id';
+    protected $table            = 'wallet';
+    protected $primaryKey       = 'id';
     protected $useTimestamps    = true;
     protected $useSoftDeletes   = true;
     protected $createdField     = 'created_at';
     protected $updatedField     = 'updated_at';
     protected $deletedField     = 'deleted_at';
-    protected $allowedFields = [
+    protected $allowedFields    = [
         'value',
         'soport',
         'description',
@@ -23,6 +23,7 @@ class Wallet extends Model
         'created_at',
         'payment_method_id',
         'user_id',
-        'invoices_pay'
+        'invoices_pay',
+        'companies_id'
     ];
 }

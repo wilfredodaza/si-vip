@@ -17,6 +17,7 @@ class QuotationController extends BaseController
         $invoices = $invoice->select('*, invoice_status.name as status,
             type_documents.name  as type_document, 
             customers.name as customer, 
+            invoices.created_at as invoice_created,
             invoices.id as id_invoice')
             ->like($this->_search(), isset($_GET['value']) ? $this->request->getGet('value') : '', 'both')
             ->join('type_documents', 'invoices.type_documents_id = type_documents.id')

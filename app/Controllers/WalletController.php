@@ -36,8 +36,9 @@ class WalletController extends BaseController
     public function index()
     {
         $this->activeUser();
-        $whereInType = session('module') == 29 ? [108] : [1, 2, 5];
-        $whereInTypeStatus = session('module') == 29 ? [1, 2] : [2, 3, 4];
+        $session = session('module');
+        $whereInType = $session == 29 || $session == 26 || $session == 32 || $session == 35  ? [108] : [1, 2, 5];
+        $whereInTypeStatus = $session == 29 || $session == 26 || $session == 32 || $session == 35  ? [1, 2] : [2, 3, 4];
         $indicadores = [];
         $paymentMethodCompanys = new AccountingAcount();
         $paymentMethod = $paymentMethodCompanys
@@ -74,6 +75,7 @@ class WalletController extends BaseController
             '(SELECT IFNULL(SUM(tax_amount), 0) FROM line_invoices INNER JOIN line_invoice_taxs ON line_invoice_taxs.line_invoices_id  =  line_invoices.id WHERE line_invoices.invoices_id = invoices.id AND line_invoice_taxs.taxes_id IN (5,6,7) GROUP BY line_invoices.invoices_id) AS withholdings'
         ]);
         if ($this->manager) {
+            // var_dump($this->controllerHeadquarters->idsCompaniesHeadquarters());die;
             $total->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
         } else {
             $total->where('invoices.companies_id', Auth::querys()->companies_id);
@@ -223,7 +225,8 @@ class WalletController extends BaseController
             'payment_method_id' => $this->request->getPost('payment_method_id'),
             'invoices_id' => $this->request->uri->getSegment(3),
             'created_at' => date("Y-m-d H:i:s"),
-            'user_id' => Auth::querys()->id
+            'user_id' => Auth::querys()->id,
+            'companies_id' => Auth::querys()->companies_id,
         ];
         if (!empty($this->request->getPost('nameFile'))) {
 
@@ -290,7 +293,8 @@ class WalletController extends BaseController
              $newName = $img->getRandomName();
              $img->move('upload/wallet', $newName);
              $data['soport'] = $newName;*/
-            deleteFile('wallets/' . $company->identification_number, $file->soport);
+            if(file_exists('wallets/' . $company->identification_number.'/'. $file->soport))
+                deleteFile('wallets/' . $company->identification_number, $file->soport);
             $file = upload('wallets/' . $company->identification_number, $this->request->getFile('soport'));
             $data['soport'] = $file['new_name'];
         }
@@ -355,9 +359,10 @@ class WalletController extends BaseController
         $this->request->getGet('start_date') ? $data->where('invoices.created_at >=', $this->request->getGet('start_date') . ' 00:00:00') : '';
         $this->request->getGet('end_date') ? $data->where('invoices.created_at <=', $this->request->getGet('end_date') . ' 00:00:00') : '';
         $this->request->getGet('resolution') ? $data->where('invoices.resolution', $this->request->getGet('resolution')) : '';
-        $this->request->getGet('customers_id') ? $data->where('invoices.customers_id', $this->request->getGet('customers_id')) : '';
+        $this->request->getGet('customer') ? $data->where('invoices.customers_id', $this->request->getGet('customer')) : '';
         $this->request->getGet('status') && $this->request->getGet('status') != 'Todos' ? $data->where('invoices.status_wallet', $this->request->getGet('status')) : ($this->request->getGet('status') == 'Todos' ? '' : $data->where('invoices.status_wallet', 'Pendiente'));
         $this->request->getGet('headquarters') ? $data->where('invoices.companies_id', $this->request->getGet('headquarters')) : '';
+        $this->request->getGet('headquarters_providers') ? $data->where('invoices.company_destination_id', $this->request->getGet('headquarters_providers')) : '';
     }
 
     /**

@@ -23,9 +23,12 @@
 
 <script>localStorage.setItem('id', <?= $id ?>)</script>
 <?= '<script>window.localStorage.setItem("manager", "'.$bloqueo.'")</script>'?>
-<script src="<?= base_url() ?>/assets/js/edit_purchase_order/runtime.58e5c3603de5b46c8a86.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/edit_purchase_order/runtime.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/edit_purchase_order/polyfills.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/edit_purchase_order/main.js" defer></script>
+<!-- <script src="<?= base_url() ?>/assets/js/edit_purchase_order/runtime.58e5c3603de5b46c8a86.js" defer></script>
 <script src="<?= base_url() ?>/assets/js/edit_purchase_order/polyfills.dacd6549d6eac8a326be.js" defer></script>
-<script src="<?= base_url() ?>/assets/js/edit_purchase_order/main.5a0eb9348a94e00f27da.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/edit_purchase_order/main.5a0eb9348a94e00f27da.js" defer></script> -->
 
 
 <?= $this->endSection() ?>

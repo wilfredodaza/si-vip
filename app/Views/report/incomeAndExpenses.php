@@ -13,12 +13,12 @@
                     <div class="col s12 m12 l12 breadcrumbs-left">
                         <h5 class="breadcrumbs-title mt-0 mb-0 display-inline hide-on-small-and-down">
                             <span>
-                                Informe Ingresos y Egresos
+                                Informe de Movimientos
                             </span>
                         </h5>
                         <ol class="breadcrumbs mb-0">
                             <li class="breadcrumb-item"><a href="<?= base_url() ?>/home">Home</a></li>
-                            <li class="breadcrumb-item active"><a href="#">Ingresos y Egresos</a></li>
+                            <li class="breadcrumb-item active"><a href="#">Informe de Movimientos</a></li>
                         </ol>
                     </div>
                 </div>
@@ -52,6 +52,7 @@
                                     <th class="center">Fecha</th>
                                     <th class="center">Cliente</th>
                                     <th class="center"># Documento</th>
+                                    <th class="center">Tipo de Documento</th>
                                     <th class="center">Metodo pago</th>
                                     <th class="center">Sede</th>
                                     <th class="center">Valor</th>
@@ -98,6 +99,7 @@
                                         <td class="center"><?= $item->created_at ?></td>
                                         <td class="center"><?= ucwords($item->name) ?></td>
                                         <td class="center"><?= $item->resolution ?></td>
+                                        <td class="center"><?= $item->name_document ?></td>
                                         <td class="center"><?= $methodPayment ?></td>
                                         <td class="center"><?= $nameCompany ?></td>
                                         <td class="center">
@@ -113,8 +115,8 @@
                                     </tr>
                                 <?php endforeach; ?>
                                 <tr>
-                                    <th class="center" colspan="2">Ingresos : $ <?= (isset($_GET['option']) && $_GET['option'] == 'Egresos')?0:number_format($balance, '2', ',', '.') ?></th>
-                                    <th class="center" colspan="2">Egresos : $ <?= (isset($_GET['option']) && $_GET['option'] == 'Ingresos')?0:number_format($balanceE, '2', ',', '.') ?></th>
+                                    <th class="center" colspan="4">Ingresos : $ <?= (isset($_GET['option']) && $_GET['option'] == 'Egresos')?0:number_format($balance, '2', ',', '.') ?></th>
+                                    <th class="center" colspan="4">Egresos : $ <?= (isset($_GET['option']) && $_GET['option'] == 'Ingresos')?0:number_format($balanceE, '2', ',', '.') ?></th>
                                 </tr>
                                 <?php if (count($info) == 0): ?>
                                     <tr>
@@ -172,10 +174,10 @@
             <div class="row">
                 <div class="col s12 m6">
                     <label for="company">Sede</label>
-                    <select class="browser-default" id="company" name="company">
+                    <select class="browser-default" id="company" name="company" <?= session('user')->role_id == 19 ? 'disabled' : '' ?>>
                         <option value="">Seleccione ...</option>
                         <?php foreach ($companies as $company) : ?>
-                            <option value="<?= $company->id ?>" <?= (isset($_GET['company']) && $_GET['company'] == $company->id) ? 'selected' : '' ?>>
+                            <option value="<?= $company->id ?>" <?= (isset($_GET['company']) && $_GET['company'] == $company->id) ||  (session('user')->companies_id == $company->id && session('user')->role_id == 19) ? 'selected' : '' ?>>
                                 <?= $company->company ?>
                             </option>
                         <?php endforeach; ?>
@@ -197,9 +199,15 @@
                 <div class="col s12 m12">
                     <label for="option">Opciones</label>
                     <select class="" id="option" name="option">
-                        <option value="">Todas</option>
-                        <option value="Ingresos">Ingresos</option>
-                        <option value="Egresos">Egresos</option>
+                        <?php if(session('user')->role_id == 16): ?>
+                            <option <?= session('user')->role_id == 16 ? 'selected' : '' ?>value="Ingresos">Ingresos</option>
+                        <?php else: ?>
+                            <option value="Todos">Todas</option>
+                            <?php foreach($typeDocuments as $typeDocument): ?>
+                                <option value="<?= $typeDocument->id ?>"><?= $typeDocument->name ?></option>
+                            <?php endforeach; ?>
+                        <?php endif ?>
+                        <!-- <option <?= session('user')->role_id == 16 ? 'disabled' : '' ?> value="Egresos">Egresos</option> -->
                     </select>
                 </div>
             </div>

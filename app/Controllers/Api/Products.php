@@ -72,8 +72,8 @@ class Products extends ResourceController
     {
         $products = new Product();
 
-        $items = $products->where(['companies_id' => Auth::querys()->companies_id])
-
+        $items = $products
+            ->asObject()
             ->get()
             ->getResult();
 
@@ -83,7 +83,7 @@ class Products extends ResourceController
         foreach ($items as $key) {
             $data[$i]['product_id']                     = $key->id;
             $data[$i]['code']                           = $key->code;
-            $data[$i]['name']                           = $key->name;
+            $data[$i]['name']                           = $key->name.' - '.$key->tax_iva;
             $data[$i]['price_amount']                   = $key->valor;
             $data[$i]['description']                    = $key->description;
             $data[$i]['unit_measure_id']                = $key->unit_measures_id;
@@ -100,14 +100,15 @@ class Products extends ResourceController
           	$data[$i]['category_id'] = $key->category_id;
           	$data[$i]['produc_valu_in'] = $key->produc_valu_in;
             $data[$i]['produc_descu'] = $key->produc_descu;
+            $data[$i]['tax_iva'] = $key->tax_iva;
             $i++;
         }
 
-        /*return $this->respond([
-            'status' => 200,
-            'message' => 'ok',
-            'data' => $data
-        ], 200);*/
+        // return $this->respond([
+        //     'status' => 200,
+        //     'message' => 'ok',
+        //     'data' => $data
+        // ], 200);
         return $this->respond($data, 200);
     }
 

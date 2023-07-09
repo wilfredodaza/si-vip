@@ -79,9 +79,15 @@ class InventoryController extends BaseController
             'invoices.type_documents_id as type_documents_id_invoices',
             'invoices.invoice_status_id as invoice_status_id_invoices',
             'type_documents.name as type_documents_name',
-            'invoices.payable_amount'
+            'invoices.payable_amount',
+            'com.company as company_name_destination',
+            'users.name as user_name'
         ];
         $model = new Invoice();
+
+        $type_documents = Auth::querys()->role_id == 19 || Auth::querys()->role_id == 20 ? '108, 119' : '107, 108, 115, 116, 119';
+        $aux_query = Auth::querys()->role_id == 20 ? ' and invoices.user_id = ' . Auth::querys()->id : '';
+
         $invoices = $model
             ->select($data)
             ->join('documents', 'invoices.id = documents.invoice_id', 'left')
@@ -89,16 +95,31 @@ class InventoryController extends BaseController
             ->join('associate_document', 'associate_document.documents_id = documents.id', 'left')
             ->join('type_documents', 'type_documents.id = invoices.type_documents_id', 'left')
             ->join('customers', 'invoices.customers_id = customers.id', 'left')
-            ->join('companies', 'companies.id = invoices.companies_id', 'left');
+            ->join('companies', 'companies.id = invoices.companies_id', 'left')
+            ->join('users', 'users.id = invoices.user_id', 'left')
+            ->join('companies as com', 'com.id = invoices.company_destination_id', 'left');
             if($manager){
-                $invoices->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
+                // $invoices->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
+                $invoices->whereIn('invoices.type_documents_id', ['107', '108', '115', '116', '119']);
             }else{
-                $invoices->where(['invoices.companies_id' => Auth::querys()->companies_id]);
+                // $invoices->where('(invoices.companies_id in (2, '.Auth::querys()->companies_id.') or (invoices.company_destination_id in (3, '.Auth::querys()->companies_id.') ))');
+                $invoices->where('
+                    (invoices.companies_id = 2 and invoices.company_destination_id = '.Auth::querys()->companies_id.' and invoices.type_documents_id in ('.$type_documents.') '.$aux_query.')
+                    or (invoices.company_destination_id = 3 and invoices.companies_id = '.Auth::querys()->companies_id.' and invoices.type_documents_id in ('.$type_documents.') '.$aux_query.')
+                    or (invoices.companies_id = '.Auth::querys()->companies_id.' and invoices.type_documents_id in ('.$type_documents.') '.$aux_query.')
+                    or (invoices.company_destination_id = '.Auth::querys()->companies_id.' and invoices.type_documents_id in ('.$type_documents.') '.$aux_query.')
+                ');
+                // $invoices->whereIn('invoices.companies_id', [2, Auth::querys()->companies_id]);
+                // $invoices->orWhereIn('invoices.company_destination_id', [3, Auth::querys()->companies_id]);
             }
             // ['101', '102', '103', '104', '107', '108', '115', '116']
-            $invoices->whereIn('invoices.type_documents_id', ['107', '108', '115', '116'])
-            ->orderBy('invoices.id', 'desc')
+            // $invoices->whereIn('invoices.type_documents_id', ['107', '108', '115', '116', '119'])
+            // $invoices->where(['invoices.user_id' => 3254]);
+            $invoices->orderBy('invoices.id', 'desc')
             ->asObject();
+        // if(Auth::querys()->role_id == 20){
+        // }
+        // var_dump($invoices->paginate(10)); die();
         $model = new Company();
         $company = $model->asObject()->find(Auth::querys()->companies_id);
 
@@ -247,14 +268,12 @@ class InventoryController extends BaseController
 
     public function out_create()
     {
-        $manager = $this->controllerHeadquarters->permissionManager(session('user')->role_id);
-        return view('inventory/create_out', ['manager' => $manager]);
+        return view('inventory/create_out');
     }
 
     public function edit($id = null)
     {
-        $manager = $this->controllerHeadquarters->permissionManager(session('user')->role_id);
-        return view('inventory/edit', ['id' => $id, 'manager' => $manager]);
+        return view('inventory/edit', ['id' => $id]);
     }
 
     public function reports()
@@ -351,7 +370,8 @@ class InventoryController extends BaseController
     public function availability()
     {
         $product = new Product();
-        $manager = $this->controllerHeadquarters->permissionManager(session('user')->role_id);
+        $rol= session('user')->role_id;
+        $manager = ($rol == 15 || $rol == 19) ? true : false;
         $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters());
         $idsCompanies = '';
         foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters() as $id => $item) {
@@ -365,7 +385,7 @@ class InventoryController extends BaseController
             $idsCompanies = Auth::querys()->companies_id;
         }
         if(isset($_GET['headquarter'])){
-            $manager = false;
+            // $manager = false;
             $idsCompanies = $_GET['headquarter'];
         }
         $indicadores = [];
@@ -389,52 +409,38 @@ class InventoryController extends BaseController
         $products = $product->select([
             'products.id',
             'products.name',
+            'products.code',
             'products.tax_iva',
+            'invoices.companies_id',
                 'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
             LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
             LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (101, 102, 4, 104,  107)
+            WHERE prod2.id = products.id and invoices.company_destination_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (101, 102, 4, 104,  107, 119)
             GROUP BY  prod2.id), 0) AS input',
-                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (116)
-            GROUP BY  prod2.id), 0) AS inputTransfer',
+            !$manager ?
+                    'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
+                LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
+                LEFT JOIN invoices ON invoices.id = line2.invoices_id  
+                WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.company_destination_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
+                GROUP BY  prod2.id), 0) AS inputTransfer'
+                : '0 AS inputTransfer',
                 'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
             LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
             LEFT JOIN invoices ON invoices.id = line2.invoices_id
-            WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (1, 2, 5, 103, 108)
+            WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and (invoices.type_documents_id IN (103, 108) or (invoices.type_documents_id IN (1, 2, 5) and invoices.invoice_status_id != 1))
             GROUP BY  prod2.id), 0) AS output',
+            !$manager ?
                 'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
             LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
             LEFT JOIN invoices ON invoices.id = line2.invoices_id
             WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
-            GROUP BY  prod2.id), 0) AS outputTransfer',
-            //     'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            // LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            // LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            // WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and  invoices.type_documents_id IN (101, 102, 4, 104, 107)
-            // GROUP BY  prod2.id), 0) AS availability_input',
-            //     'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            // LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            // LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            // WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and  invoices.type_documents_id IN (116)
-            // GROUP BY  prod2.id), 0) AS availability_input_transfer',
-            //     'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            // LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            // LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            // WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (1, 2, 5, 103, 108)
-            // GROUP BY  prod2.id), 0) AS availability_output',
-            //     'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            // LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            // LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            // WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
-            // GROUP BY  prod2.id), 0) AS availability_output_transfer'
+            GROUP BY  prod2.id), 0) AS outputTransfer'
+                : '0 AS outputTransfer',
         ])
-            ->join('line_invoices', 'line_invoices.products_id = products.id')
-            ->join('invoices', 'invoices.id = line_invoices.invoices_id')
-            ->whereIn('invoices.type_documents_id', [1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116])
-            ->where('products.tax_iva !=', null);
+            ->join('line_invoices', 'line_invoices.products_id = products.id', 'left')
+            ->join('invoices', 'invoices.id = line_invoices.invoices_id', 'left')
+            ->whereIn('invoices.type_documents_id', [1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116, 119])
+            ->where(['products.tax_iva !=' => null]);
         if ($this->request->getGet('code')) {
             $products->like('products.code', $this->request->getGet('code'), 'both');
         }
@@ -445,7 +451,9 @@ class InventoryController extends BaseController
             $products->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
             //$products->whereIn('prod.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
         } else {
-            $products->where(['invoices.companies_id' => $idsCompanies]);
+            // $products->where(['invoices.companies_id' => $idsCompanies]);
+            $products->whereIn('invoices.companies_id', [2, Auth::querys()->companies_id]);
+            // $products->whereIn('invoices.company_destination_id', [3, Auth::querys()->companies_id]);
             //$products->where(['prod.companies_id' => Auth::querys()->companies_id]);
         }
         
@@ -465,13 +473,14 @@ class InventoryController extends BaseController
         
         $products->groupBy('products.id') 
             ->asObject();
+            // var_dump($products->get()->getResult());die();
 
         //echo json_encode($product->get()->getResult());die();
 
         $headquarters = $this->companies
             ->select('companies.id, companies.company')
             ->whereIn('id', $this->controllerHeadquarters->idsCompaniesHeadquarters())
-            ->where(['id !=' => 1])
+            ->where(['headquarters_id !=' => 1])
             ->asObject()->get()->getResult();
         $productsTransfer = $this->products
             ->where(['companies_id' => Auth::querys()->companies_id])
@@ -486,7 +495,7 @@ class InventoryController extends BaseController
             'pager' => $products->pager,
             'headquarters' => $headquarters,
             'productsTransfer' => $productsTransfer,
-            'manager' => $this->controllerHeadquarters->permissionManager(session('user')->role_id),
+            'manager' => $manager,
             'indicadores' => $indicadores
         ]);
     }
@@ -513,58 +522,70 @@ class InventoryController extends BaseController
             customers.name as customer_name,
             line_invoices.quantity, 
             invoices.created_at,
+            invoices.companies_id,
+            invoices.company_destination_id,
             invoices.type_documents_id,
             type_documents.name as type_document_name,
             products.name,
             companies.company as company_name,
+            com.company as company_destination_name,
             documents.provider,
-            users.name as userName
+            users.name as userName,
+            invoices.id as invoice_id
             ')
-            ->join('line_invoices', 'line_invoices.products_id = products.id')
+            ->join('line_invoices', 'line_invoices.products_id = products.id', 'left')
             ->join('invoices', 'line_invoices.invoices_id = invoices.id')
             ->join('documents', 'documents.invoice_id = invoices.id', 'left')
             ->join('companies', 'companies.id = invoices.companies_id', 'left')
+            ->join('companies as com', 'com.id = invoices.company_destination_id', 'left')
             ->join('customers', 'invoices.customers_id = customers.id', 'left')
             ->join('users', 'invoices.user_id = users.id', 'left')
-            ->join('type_documents', 'type_documents.id = invoices.type_documents_id')
-            ->whereIn('invoices.type_documents_id', [1, 2, 4, 5, 102, 101, 103, 104, 107, 108]);
-        if ($manager) {
-            $dataProducts->where(['products.id' => $id])->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
-        } else {
-            $dataProducts->where(['invoices.companies_id' => $idCompany, 'products.id' => $id]);
+            ->join('type_documents', 'type_documents.id = invoices.type_documents_id', 'left')
+            // ->whereIn('invoices.type_documents_id', [1, 2, 4, 5, 102, 101, 103, 104, 107, 108, 119]) // (invoices.type_documents_id IN (103, 108) or (invoices.type_documents_id IN (1, 2, 5) and invoices.invoice_status_id != 1))
+            ->where('(
+                    invoices.type_documents_id IN (102, 101, 103, 104, 107, 108, 119)
+                    or (invoices.type_documents_id IN (1, 2, 4, 5) and invoices.invoice_status_id != 1)
+                    or (invoices.type_documents_id = 115 and invoices.invoice_status_id = 21)
+                ) and products.id = '.$id.'
+            ');
+        if (!$manager) {
+            // $dataProducts->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
+            $dataProducts->where('(invoices.companies_id ='. $idCompany.' or invoices.company_destination_id ='. $idCompany.')');
         }
         $dataProducts->orderBy('invoices.created_at', 'ASC')->asObject();
         $products = $dataProducts->get()->getResult();
         //echo json_encode($_GET['headquarter']);die();
         // transfer documents
-        $dataTransfer = $this->products->select('
-            invoices.resolution, 
-            customers.name as customer_name,
-            line_invoices.quantity, 
-            invoices.created_at,
-            invoices.type_documents_id,
-            type_documents.name as type_document_name,
-            products.name,
-            companies.company as company_name,
-            documents.provider,
-            users.name as userName
-            ')
-            ->join('line_invoices', 'line_invoices.products_id = products.id')
-            ->join('invoices', 'line_invoices.invoices_id = invoices.id')
-            ->join('documents', 'documents.invoice_id = invoices.id', 'left')
-            ->join('companies', 'companies.id = invoices.companies_id', 'left')
-            ->join('customers', 'invoices.customers_id = customers.id', 'left')
-            ->join('users', 'invoices.user_id = users.id', 'left')
-            ->join('type_documents', 'type_documents.id = invoices.type_documents_id')
-            ->whereIn('invoices.type_documents_id', [115, 116]);
-        if ($manager) {
-            $dataTransfer->where(['products.id' => $id, 'invoices.invoice_status_id' => 21])->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
-        } else {
-            $dataTransfer->where(['invoices.companies_id' => $idCompany, 'products.id' => $id, 'invoices.invoice_status_id' => 21]);
-        }
-        $dataTransfer->orderBy('invoices.created_at', 'ASC')->asObject();
-        $transfer = $dataTransfer->get()->getResult();
+        // $dataTransfer = $this->products->select('
+        //         invoices.resolution, 
+        //         customers.name as customer_name,
+        //         line_invoices.quantity, 
+        //         invoices.created_at,
+        //         invoices.type_documents_id,
+        //         type_documents.name as type_document_name,
+        //         products.name,
+        //         companies.company as company_name,
+        //         documents.provider,
+        //         users.name as userName
+        //     ')
+        //     ->join('line_invoices', 'line_invoices.products_id = products.id')
+        //     ->join('invoices', 'line_invoices.invoices_id = invoices.id')
+        //     ->join('documents', 'documents.invoice_id = invoices.id', 'left')
+        //     ->join('companies', 'companies.id = invoices.companies_id', 'left')
+        //     ->join('companies as com', 'companies.id = invoices.company_destination_id', 'left')
+        //     ->join('customers', 'invoices.customers_id = customers.id', 'left')
+        //     ->join('users', 'invoices.user_id = users.id', 'left')
+        //     ->join('type_documents', 'type_documents.id = invoices.type_documents_id')
+        //     ->whereIn('invoices.type_documents_id', [115, 116]);
+        // if ($manager) {
+        //     $dataTransfer->where(['products.id' => $id, 'invoices.invoice_status_id' => 21])->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
+        // } else {
+        //     $dataTransfer->where(['invoices.companies_id' => $idCompany, 'products.id' => $id, 'invoices.invoice_status_id' => 21]);
+        // }
+        // $dataTransfer->orderBy('invoices.created_at', 'ASC')->asObject();
+        // $transfer = $dataTransfer->get()->getResult();
         $aux = [];
+        $transfer = [];
         $kardex = array_merge($products, $transfer);
         foreach ($kardex as $key => $row) {
             $aux[$key] = $row->created_at;
@@ -575,7 +596,7 @@ class InventoryController extends BaseController
         foreach ($kardex as $item) {
             $item->input = 0;
             $item->out = 0;
-            if ($item->type_documents_id == 107 || $item->type_documents_id == 108 || $item->type_documents_id == 115 || $item->type_documents_id == 116) {
+            if ($item->type_documents_id == 107 || $item->type_documents_id == 108 || $item->type_documents_id == 115 || $item->type_documents_id == 116 || $item->type_documents_id == 119) {
                 $item->source = $item->company_name;
             } else {
                 if (empty($item->provider) &&  !is_null($item->provider)) {
@@ -585,30 +606,46 @@ class InventoryController extends BaseController
                 }
             }
             $item->destination = $item->customer_name;
-            if($item->type_documents_id == 101 || $item->type_documents_id == 102 || $item->type_documents_id == 4 || $item->type_documents_id == 104 || $item->type_documents_id == 107){
-                $item->destination = $item->company_name;
-                $item->source = 'Sede Proveedores';
+            if($item->type_documents_id == 101 || $item->type_documents_id == 102 || $item->type_documents_id == 4 || $item->type_documents_id == 104 || $item->type_documents_id == 107 || $item->type_documents_id == 119){
+                $item->destination = $item->company_destination_name;
+                $item->source = $item->company_name;
             }else{
                 $item->source = $item->company_name;
-                $item->destination = 'Sede Clientes';
+                $item->destination = $item->company_destination_name;
             }
             if($item->type_documents_id == 115){
-                $item->destination = $item->customer_name;
                 $item->source = $item->company_name;
-            }else if($item->type_documents_id == 116){
-                $item->source = $item->customer_name;
-                $item->destination = $item->company_name;
+                $item->destination = $item->company_destination_name;
             }
-            if ($item->type_documents_id == 101 || $item->type_documents_id == 102 || $item->type_documents_id == 4 || $item->type_documents_id == 104 || $item->type_documents_id == 107 || $item->type_documents_id == 116) {
-                $balance += $item->quantity;
-                $item->input = $item->quantity;
-            } else {
-                $balance -= $item->quantity;
-                $item->out = $item->quantity;
+
+            // Construir cantidad de entradas
+            if($item->type_documents_id == 115){
+                if(!$manager){
+                    $id_company = isset($_GET['headquarter']) && $_GET['headquarter'] != 0 ? $_GET['headquarter'] : Auth::querys()->companies_id ;
+                    if($id_company == $item->companies_id){
+                        $balance -= $item->quantity;
+                        $item->out = $item->quantity;
+                    }else{
+                        $balance += $item->quantity;
+                        $item->input = $item->quantity;
+                        // $item->input .= $manager ? " ($item->quantity)" : '';
+                    }
+                }else{
+                    $item->out = $manager ? " ($item->quantity)" : '';
+                }
+            }else{
+                if ($item->type_documents_id == 101 || $item->type_documents_id == 102 || $item->type_documents_id == 4 || $item->type_documents_id == 104 || $item->type_documents_id == 107 | $item->type_documents_id == 119) {
+                    $balance += $item->quantity;
+                    $item->input = $item->quantity;
+                } else {
+                    $balance -= $item->quantity;
+                    $item->out = $item->quantity;
+                }
             }
+            
             if($item->type_documents_id == 115 || $item->type_documents_id == 116){
                 $item->customerOrProvider = $item->userName;
-            }else if($item->type_documents_id == 101 || $item->type_documents_id == 102 || $item->type_documents_id == 4 || $item->type_documents_id == 104 || $item->type_documents_id == 107){
+            }else if($item->type_documents_id == 101 || $item->type_documents_id == 102 || $item->type_documents_id == 4 || $item->type_documents_id == 104 || $item->type_documents_id == 107 || $item->type_documents_id == 119){
                 $item->customerOrProvider = $item->customer_name;
             }else{
                 $item->customerOrProvider = $item->customer_name;
@@ -692,115 +729,140 @@ class InventoryController extends BaseController
     {
         $product = new Product();
         $manager = $this->controllerHeadquarters->permissionManager(Auth::querys()->role_id);
-        $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
-        $idsCompanies = '';
-        foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany) as $id => $item) {
-            if ($id < ($countIds--)) {
-                $idsCompanies = $idsCompanies . '' . $item . ',';
-            } else {
-                $idsCompanies = $idsCompanies . '' . $item;
+        if($manager){
+            $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
+            $idsCompanies = '';
+            foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany) as $id => $item) {
+                if ($id == 0) {
+                    $idsCompanies = $item;
+                } else {
+                    $idsCompanies = $idsCompanies . ',' . $item;
+                }
             }
+        }else{
+            $idsCompanies = Auth::querys()->companies_id;
         }
         $products = $product->select([
-            'prod.id',
-            'prod.name', ($manager) ?
+            'products.id',
+            'products.name',
+            'products.code',
+            'products.tax_iva',
+            'invoices.companies_id',
                 'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
             LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
             LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (101, 102, 4, 104,  107)
-            GROUP BY  prod2.id), 0) AS input' :
-                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.companies_id = ' . Auth::querys()->companies_id . '  and invoices.type_documents_id IN (101, 102, 4, 104,  107)
-            GROUP BY  prod2.id), 0) AS input', ($manager) ?
-                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (116)
-            GROUP BY  prod2.id), 0) AS inputTransfer' :
-                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id = ' . Auth::querys()->companies_id . '  and invoices.type_documents_id IN (116)
-            GROUP BY  prod2.id), 0) AS inputTransfer', ($manager) ?
+            WHERE prod2.id = products.id and invoices.company_destination_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (101, 102, 4, 104,  107, 119)
+            GROUP BY  prod2.id), 0) AS input',
+            !$manager ?
+                    'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
+                LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
+                LEFT JOIN invoices ON invoices.id = line2.invoices_id  
+                WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.company_destination_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
+                GROUP BY  prod2.id), 0) AS inputTransfer'
+                : '0 AS inputTransfer',
                 'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
             LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
             LEFT JOIN invoices ON invoices.id = line2.invoices_id
-            WHERE prod2.id = prod.id and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (1, 2, 5, 103, 108)
-            GROUP BY  prod2.id), 0) AS output' :
+            WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and (invoices.type_documents_id IN (103, 108) or (invoices.type_documents_id IN (1, 2, 5) and invoices.invoice_status_id != 1))
+            GROUP BY  prod2.id), 0) AS output',
+            !$manager ?
                 'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
             LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
             LEFT JOIN invoices ON invoices.id = line2.invoices_id
-            WHERE prod2.id = prod.id and invoices.companies_id = ' . Auth::querys()->companies_id . '  and invoices.type_documents_id IN (1, 2, 5, 103, 108)
-            GROUP BY  prod2.id), 0) AS output', ($manager) ?
-                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
-            GROUP BY  prod2.id), 0) AS outputTransfer' :
-                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id = ' . Auth::querys()->companies_id . '  and invoices.type_documents_id IN (115)
-            GROUP BY  prod2.id), 0) AS outputTransfer', ($manager) ?
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.companies_id IN (' . $idsCompanies . ')  and  invoices.type_documents_id IN (101, 102, 4, 104, 107)
-            GROUP BY  prod2.id), 0) AS availability_input' :
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.companies_id = ' . Auth::querys()->companies_id . '  and  invoices.type_documents_id IN (101, 102, 4, 104, 107)
-            GROUP BY  prod2.id), 0) AS availability_input', ($manager) ?
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and  invoices.type_documents_id IN (116)
-            GROUP BY  prod2.id), 0) AS availability_input_transfer' :
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id = ' . Auth::querys()->companies_id . '  and  invoices.type_documents_id IN (116)
-            GROUP BY  prod2.id), 0) AS availability_input_transfer', ($manager) ?
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (1, 2, 5, 103, 108)
-            GROUP BY  prod2.id), 0) AS availability_output' :
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.companies_id = ' . Auth::querys()->companies_id . '  and invoices.type_documents_id IN (1, 2, 5, 103, 108)
-            GROUP BY  prod2.id), 0) AS availability_output', ($manager) ?
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
-            GROUP BY  prod2.id), 0) AS availability_output_transfer' :
-                'IFNULL((SELECT SUM(line2.price_amount) FROM products AS prod2
-            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
-            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
-            WHERE prod2.id = prod.id and invoices.invoice_status_id = 21 and invoices.companies_id = ' . Auth::querys()->companies_id . '  and invoices.type_documents_id IN (115)
-            GROUP BY  prod2.id), 0) AS availability_output_transfer'
-        ])->from('products AS prod')
-            ->join('line_invoices', 'line_invoices.products_id = products.id')
-            ->join('invoices', 'invoices.id = line_invoices.invoices_id')
-            ->where(['prod.id' => $idProduct])
-            ->whereIn('invoices.type_documents_id', [1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116]);
+            WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
+            GROUP BY  prod2.id), 0) AS outputTransfer'
+                : '0 AS outputTransfer',
+        ])
+            ->join('line_invoices', 'line_invoices.products_id = products.id', 'left')
+            ->join('invoices', 'invoices.id = line_invoices.invoices_id', 'left')
+            ->whereIn('invoices.type_documents_id', [1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116, 119])
+            ->where(['products.tax_iva !=' => null, 'products.id' => $idProduct]);
+            // ->where([])
         if ($manager) {
             $products->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
         } else {
-            $products->where(['invoices.companies_id' => Auth::querys()->companies_id]);
+            // $products->where(['invoices.companies_id' => Auth::querys()->companies_id]);
+            $products->where('(invoices.companies_id ='. $idCompany.' or invoices.company_destination_id ='. $idCompany.')');
         }
-        $products->groupBy('prod.id')
+        $products->groupBy('products.id')
             ->asObject();
         $total = $products->first();
         if(is_null($total)){
             return 0;
         }else{
             return ($total->input + $total->inputTransfer) - ($total->output + $total->outputTransfer);
+        }
+    }
+
+    public function availabilityProductAccess($idCompany)
+    {
+        $product = new Product();
+        $manager = $this->controllerHeadquarters->permissionManager(Auth::querys()->role_id);
+        $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
+        $idsCompanies = '';
+        if($manager){
+            $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
+            $idsCompanies = '';
+            foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany) as $id => $item) {
+                if ($id == 0) {
+                    $idsCompanies = $item;
+                } else {
+                    $idsCompanies = $idsCompanies . ',' . $item;
+                }
+            }
+        }else{
+            $idsCompanies = Auth::querys()->companies_id;
+        }
+        $products = $product->select([
+            'products.id',
+            'products.name',
+            'products.code',
+            'products.tax_iva',
+            'invoices.companies_id',
+                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
+            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
+            LEFT JOIN invoices ON invoices.id = line2.invoices_id  
+            WHERE prod2.id = products.id and invoices.company_destination_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (101, 102, 4, 104,  107, 119)
+            GROUP BY  prod2.id), 0) AS input',
+            !$manager ?
+                    'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
+                LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
+                LEFT JOIN invoices ON invoices.id = line2.invoices_id  
+                WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.company_destination_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
+                GROUP BY  prod2.id), 0) AS inputTransfer'
+                : '0 AS inputTransfer',
+                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
+            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
+            LEFT JOIN invoices ON invoices.id = line2.invoices_id
+            WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and (invoices.type_documents_id IN (103, 108) or (invoices.type_documents_id IN (1, 2, 5) and invoices.invoice_status_id != 1))
+            GROUP BY  prod2.id), 0) AS output',
+            !$manager ?
+                'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
+            LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
+            LEFT JOIN invoices ON invoices.id = line2.invoices_id
+            WHERE prod2.id = products.id and invoices.invoice_status_id = 21 and invoices.companies_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (115)
+            GROUP BY  prod2.id), 0) AS outputTransfer'
+                : '0 AS outputTransfer',
+        ])
+            ->join('line_invoices', 'line_invoices.products_id = products.id', 'left')
+            ->join('invoices', 'invoices.id = line_invoices.invoices_id', 'left')
+            ->whereIn('invoices.type_documents_id', [1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116, 119])
+            ->where(['products.tax_iva !=' => null]);
+        if ($manager) {
+            $products->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
+        } else {
+            // $products->where(['invoices.companies_id' => Auth::querys()->companies_id]);
+            $products->where('(invoices.companies_id ='. $idCompany.' or invoices.company_destination_id ='. $idCompany.')');
+        }
+        $products->having('(input + inputTransfer) - (output + outputTransfer) > 0');
+        $products->groupBy('products.id')
+            ->asObject();
+        $total = $products->get()->getResult();
+        return $total;
+        if(is_null($total)){
+            return 0;
+        }else{
+            return ($total->input + $total->inputTransfer) - ($total->output + $total->output);
         }
     }
 

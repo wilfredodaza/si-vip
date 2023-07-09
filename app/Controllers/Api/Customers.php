@@ -8,6 +8,7 @@ use App\Controllers\HeadquartersController;
 use App\Controllers\WalletController;
 use App\Models\Customer;
 use App\Models\Invoice;
+use App\Models\Company;
 use App\Traits\ApiTrait;
 use App\Traits\TransformTrait;
 use App\Traits\ValidationsTrait;
@@ -73,6 +74,7 @@ class Customers extends ResourceController
         $query = [
             'status' => 'Activo',
             'type_customer_id <'    => 3,
+            'headquarters_id' => NULL
         ];
 
         switch ($this->request->getGet('type_customer_id')) {
@@ -89,7 +91,7 @@ class Customers extends ResourceController
                 'payment_policies.days'
             ])
             ->join('payment_policies', 'customers.payment_policies = payment_policies.id', 'left')
-            ->whereIn('companies_id',$headquartersController->idsCompaniesHeadquarters(Auth::querys()->companies_id))
+            ->whereIn('companies_id', $headquartersController->idsCompaniesHeadquarters(Auth::querys()->companies_id))
             ->whereNotIn('name', ['gerente', 'Gerente'])
             ->get()->getResult();
         foreach ($customers as $key => $customer) {
@@ -114,14 +116,21 @@ class Customers extends ResourceController
 
     public function providers()
     {
-        $customers = new Customer();
-        $customers = $customers->where(['companies_id' => Auth::querys()->companies_id, 'type_customer_id' => 2])
-            ->get()
-            ->getResult();
+        // $customers = new Customer();
+        // $customers = $customers->where(['companies_id' => Auth::querys()->companies_id, 'type_customer_id' => 2])
+        //     ->get()
+        //     ->getResult();
+        $companyM = new Company();
+        $controllerHeadquarters = new HeadquartersController();
+        $headquarters = $companyM
+            ->select('companies.id, companies.company as name')
+            ->whereIn('id', $controllerHeadquarters->idsCompaniesHeadquarters(Auth::querys()->companies_id))
+            ->where(['headquarters_id' => 2])
+            ->asObject()->get()->getResult();
         return $this->respond([
-            'status' => 200,
+            'status' => 201,
             'message' => 'success',
-            'data' => $customers
+            'data' => $headquarters
         ], 200);
 
     }

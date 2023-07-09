@@ -44,6 +44,11 @@ Trait ExcelValidationTrait
         empty($value) && $value != 0 ? array_push($this->$errors, "El campo {$column} de la celda {$celda} es obligatorio.") : null;
     }
 
+    protected function requiredInventory($value, $column, $celda)
+    {
+        empty($value) ? array_push($this->$errors, "El campo {$column} de la celda {$celda} es obligatorio.") : null;
+    }
+
 
     /**
      * Metodo void para  validar si existe en base de datos los ids ingresados

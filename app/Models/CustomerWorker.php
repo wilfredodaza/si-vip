@@ -21,7 +21,7 @@ class CustomerWorker extends Model
         'municipality_id',
         'type_contract_id',
         'payment_method_id',
-        'customer_id',
+        'user_id',
         'high_risk_pension',
         'surname',
         'payroll_period_id',

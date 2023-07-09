@@ -8,6 +8,7 @@ use App\Models\Invoice;
 use App\Models\LineInvoice;
 use App\Models\LineInvoiceTax;
 use App\Models\TrackingCustomer;
+use App\Models\BudgetPurchaseOrder;
 use App\Traits\DocumentTrait;
 use App\Controllers\ApiController;
 use App\Traits\ResponseApiTrait;
@@ -36,12 +37,50 @@ class PurchaseOrder extends ResourceController
     public function create()
     {
         $data = $this->request->getJSON();
+        $invoiceM = new Invoice();
+        $invoices = $invoiceM
+            // ->select('budgetpurchaseorder.*')
+            ->select([
+                'YEAR(invoices.created_at) as anio',
+                'MONTH(invoices.created_at) as mes',
+                'IFNULL(SUM(payable_amount), 0) as causado',
+                'IFNULL(budgetpurchaseorder.value, 0) as value'
+                ])
+            ->where(['type_documents_id' => 114, 'YEAR(invoices.created_at)' => date('Y'), 'MONTH(invoices.created_at)' => date('n')])
+            ->join('budgetpurchaseorder', 'budgetpurchaseorder.year = "'.date('Y').'" and budgetpurchaseorder.month = "'.date('n').'"', 'right')
+            ->groupBy('budgetpurchaseorder.year')
+            ->asObject()->first();
+        if (empty($invoices)) {
+                // No se encontraron facturas, obtener datos de budgetpurchaseorder por separado
+                $budgetPurchaseOrderM = new BudgetPurchaseOrder();
+                $budgetPurchaseOrder = $budgetPurchaseOrderM
+                ->where(['year' => date('Y'), 'month' => date('n')])
+                ->asObject()
+                ->first();
+            $invoices = (object) [
+                'value' => $budgetPurchaseOrder->value,
+                'causado' => 0,
+            ];
+            $total = (int) $budgetPurchaseOrder->value - $data->legal_monetary_totals->payable_amount;
+        } else {
+            $total = $invoices->value - ($invoices->causado + $data->legal_monetary_totals->payable_amount);
+        }
+        if($total < 0)
+            return $this->respond([
+                'status' => 500,
+                'title' => 'La orden de compra supera el presupuesto del mes',
+                'text' => "<b>Presupuesto: </b> $".number_format($invoices->value, '2', ',', '.')."<br>
+                <b>Causado: </b> $".number_format($invoices->causado, '2', ',', '.')."<br>
+                <b>Saldo: </b> $".number_format(($invoices->value - $invoices->causado), '2', ',', '.')."<br>
+                <b>Orden de compra: </b> $". number_format($data->legal_monetary_totals->payable_amount, '2', ',', '.')
+            ]);
         $model = new Invoice();
         $invoiceId = $model->insert([
             'type_documents_id' => 114,
             'invoice_status_id' => 5,
             'resolution' => $data->number,
-            'companies_id' => Auth::querys()->companies_id,
+            'companies_id' => 2,
+            'company_destination_id' => 69,
             'customers_id' => $data->customer_id,
             'payment_forms_id' => $data->payment_form->payment_form_id,
             'payment_methods_id' => $data->payment_form->payment_method_id,
@@ -114,8 +153,10 @@ class PurchaseOrder extends ResourceController
             ->set('charge_total_amount', $data->legal_monetary_totals->charge_total_amount)
             ->set('pre_paid_amount', 0)
             ->set('payable_amount', $data->legal_monetary_totals->payable_amount)
-            ->where(['id' => $id, 'companies_id' => Auth::querys()->companies_id])
+            ->where(['id' => $id, 'company_destination_id' => Auth::querys()->companies_id])
             ->update();
+            
+        // return $this->respond([$data, 'id' => $id, 'companies_id' => Auth::querys()->companies_id], 500);
 
         $lineInvoice = new LineInvoice();
         $lineInvoices = $this->tableLineInvoices->where(['invoices_id' => $id])

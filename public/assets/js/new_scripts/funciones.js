@@ -1,6 +1,6 @@
-function proceso_fetch(url, data) {
+function proceso_fetch(url, data, method = 'POST') {
     return fetch(url, {
-        method: 'POST',
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: data
     }).then(response => {

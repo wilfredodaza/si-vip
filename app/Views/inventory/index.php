@@ -136,7 +136,7 @@
                                     <th class="text-center">Documento</th>
                                     <th class="text-center sept-5">Origen</th>
                                     <th class="text-center">Destino</th>
-                                    <th class="text-center">Sede</th>
+                                    <th class="text-center">Cliente/Proovedor</th>
                                     <th class="text-center">Valor</th>
                                     <th class="text-center sept-3">Acciones</th>
                                 </tr>
@@ -145,7 +145,7 @@
                                 <?php foreach ($documents as $key => $document): ?>
                                     <tr>
                                         <td class="text-center">
-                                            <?php if ($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 108 || $document->type_documents_id_invoices == 115 || $document->type_documents_id_invoices == 116): ?>
+                                            <?php if ($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 108 || $document->type_documents_id_invoices == 115 || $document->type_documents_id_invoices == 116 || $document->type_documents_id_invoices == 119): ?>
                                                 <?= $document->created_at_invoice ?>
                                             <?php else: ?>
                                                 <?= $document->created_at ?>
@@ -155,11 +155,17 @@
                                             <?= $document->type_documents_name ?? '' ?>
                                         </td>
                                         <td class="text-center">
-                                            <?php if ($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 108): ?>
-                                                <span class="new badge tooltipped purple" data-position="top"
-                                                      data-badge-caption="" data-tooltip="Guardado">
-                                                    Guardado
-                                               </span>
+                                            <?php if ($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 108  || $document->type_documents_id_invoices == 119): ?>
+                                                <?php if ($document->invoice_status_id_invoices == 28):?>
+                                                    <span class="new badge tooltipped red darken-2"
+                                                          data-position="top" data-badge-caption=""
+                                                          data-tooltip="Anulado">Anulado</span>
+                                                <?php else: ?>
+                                                    <span class="new badge tooltipped purple" data-position="top"
+                                                          data-badge-caption="" data-tooltip="Guardado">
+                                                        Guardado
+                                                   </span>
+                                                <?php endif; ?>
                                             <?php elseif ($document->type_documents_id_invoices == 115 || $document->type_documents_id_invoices == 116):
                                                 if ($document->invoice_status_id_invoices == 22):
                                                     ?>
@@ -189,9 +195,9 @@
                                         <td class="text-center">
                                             <?php
                                             if ($document->type_documents_id_invoices == 108 || $document->type_documents_id_invoices == 115 ) {
-                                                echo $company->company;
-                                            }else if($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 101 || $document->type_documents_id_invoices == 116){
-                                                echo $document->customer_name;
+                                                echo $document->company_name;
+                                            }else if($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 101 || $document->type_documents_id_invoices == 116 || $document->type_documents_id_invoices == 119){
+                                                echo $document->company_name;
                                             } else {
                                                 if ($document->status_id != 1) {
                                                     if (empty($document->provider)) {
@@ -203,16 +209,16 @@
                                                     <i class="material-icons small text-green green-text" >brightness_1</i>
                                                     </span>' . $document->company_name;
                                                     }
-                                                }
+                                                } 
                                             }
                                             ?>
                                         </td>
                                         <td class="text-center">
                                             <?php
-                                            if ($document->type_documents_id_invoices == 108 || $document->type_documents_id_invoices == 115 ) {
-                                                echo $document->customer_name;
+                                            if ($document->type_documents_id_invoices == 108 || $document->type_documents_id_invoices == 115  || $document->type_documents_id_invoices == 119) {
+                                                echo $document->company_name_destination;
                                             }else if($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 101 || $document->type_documents_id_invoices == 116){
-                                                echo $company->company;
+                                                echo $document->company_name_destination;
                                             } else {
                                                 if (isset($document->customer_id)) {
                                                     $errors = validationRowsNull($document->customer_id);
@@ -234,36 +240,40 @@
                                             ?>
                                         </td>
                                         <td class="text-center">
-                                            <?= $document->company_name ?>
+                                            <?= $document->type_documents_id_invoices == 115 ? $document->user_name : $document->customer_name ?>
                                         </td>
                                         <td class="text-center">
-                                            <?= $document->payable_amount ?>
+                                            <?= $document->type_documents_id_invoices == 107 ?  ($validation ?  '$ '.number_format($document->payable_amount, 2, ',', '.') : '') :'$ '.number_format($document->payable_amount, 2, ',', '.') ?>
                                         </td>
                                         <td style="display: flex; justify-content: center;">
                                             <div class="btn-group" role="group">
                                                 
-                                                <a href="<?= 
-                                                    $validation ? 
-                                                    base_url() . '/reports/view/' . $document->invoices_id : 'javascript:void(0)' ?>"
-                                                    target="<?= 
-                                                    $validation ? 
-                                                    '_blank' . $document->invoices_id : '' ?>"
+                                                <a href="<?= base_url() . '/reports/view/' . $document->invoices_id ?>"
+                                                    target="_blank"
                                                    class="btn btn-small green darken-1  tooltipped" data-position="top" data-tooltip="ver detalle">
-                                                    <i class="material-icons <?= !$validation ? 'grey-text' : '' ?>">insert_drive_file</i>
+                                                    <i class="material-icons">insert_drive_file</i>
                                                 </a>
                                             </div>
                                             <?php if (($document->type_documents_id_invoices == 107 || $document->type_documents_id_invoices == 108) ): ?>
-                                                <?php if($validation): ?>
-                                                <div class="group">
+                                                
+                                                    <?php if($validation  && $document->invoice_status_id_invoices != 28): ?>
                                                     <a href="<?= base_url().'/inventory/edit/'.$document->invoices_id ?>"
                                                        class="btn btn-small yellow darken-2 send tooltipped step-4 next-tour"
                                                        style="padding:0px 10px;" data-position="top"
                                                        data-tooltip="Editar Remisión"><i
                                                                 class="material-icons ">create</i></a>
-                                                </div>
-                                                <?php endif ?>
+
+                                                    <?php endif ?>
+                                                    <?php if($validation && $document->type_documents_id_invoices == 108 && $document->invoice_status_id_invoices != 28): ?>
+                                                        <a href="javascript:void(0)"
+                                                       class="btn btn-small red darken-2 tooltipped"
+                                                       onclick="CancelRemision(<?= $document->invoices_id ?>)"
+                                                       style="padding:0px 10px;" data-position="top"
+                                                       data-tooltip="Anular Remisión"><i
+                                                                class="material-icons ">delete_forever</i></a>
+                                                    <?php endif ?>
                                             <?php elseif ($document->type_documents_id_invoices == 115 || $document->type_documents_id_invoices == 116):
-                                                if ($document->invoice_status_id_invoices == 21):
+                                                if ($document->invoice_status_id_invoices != 22):
                                                     ?>
                                                     <!--<div class="group">
                                                         <a href="#"
@@ -279,6 +289,7 @@
                                                            data-tooltip="Editar Remisión"><i class="material-icons">create</i></a>
                                                     </div>
                                                 <?php endif; ?>
+                                            <?php elseif ($document->type_documents_id_invoices == 119): ?>
                                             <?php else: ?>
                                                 <div class="btn-group z-depth-1">
                                                     <?php if ($document->status_id == 1): ?>
@@ -392,10 +403,11 @@
     <script src="<?= base_url() ?>/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
     <script src="<?= base_url() ?>/app-assets/vendors/data-tables/extensions/responsive/js/dataTables.responsive.min.js"></script>
     <script src="<?= base_url() ?>/app-assets/vendors/data-tables/js/dataTables.select.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="<?= base_url(['assets', 'js', 'new_scripts', 'funciones.js']) ?>"></script>
     <script>
         $(document).ready(function () {
             const table = [];
-            console.log('hola');
             table['inventory'] = $(`#table_inventory`).DataTable({
                 "ajax": {
                     "url": `<?= base_url() ?>/inventory/table`,
@@ -436,5 +448,63 @@
                 });
             })
         });
+
+        function CancelRemision(id){
+            Swal.fire({
+                title: '¿Esta seguro de anular esta remisión?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Si',
+                cancelButtonText: 'No'
+            }).then(async(result) => {
+                if (result.isConfirmed) {
+                    const { value: respuesta } = await Swal.fire({
+                        title: 'Motivo de anulación',
+                        html: `
+                        <p>
+                            <textarea id="motivo" class="materialize-textarea"></textarea>
+                            <label for="motivo">Motivo</label>
+                        </p>`,
+                        preConfirm: () => {
+                            const description = $('#motivo').val();
+                            return {'motivo': description};
+                        }
+                    });
+                    var data = JSON.stringify(respuesta);
+
+                    Swal.fire({
+                        title: 'Cancelando remisión',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        },
+                    });
+                    var url = `${ base_url(['api', 'v2', 'inventories', id]) }`;
+                    var result = proceso_fetch(url, data, 'DELETE');
+                    result.then((result) => {
+                        console.log(result);
+                        if(result.status !== 201){
+                            throw Error(result.data);
+                        }
+                        Swal.fire({
+                            title: 'La remision fue anulada con exito',
+                            icon: 'success',
+                            confirmButtonColor: '#3085d6',
+                            confirmButtonText: 'Ok'
+                        }).then((result) => {
+                            location.reload();
+                        })
+                    }).catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: error.message,
+                        })
+                    })
+                }
+            })
+        }
     </script>
 <?= $this->endSection() ?>
