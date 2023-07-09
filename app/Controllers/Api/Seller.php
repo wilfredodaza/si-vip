@@ -11,8 +11,11 @@ class Seller extends ResourceController
 {
     public function index()
     {
-        $customer = new \App\Models\Customer();
-        $users = $customer->whereIn('type_customer_id',[ 3,4] )->get()->getResult();
+        $userM = new User();
+        $users = $userM
+            // ->join('company')
+            ->where(['role_id >=' => 15, 'status' => 'active'])
+            ->get()->getResult();
         return $this->respond(['status' => 200, 'data' => $users]);
     }
 

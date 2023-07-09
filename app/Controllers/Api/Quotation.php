@@ -46,6 +46,7 @@ class Quotation extends ResourceController
             'invoice_status_id'         => 5,
             'notes'                     => $json->notes,
             'companies_id'              => Auth::querys()->companies_id,
+            'company_destination_id'    => 3,
             'idcurrency'                => isset($json->currency_id) ? $json->currency_id : 35,
             'calculationrate'           => isset($json->currency_rate) ? (float) $json->currency_rate : 1,
             'calculationratedate'       => isset($json->currency_rate_date) ? $json->currency_rate_date: date('Y-m-d'),
@@ -88,8 +89,8 @@ class Quotation extends ResourceController
 
         $json->id = $id;
         if ($id) {
-            $api = new ApiController();
-            $api->preview2(Auth::querys()->companies_id, $id);
+            // $api = new ApiController();
+            // $api->preview2(Auth::querys()->companies_id, $id);
             return $this->respond(['status' => 201, 'code' => 201, 'data' => $json]);
         }
     }

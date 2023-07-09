@@ -41,6 +41,7 @@
     $routes->get('/logout', 'Configuration\AuthController::logout');
     $routes->get('/home', 'Configuration\HomeController::index');
     $routes->get('/about', 'Configuration\HomeController::about');
+    $routes->get('/menu', 'Configuration\HomeController::menu');
     $routes->get('/perfile', 'Configuration\UserController::perfile');
     $routes->post('/update_photo', 'Configuration\UserController::updatePhoto');
     $routes->post('/update_user', 'Configuration\UserController::updateUser');
@@ -589,7 +590,7 @@
     $routes->get('payrolls/download_previsualization/(:num)', 'PayrollController::downloadPrevisualization/$1');
     $routes->get('payrolls/xml/(:num)', 'PayrollController::xml/$1');
     $routes->post('payroll/add/(:num)', 'PeriodController::addWorker/$1');
-    $routes->post('payrolls/payment/(:num)/(:any)', 'PayrollController::createClosePayroll/$1/$2', ['payroll-payment']);
+    $routes->post('payrolls/payment', 'PayrollController::createClosePayroll', ['payroll-payment']);
 
     
    
@@ -651,6 +652,7 @@
     $routes->get('inventory/create/out', 'InventoryController::out_create');
     $routes->get('inventory/out_transfer', 'InventoryController::out_transfer', ['as' => 'inventory-OutTransfer']);
     $routes->get('inventory/edit_out_transfer/(:num)', 'InventoryController::edit_out_transfer/$1', ['as' => 'inventory-EditOutTransfer']);
+    $routes->get('inventory/cartera', 'InventoryController::cartera');
 
     $routes->get('products', 'ProductsController::index', ['as' => 'products-index']);
     $routes->get('products_create', 'ProductsController::create', ['as' => 'products-create']);
@@ -684,7 +686,8 @@
             $routes->resource('products',       ['controller' =>'Api\V2\Product']);
             $routes->resource('invoices',       ['controller' =>'Api\V2\Invoice']);
             $routes->resource('inventories',    ['controller' =>'Api\V2\Inventory']);
-            $routes->resource('customers',    ['controller' =>'Api\Customer']);
+            $routes->resource('users',          ['controller' =>'Api\V2\User']);
+            $routes->resource('customers',      ['controller' =>'Api\Customer']);
             $routes->resource('quotation',      ['controller' =>'Api\Quotation']);
         });
     });
@@ -808,6 +811,7 @@
         $routes->get('incomeAndExpenses', 'ReportsController::incomeAndExpenses',['as' => 'reports.incomeAndExpenses']);
         $routes->get('incomeExpensesAges', 'ReportsController::ageIncomeExpenses');
         $routes->get('incomeExpensesAges/data/(:any)', 'ReportsController::dataIeA/$1');
+        $routes->get('client/new/(:any)/(:any)', 'ReportsController::client/$1/$2');
         $routes->get('view/(:any)', 'ReportsController::view/$1');
         $routes->get('sell', 'ReportsController::sell');
         $routes->get('providersAges', 'ReportsController::providersAges',['as' => 'reports.providersAges']);

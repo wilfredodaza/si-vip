@@ -21,8 +21,13 @@
 <?= $this->section('scripts') ?>
 
 <?= '<script>window.localStorage.setItem("id", "'.$id.'")</script>'?>
-<script src="<?= base_url() ?>/assets/js/edit_out_transfer/runtime.58e5c3603de5b46c8a86.js" defer></script>
+<script>localStorage.setItem('companies_id', '<?= session('user')->companies_id ?>')</script>
+
+<script src="<?= base_url() ?>/assets/js/edit_out_transfer/runtime.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/edit_out_transfer/polyfills.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/edit_out_transfer/main.js" defer></script>
+<!-- <script src="<?= base_url() ?>/assets/js/edit_out_transfer/runtime.58e5c3603de5b46c8a86.js" defer></script>
 <script src="<?= base_url() ?>/assets/js/edit_out_transfer/polyfills.dacd6549d6eac8a326be.js" defer></script>
-<script src="<?= base_url() ?>/assets/js/edit_out_transfer/main.b2d38db478d9083b2eaa.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/edit_out_transfer/main.b2d38db478d9083b2eaa.js" defer></script> -->
 
 <?= $this->endSection() ?>

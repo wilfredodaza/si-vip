@@ -25,6 +25,7 @@ class CustomerController extends BaseController
     public $controllerWallet;
     public $tableCustomerWorker;
     public $controllerTracking;
+    public $tableUser;
 
     public function __construct()
     {
@@ -35,6 +36,7 @@ class CustomerController extends BaseController
         $this->tablePaymentPolicies = new PaymentPolicies();
         $this->controllerWallet = new WalletController();
         $this->controllerTracking = new TrackingController();
+        $this->tableUser = new User();
     }
 
     public function profile($id)
@@ -393,15 +395,9 @@ class CustomerController extends BaseController
 
     public function employee($id)
     {
-        $employee = $this->tableCustomers
+        $employee = $this->tableUser
             ->select([
-                'customers.id',
-                'customers.name',
-                'customers.identification_number as identification',
                 'type_document_identifications.name as type_identification',
-                'customers.phone',
-                'customers.email',
-                'customers.address',
                 'customer_worker.salary',
                 'customer_worker.work',
                 'customer_worker.surname',
@@ -409,12 +405,19 @@ class CustomerController extends BaseController
                 'customer_worker.retirement_date',
                 'customer_worker.birthday',
                 'customer_worker.number_people',
-                'customers.neighborhood',
-                'customer_worker.withdrawal_reason'
+                'customer_worker.withdrawal_reason',
+                'users.id',
+                'users.name',
+                'users.phone',
+                'users.email',
+                'users.address',
+                'users.identification_number as identification',
+                'users.neighborhood',
             ])
-            ->join('type_document_identifications', 'customers.type_document_identifications_id = type_document_identifications.id')
-            ->join('customer_worker', 'customers.id = customer_worker.customer_id', 'left')
-            ->where('customers.id', $id)->asObject()->first();
+            ->join('type_document_identifications', 'users.type_document_identifications_id = type_document_identifications.id', 'left')
+            ->join('customer_worker', 'users.id = customer_worker.user_id', 'left')
+            ->where('users.id', $id)->asObject()->first();
+            // var_dump($employee); die();
         // echo json_encode($employee);die();
         return view('customers/employee', [
             'employee' => $employee
@@ -437,22 +440,33 @@ class CustomerController extends BaseController
                 'retirement_date' => ($this->request->getPost('retirement_date') !== null) ? $this->request->getPost('retirement_date') : null,
                 'admision_date' => ($this->request->getPost('admision_date') !== null) ? $this->request->getPost('admision_date') : null,
                 'salary' => ($this->request->getPost('salary') !== null) ? $this->request->getPost('salary') : null,
-                'work' => ($this->request->getPost('work') !== null) ? $this->request->getPost('work') : null
+                'work' => ($this->request->getPost('work') !== null) ? $this->request->getPost('work') : null,
+                'user_id' => $id
             ];
             if (!is_null($this->request->getPost('retirement_date'))) {
                 $customerWorker['withdrawal_reason'] = ($this->request->getPost('withdrawal_reason') !== null) ? $this->request->getPost('withdrawal_reason') : 'Sin Motivo de retiro';
                 $customer['status'] = 'Inactivo';
             }
-            if ($this->tableCustomers->update($id, $customer)) {
-                if ($this->tableCustomerWorker->set($customerWorker)->where('customer_id', $id)->update()) {
-                    return redirect()->to(base_url('/customers/employee/' . $id))->with('success', 'Datos actualizados correctamente');
-                } else {
-                    throw  new \Exception('Los datos no se actualizaron con exíto en detalles del empleado');
+            // if ($this->tableUser->update($id, $customer)) {
+                $customer_worker = $this->tableCustomerWorker->where(['user_id' => $id])->first();
+                if(!empty($customer_worker)){
+                    if ($this->tableCustomerWorker->set($customerWorker)->where('user_id', $id)->update()) {
+                        return redirect()->to(base_url('/customers/employee/' . $id))->with('success', 'Datos actualizados correctamente');
+                    } else {
+                        throw  new \Exception('Los datos no se actualizaron con exíto en detalles del empleado');
+                    }
+                }else{
+                    if ($this->tableCustomerWorker->save($customerWorker)) {
+                        return redirect()->to(base_url('/customers/employee/' . $id))->with('success', 'Datos actualizados correctamente');
+                    } else {
+                        throw  new \Exception('Los datos no se actualizaron con exíto en detalles del empleado');
+                    }
                 }
-            } else {
-                throw  new \Exception('Los datos no se actualizaron con exíto');
-            }
+            // } else {
+            //     throw  new \Exception('Los datos no se actualizaron con exíto');
+            // }
         } catch (\Exception $e) {
+            // var_dump($e->getMessage());
             return redirect()->to(base_url('/customers/employee/' . $id))->with('error', $e->getMessage());
         }
     }

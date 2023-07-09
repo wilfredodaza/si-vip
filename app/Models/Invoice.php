@@ -38,6 +38,7 @@ class Invoice extends Model
         'type_documents_id',
         'pre_paid_amount',
         'companies_id',
+        'company_destination_id',
         'uuid',
         'resolution_credit',
         'issue_date',
@@ -66,7 +67,14 @@ class Invoice extends Model
             return $product; 
         }
 
-
+        public function getLineInvoicesReports($id){
+            $product = $this->builder('line_invoices')
+                ->select(['line_invoices.*', 'products.name', 'category.payroll as nomina'])
+                ->join('products', 'products.id = line_invoices.products_id', 'left')
+                ->join('category', 'category.id = products.category_id', 'left')
+                ->where(["invoices_id" => $id])->get()->getResult();
+            return $product; 
+        }
 
 
 }

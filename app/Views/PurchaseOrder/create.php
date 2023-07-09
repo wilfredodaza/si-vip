@@ -21,10 +21,13 @@
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 
+<script src="<?= base_url() ?>/assets/js/create_purchase_order/runtime.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/create_purchase_order/polyfills.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/create_purchase_order/main.js" defer></script>
 
-<script src="<?= base_url() ?>/assets/js/create_purchase_order/runtime.58e5c3603de5b46c8a86.js" defer></script>
+<!-- <script src="<?= base_url() ?>/assets/js/create_purchase_order/runtime.58e5c3603de5b46c8a86.js" defer></script>
 <script src="<?= base_url() ?>/assets/js/create_purchase_order/polyfills.dacd6549d6eac8a326be.js" defer></script>
-<script src="<?= base_url() ?>/assets/js/create_purchase_order/main.1785902233dd58fbdd8d.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/create_purchase_order/main.1785902233dd58fbdd8d.js" defer></script> -->
 
 
 <?= $this->endSection() ?>

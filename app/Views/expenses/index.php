@@ -60,8 +60,9 @@
                                 <tr>
                                     <th class="center">#</th>
                                     <th class="center">Fecha</th>
+                                    <th class="center">Gasto</th>
                                     <th class="center">Sede</th>
-                                    <th class="center">Producto</th>
+                                    <th class="center">Responsable</th>
                                     <th class="center">Total</th>
                                     <th class="center step-3">Acciones</th>
                                 </tr>
@@ -72,8 +73,9 @@
                                     <tr>
                                         <td class="center"><?= $item->id ?></td>
                                         <td class="center"><?= $item->start_date ?></td>
-                                        <td class="center"><?= $item->customer ?></td>
                                         <td class="center"><?= $item->product_name ?></td>
+                                        <td class="center"><?= $item->company ?></td>
+                                        <td class="center"><?= $item->customer ?></td>
                                         <td class="center">$ <?= number_format($item->line_extension_amount, '2', ',', '.') ?></td>
                                         <td class="center">
                                             <div class="btn-group" role="group">

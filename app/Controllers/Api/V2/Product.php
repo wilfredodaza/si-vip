@@ -36,30 +36,59 @@ class Product extends ResourceController
 
     public function index()
     {
-
+        // echo json_encode( $products );
         if ($this->request->getGet('tax_iva') !== null) {
             $tax_iva = 'R';
             if($this->request->getGet('tax_iva') == 'facturado'){
                 $tax_iva = 'F';
             }
-            $products = $this->model
-                ->where(['tax_iva' => $tax_iva])
+            // if($this->request->getGet('tax_iva') == 'ordeCompra' || $this->request->getGet('tax_iva') == 'R'){
+                $products = $this->model
+                    ->select(['products.*', 'products_details.cost_value'])
+                ->where(['tax_iva' => $tax_iva, 'kind_product_id' => NULL])
                 ->whereIN('companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters(Auth::querys()->companies_id))
+                ->join('products_details', 'products_details.id_product = products.id and products_details.status = "active"', 'left')
                 ->asObject()
                 ->get()
                 ->getResult();
+            // }else{
+            //     $products =  $this->controllerInventory->availabilityProductAccess(Auth::querys()->companies_id );
+            //     $ids = [];
+            //     $product_aux = []; 
+            //     foreach ($products as $key => $product) {
+            //         array_push($ids, $product->id);
+            //         $product_aux[$product->id] = ($product->input + $product->inputTransfer) - ($product->output + $product->output);
+            //     }
+            //     if(count($products) > 0){
+            //         $products = $this->model
+            //             ->select(['products.*', 'products_details.cost_value'])
+            //             ->where(['tax_iva' => $tax_iva, 'kind_product_id' => NULL])
+            //             // ->whereIN('companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters(Auth::querys()->companies_id))
+            //             ->whereIN('id', $ids)
+            //             ->join('products_details', 'products_details.id_product = products.id and products_details.status = "active"', 'left')
+            //             ->asObject()
+            //             ->get()
+            //             ->getResult();
+            //     }else $products = [];
+            // }
         }else{
             if($this->request->getGet('type_id') == 3){
                 $products = $this->model
+                    ->select(['products.*', 'products_details.cost_value'])
                     ->where(['kind_product_id' => 3])
                     ->whereIN('companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters(Auth::querys()->companies_id))
+                    ->join('products_details', 'products_details.id_product = products.id and products_details.status = "active"', 'left')
+                // ->whereIN('id', $ids)
                     ->asObject()
                     ->get()
                     ->getResult();
             }else{
                 $products = $this->model
+                    ->select(['products.*', 'products_details.cost_value'])
                     ->where(['tax_iva != ' => ''])
                     ->whereIN('companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters(Auth::querys()->companies_id))
+                    ->join('products_details', 'products_details.id_product = products.id and products_details.status = "active"', 'left')
+                // ->whereIN('id', $ids)
                     ->asObject()
                     ->get()
                     ->getResult();
@@ -68,36 +97,45 @@ class Product extends ResourceController
 
 
         $arrayProducts = [];
-
-        foreach ($products as $item) {
-            $item->valor = ($this->request->getGet('tax_iva') !== null) ? ($this->request->getGet('tax_iva') == 'R' ? $item->cost : $item->valor) : $item->valor;
-            $product = [
-                'id'                            => $item->id,
-                'code'                          => $item->code,
-                'name'                          => $item->name,
-                'description'                   => $item->description,
-                'price_amount'                  => $item->valor,
-                'price_one'                     => $item->value_one,
-                'price_two'                     => $item->value_two,
-                'price_three'                   => $item->value_three,
-                'cost'                          => $item->cost,
-                'unit_measure_id'               => $item->unit_measures_id,
-                'invoiced_quantity'             => 1,
-                'line_extension_amount'         => $item->valor,
-                'free_of_charge_indicator'      => $item->free_of_charge_indicator == 'true' ? true: false,
-                'type_item_identification_id'   => $item->type_item_identifications_id,
-                'base_quantity'                 => 1,
-                'type_generation_transmition_id'=> $item->type_generation_transmition_id,
-                'tax_totals'                    => [
-                    $this->_accountingAccount($item->iva, 1, $item->valor),
-                    $this->_accountingAccount($item->retefuente, 6, $item->valor),
-                    $this->_accountingAccount($item->reteica, 7, $item->valor),
-                ],
-                'tax_iva' => $item->tax_iva,
-                'max_quantity' => $this->controllerInventory->availabilityProduct($item->id, Auth::querys()->companies_id )
-            ];
-            array_push($arrayProducts, $product);
+        try {
+            foreach ($products as $item) {
+                $item->valor = ($this->request->getGet('type') !== null) ? $item->cost : $item->valor;
+                $product = (object) [
+                    'id'                            => $item->id,
+                    'code'                          => $item->code,
+                    'name'                          => $item->name,
+                    'description'                   => $item->description,
+                    'category'                      => $item->category_id,
+                    'price_amount'                  => $item->valor,
+                    'price_one'                     => $item->value_one,
+                    'price_two'                     => $item->value_two,
+                    'price_three'                   => $item->value_three,
+                    'cost'                          => $item->cost_value ? $item->cost_value : $item->cost,
+                    'unit_measure_id'               => $item->unit_measures_id,
+                    'invoiced_quantity'             => 1,
+                    'line_extension_amount'         => $item->valor,
+                    'free_of_charge_indicator'      => $item->free_of_charge_indicator == 'true' ? true: false,
+                    'type_item_identification_id'   => $item->type_item_identifications_id,
+                    'base_quantity'                 => 1,
+                    'type_generation_transmition_id'=> $item->type_generation_transmition_id,
+                    'tax_totals'                    => [
+                        $this->_accountingAccount($item->iva, 1, $item->valor),
+                        $this->_accountingAccount($item->retefuente, 6, $item->valor),
+                        $this->_accountingAccount($item->reteica, 7, $item->valor),
+                    ],
+                    // 'tax_totals' => [],
+                    'tax_iva' => $item->tax_iva,
+                    'max_quantity' => $this->controllerInventory->availabilityProduct($item->id, Auth::querys()->companies_id )
+                ];
+                array_push($arrayProducts, $product);
+                // if(count($product->tax_totals[1]) < 2){
+                //     return $this->respond(['status' =>  200, 'code' => 200, 'data' => $item ], 500);
+                // }
+            }
+        } catch (\Exception $e) {
+            return $this->respond(['status' =>  200, 'code' => 200, 'data' => $e->getMessage() ], 500);
         }
+
         return $this->respond(['status' =>  200, 'code' => 200, 'data' => $arrayProducts ]);
     }
 
@@ -206,7 +244,10 @@ class Product extends ResourceController
     {
         $model = new AccountingAcount();
         $accounting = $model->asObject()->find($id);
-
+        if(empty($accounting)){
+            return [];
+        }
+        // return [$accounting];
         return [
             'tax_id'            => $tax,
 			'tax_amount'        => ($accounting->percent * $priceAmount) / 100,

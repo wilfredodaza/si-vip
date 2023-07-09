@@ -11,6 +11,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\ProductsDetails;
 use App\Models\TrackingCustomer;
+use App\Models\AccountingAcount;
 use App\Models\Wallet;
 use App\Traits\ValidationsTrait2;
 use CodeIgniter\RESTful\ResourceController;
@@ -63,6 +64,8 @@ class Inventory extends ResourceController
 
     public function create()
     {
+        // $json = $this->request->getJSON();
+        // return $this->respond(['status' => 500, 'code' => 500, 'data' => $json], 500);
         try {
             $json = $this->request->getJSON();
             $close = true;
@@ -74,13 +77,14 @@ class Inventory extends ResourceController
                     $this->validateCloseOc($json->resolution, $json->resolution);
                 }
             }
+            
             $headquarters = null;
-            if ($json->type_document_id == 115) {
-                $customer = $this->tableCustomer->where(['id' => $json->customer_id])->asObject()->first();
-                if (!is_null($customer)) {
-                    $headquarters = $customer->headquarters_id;
-                }
-            }
+            // if ($json->type_document_id == 115) {
+            //     $customer = $this->tableCustomer->where(['id' => $json->customer_id])->asObject()->first();
+            //     if (!is_null($customer)) {
+            //         $headquarters = $customer->headquarters_id;
+            //     }
+            // }
             if ($json->type_document_id == 108) {
                 $outNew = $this->tableInvoices->where(['type_documents_id' => 108])->orderBy('id', 'DESC')->asObject()->get()->getResult();
                 if (count($outNew) > 0) {
@@ -89,17 +93,22 @@ class Inventory extends ResourceController
                     $number = 1;
                 }
             }
-            $manager = $this->controllerHeadquarters->permissionManager(session('user')->role_id);
-            if ($manager) {
-                $idCompany = $this->controllerHeadquarters->idSearchBodega();
-            } else {
-                $idCompany = Auth::querys()->companies_id;
+            // echo json_encode(session('user'));
+
+            // Si el rol actual es gerente (15) toma la sede bodega (69)
+            $idCompany = Auth::querys()->role_id == 15 ? 69 : Auth::querys()->companies_id;
+                // return $this->respond(['status' => 500, 'code' => 500, 'data' =>  $json->type_document_id == 107 ? $idCompany : $json->companies_destination_id]);
+            if($json->type_document_id == 108){
+                $account = new AccountingAcount();
+                $account = $account->where(['id' => $json->payment_form->payment_method_id])->asObject()->first();
+                // return $this->respond(['status' => 500, 'code' => 500, 'data' => $account], 500);
             }
+
             $invoice = $this->tableInvoices->insert([
                 'resolution' => ($json->type_document_id == 108) ? $number : $json->number,
                 'resolution_id' => ($json->type_document_id == 108) ? 1 : ($json->type_document_id == 114)? null :$json->resolution,
                 'payment_forms_id' => $json->payment_form->payment_form_id,
-                'payment_methods_id' => $json->payment_form->payment_method_id,
+                'payment_methods_id' => ($json->type_document_id == 108) ? ( $json->payment_form->payment_form_id == 1 ? ($account->type_entry == 1 ? 47 : 10) : 1) : $json->payment_form->payment_method_id,//$json->payment_form->payment_method_id
                 'payment_due_date' => ($json->payment_form->duration_measure == 0) ? date('Y-m-d') : $json->payment_form->payment_due_date,
                 'duration_measure' => $json->payment_form->duration_measure,
                 'type_documents_id' => ($json->type_document_id != 114) ? $json->type_document_id : 107,
@@ -109,11 +118,12 @@ class Inventory extends ResourceController
                 'allowance_total_amount' => $json->legal_monetary_totals->allowance_total_amount,
                 'charge_total_amount' => $json->legal_monetary_totals->charge_total_amount,
                 'payable_amount' => $json->legal_monetary_totals->payable_amount,
-                'customers_id' => $json->customer_id,
+                'customers_id' => $json->type_document_id == 115 ?  null : $json->customer_id, // 
                 'created_at' => date('Y-m-d H:i:s'),
                 'invoice_status_id' => ($json->type_document_id != 115) ? 2 : 22,
                 'notes' => ($json->type_document_id == 114)?"Remision generada con orden de compra # {$json->resolution} <br>".$json->notes:$json->notes,
-                'companies_id' => $idCompany,
+                'companies_id' => $json->type_document_id == 107 ? 2 : ($json->type_document_id == 114 ? 2 : $idCompany ),
+                'company_destination_id' => $json->type_document_id == 107 ? $idCompany : ($json->type_document_id == 115 ? $json->customer_id : ($json->type_document_id == 114 ? $idCompany : 3 )),
                 'idcurrency' => $json->idcurrency ?? 35,
                 'calculationrate' => $json->calculationrate ?? 1,
                 'calculationratedate' => $json->calculationratedate ?? date('Y-m-d'),
@@ -138,11 +148,11 @@ class Inventory extends ResourceController
                     }
                     $oc = $this->tableInvoices->where('id', $json->resolution)->asObject()->first();
                     //$manager = $this->controllerHeadquarters->permissionManager(session('user')->role_id);
-                    if ($manager) {
-                        $idCompany = $this->controllerHeadquarters->idSearchBodega();
-                    } else {
-                        $idCompany = Auth::querys()->companies_id;
-                    }
+                    // if ($manager) {
+                    //     $idCompany = $this->controllerHeadquarters->idSearchBodega();
+                    // } else {
+                    //     $idCompany = Auth::querys()->companies_id;
+                    // }
                     $company = new Company();
                     $companyName = $company->select('company')->where('id', $idCompany)->asObject()->first();
                     $messages = "<br> Entrada por remisión # {$json->number} - sede {$companyName->company} - Cantidad de productos  {$this->quantityTotal} - Valor $ {$json->legal_monetary_totals->payable_amount} ";
@@ -169,26 +179,31 @@ class Inventory extends ResourceController
                 }
             }
             if ($json->type_document_id == 115) {
-                $idInput = $this->createTransfer($id, $headquarters);
-                $this->tableInvoices->set(['resolution_credit' => $idInput])->where(['id' => $id])->update();
+                // $idInput = $this->createTransfer($id, $headquarters);
+                // $this->tableInvoices->set(['resolution_credit' => $idInput])->where(['id' => $id])->update();
             }
             if($json->type_document_id == 108 &&  $json->payment_form->payment_form_id == 1){
                 $wallet = [
                     'value' => $json->legal_monetary_totals->payable_amount - $this->walletDiscount,
                     'description' => "Se realiza pago de Contado",
-                    'payment_method_id' => 7,
+                    'payment_method_id' => $json->payment_form->payment_method_id,
                     'invoices_id' => $id,
                     'created_at' => date("Y-m-d H:i:s"),
-                    'user_id' => Auth::querys()->id
+                    'user_id' => Auth::querys()->id,
+                    'companies_id' => Auth::querys()->companies_id,
                 ];
                 $tableWallet = new Wallet();
                 $tableWallet->save($wallet);
+            }
+
+            if($json->type_document_id == 100){
+                $this->tableInvoices->save(['id' => $json->id, 'invoice_status_id' => 6]);
             }
             $json->id = $id;
             if ($id) {
                 $api = new ApiController();
                 // $api->preview(Auth::querys()->companies_id, $id);
-                return $this->respond(['status' => 201, 'code' => 201, 'data' => $json]);
+                return $this->respond(['status' => 201, 'code' => 201, 'data' => $json, 'message' => 'Guardado Correctamente.']);
             }
         } catch (\Exception $e) {
             return $this->respond(['status' => 500, 'code' => 500, 'data' => $e->getMessage()]);
@@ -197,6 +212,7 @@ class Inventory extends ResourceController
 
     public function edit($id = null)
     {
+        
         // $manager = $this->controllerHeadquarters->permissionManager(session('user')->role_id);
         /** @autor john vergara
          * se realiza ajuste para que desde gerencia se pueda editar los datos de inventario
@@ -209,6 +225,8 @@ class Inventory extends ResourceController
 
         $data = [];
         $data['number'] = $invoice->resolution;
+        $data['companies_id'] = $invoice->companies_id;
+        $data['company_destination_id'] = $invoice->company_destination_id;
         $data['resolution'] = $invoice->resolution_id;
         $data['delevery_term_id'] = $invoice->delevery_term_id;
         $data['currency_id'] = $invoice->idcurrency;
@@ -222,6 +240,7 @@ class Inventory extends ResourceController
         $data['payment_form']['payment_due_date'] = $invoice->payment_due_date;
         $data['payment_form']['duration_measure'] = $invoice->duration_measure;
         $data['issue_date'] = $invoice->issue_date;
+        $data['created_at'] = date('Y-m-d', strtotime($invoice->created_at));
         $data['headquarters_id'] = false;
         if ($invoice->headquarters_id == Auth::querys()->companies_id) {
             $data['headquarters_id'] = true;
@@ -242,6 +261,7 @@ class Inventory extends ResourceController
                 'products.name',
                 'line_invoices.products_id',
                 'line_invoices.price_amount',
+                'line_invoices.cost_amount',
                 'line_invoices.provider_id',
                 'line_invoices.discount_amount',
             ])
@@ -265,6 +285,7 @@ class Inventory extends ResourceController
             $data['invoice_lines'][$i]['base_quantity'] = ($isCo)?$this->productsOc[$item->products_id]:((int)$item->quantity);
             $data['invoice_lines'][$i]['name'] = $item->name;
             $data['invoice_lines'][$i]['price_amount'] = (int)$item->price_amount;
+            $data['invoice_lines'][$i]['price_cost'] = (int)$item->cost_amount;
             $data['invoice_lines'][$i]['provider_id'] = $item->provider_id;
             $data['invoice_lines'][$i]['allowance_charges'][0]['id'] = 0;
             $data['invoice_lines'][$i]['allowance_charges'][0]['discount_id'] = 12;
@@ -313,7 +334,8 @@ class Inventory extends ResourceController
             $invoice = new \App\Models\Invoice();
             $invoices = $invoice->where([
                 'id' => $id,
-                'type_documents_id >' => 100
+                // 'type_documents_id >' => 100,
+                // 'invoice_status_id' => 1
             ])->countAllResults();
 
             if ($invoices == 0) {
@@ -370,6 +392,7 @@ class Inventory extends ResourceController
                 ->where(['id' => $id])
                 ->update();
             $invoiceOrigin = $this->tableInvoices->where(['id' => $id])->asObject()->first();
+            // return $this->respond(['status' => 500, 'code' => 500, 'data' => 'hola']);
             $this->editLineInvoiceTransfer($json, $invoiceLines, $id, $invoiceOrigin);
             if ($invoice) {
                 $api = new ApiController();
@@ -379,6 +402,39 @@ class Inventory extends ResourceController
                 die();
             }
         } catch (\Exception $e) {
+            return $this->respond(['status' => 500, 'code' => 500, 'data' => $e->getMessage()]);
+        }
+    }
+
+    public function delete($id = null){
+        try {
+            $invoiceModel = new Invoice();
+            $request = $this->request->getJSON();
+            $motivo = ($request->motivo ? $request->motivo : 'Sin motivo');
+            $invoice = $invoiceModel->where(['id' => $id])->asObject()->first();
+            $invoice = $invoiceModel->save([
+                'id'                    => $id,
+                'notes'                 => $motivo,
+                'invoice_status_id'     => 28,
+                'line_extesion_amount'  => 0,
+                'payable_amount'        => 0,
+                'tax_exclusive_amount'  => 0,
+                'tax_inclusive_amount'  => 0,
+                'user_id'               => Auth::querys()->id
+            ]);
+            $invoiceLineModel = new LineInvoice();
+            $lineInvoices = $invoiceLineModel->where(['invoices_id' => $id])->asObject()->get()->getResult();
+            $invoiceLineModel = new LineInvoice();
+            foreach ($lineInvoices as $key => $lineInvoice) {
+                $invoiceLineModel->save([
+                    'id' => $lineInvoice->id,
+                    'line_extension_amount' => 0,
+                    'price_amount' => 0,
+                    'quantity' => 0
+                ]);
+            }
+            return $this->respond(['status' => 201, 'code' => 201, 'data' => $lineInvoices, 'request' => $request, 'message' => 'Guardado Correctamente.']);
+        } catch (\Exception $th) {
             return $this->respond(['status' => 500, 'code' => 500, 'data' => $e->getMessage()]);
         }
     }
@@ -450,6 +506,12 @@ class Inventory extends ResourceController
                 $this->quantityTotal = $this->quantityTotal + $value->invoiced_quantity;
                 $this->productsOc[ $value->product_id] = $this->productsOc[ $value->product_id] - $value->invoiced_quantity;
             }
+            $productM = new Product();
+            $productAux = $productM
+                        ->select(['products.cost', 'products_details.cost_value'])
+                        ->where(['products.id' => $value->product_id,])
+                        ->join('products_details', 'products_details.id_product = products.id and products_details.status = "active"', 'left')
+                        ->asObject()->first();
             $line = [
                 'invoices_id' => $invoice,
                 'discount_amount' => $value->allowance_charges[0]->amount,
@@ -457,23 +519,27 @@ class Inventory extends ResourceController
                 'quantity' => $value->invoiced_quantity,
                 'line_extension_amount' => $value->line_extension_amount,
                 'price_amount' => $value->price_amount,
+                'cost_amount' => $productAux->cost_value ? $productAux->cost_value : $productAux->cost,
                 'products_id' => $value->product_id,
                 'description' => $value->description,
                 'provider_id' => $value->providerId ?? null
             ];
             $lineInvoiceId = $this->tableLineInvoices->insert($line);
-            $this->tableProductsDetails
-                ->set(['status' => 'inactive'])
-                ->where(['id_product' => $value->product_id])
-                ->update();
-            $productDetail = [
-                'id_product' => $value->product_id,
-                'id_invoices' => $invoice,
-                'created_at' => date('Y-m-d'),
-                'policy_type' => 'general',
-                'cost_value' => $value->price_amount,
-            ];
-            $this->tableProductsDetails->insert($productDetail);
+            if($json->type_document_id != 108){
+                $this->tableProductsDetails
+                    ->set(['status' => 'inactive'])
+                    ->where(['id_product' => $value->product_id])
+                    ->update();
+                $productDetail = [
+                    'id_product' => $value->product_id,
+                    'id_invoices' => $invoice,
+                    'created_at' => date('Y-m-d'),
+                    'policy_type' => 'general',
+                    'cost_value' => $value->price_amount,
+                ];
+                $this->tableProductsDetails->insert($productDetail);
+            }
+            
             foreach ($value->tax_totals as $taxe) {
                 $tax = [
                     'taxes_id' => $taxe->tax_id,
@@ -540,6 +606,7 @@ class Inventory extends ResourceController
                     ->set(['cost_value' => $value->price_amount])
                     ->where(['id_product' => $value->product_id, 'id_invoices' => $idInvoice])
                     ->update();
+                    
                 foreach ($value->tax_totals as $taxe) {
                     $tax = [
                         "taxes_id" => $taxe->tax_id,
@@ -547,18 +614,22 @@ class Inventory extends ResourceController
                         "percent" => $taxe->percent,
                         "taxable_amount" => $taxe->taxable_amount
                     ];
+                    
                     $lineInvoiceTax = new LineInvoiceTax();
                     if ($json->type_document_id == 115 || $json->type_document_id == 116) {
+                        // echo json_encode($transfer); 
                         $lineInvoiceTranferTax = $this->tableLineInvoices->where(['products_id' => $value->product_id, 'invoices_id' => $transfer->resolution_credit])->asObject()->first();
                         $lineInvoiceTax->set($tax)
                             ->where(['taxes_id' => $taxe->tax_id, 'line_invoices_id' => $lineInvoiceTranferTax->id])
                             ->update();
+                            
                     }
                     $lineInvoiceTax->set($tax)
                         ->where(['taxes_id' => $taxe->tax_id, 'line_invoices_id' => $value->invoice_line_id])
                         ->update();
 
                 }
+                
             } else {
                 //$this->validateCreateRemision($isCo, $json, $value, $idInvoice);
                 //$this->quantityTotal = $this->quantityTotal + $value->invoiced_quantity;

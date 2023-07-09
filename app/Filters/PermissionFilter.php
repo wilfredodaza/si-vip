@@ -60,6 +60,8 @@ class PermissionFilter implements FilterInterface
                 ->where(['module_role_id' => $moduleRoleId->id,  'menus.url' =>  $url ])
                 ->first();
 
+                // echo json_encode([$data , session('user')->role_id != 1]); die();
+
             if (!$data && session('user')->role_id != 1) {
                 echo view('errors/html/error_401');
                 die();

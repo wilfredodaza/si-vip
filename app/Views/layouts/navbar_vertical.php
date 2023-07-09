@@ -1,8 +1,8 @@
 <aside class="sidenav-main nav-expanded nav-lock nav-collapsible  <?= getenv("DEVELOPMENT") == 'true' ? '' : 'sidenav-light' ?> navbar-full sidenav-active-rounded sidenav-light " style="background: #50D4F2 !important;">
     <div class="brand-sidebar "  style="background: #50D4F2;">
         <h1 class="logo-wrapper">
-            <a class="brand-logo darken-1" href="<?= base_url('home') ?>" style="padding-top: 11px ; padding-bottom: 11px;">
-                <img class="hide-on-med-and-down"  src="<?= base_url('/assets/img/logo-menu-horizontal.png') ?>" alt="materialize logo" style=" height: 40px;display: block;">
+            <a class="brand-logo darken-1" href="<?= base_url('home') ?>">
+                <?= configInfo()['name_app'] ?>
                 <a class="navbar-toggler" href="#">
                     <i class="material-icons">radio_button_checked</i>
                 </a>
@@ -25,6 +25,9 @@
             <a class="navigation-header-text" style=" white-space: nowrap; overflow: hidden; text-overflow:ellipsis;  "><?= isset(company()->company) ? company()->company  : 'Administador' ?>
             </a><i class="navigation-header-icon material-icons">more_horiz</i>
         </li>
+        <li class="bold <?= base_url(uri_string()) == base_url().'/menu' ?'active':  '' ?>"><a class="waves-effect waves-cyan <?= base_url(uri_string()) == base_url().'/menu' ? 'active': '' ?> " href="<?= base_url() ?>/menu"><i
+                        class="material-icons">home</i><span class="menu-title" data-i18n="Calendar">Home</span></a>
+        </li>
         <?php foreach (menu() as $item): ?>
             <li class="bold <?= isActive(urlOption($item->id)); ?>"><a class="waves-effect waves-cyan  <?= isActive(urlOption($item->id)); ?> <?= countMenu($item->id) ? 'collapsible-header' : ''; ?>"
 
@@ -45,11 +48,6 @@
                 <?php endif; ?>
             </li>
         <?php endforeach; ?>
-        <?php if(session('user')->role_id == 5): ?>
-            <li class="bold <?= base_url(uri_string()) == base_url().'/home' ?'active':  '' ?>"><a class="waves-effect waves-cyan <?= base_url(uri_string()) == base_url().'/home' ? 'active': '' ?> " href="<?= base_url() ?>/home"><i
-                            class="material-icons">settings_input_svideo</i><span class="menu-title" data-i18n="Calendar">Actualizar datos</span></a>
-            </li>
-        <?php endif; ?>
     </ul>
     <div class="navigation-background"></div>
     <a class="sidenav-trigger btn-sidenav-toggle btn-floating btn-medium waves-effect waves-light hide-on-large-only" href="#" data-target="slide-out" style="background:#17207A;">

@@ -24,24 +24,47 @@ class UserTable
     protected function rules()
     {
         $this->crudTable->uniqueFields(['username']);
+        $this->crudTable->setRule('identification_number', 'required');
+        $this->crudTable->setRule('phone', 'required');
+        $this->crudTable->setRule('name', 'required');
+        $this->crudTable->setRule('phone', 'lengthBetween', ['7', '10']);
+        $this->crudTable->setRule('address', 'required');
+        $this->crudTable->setRule('email', 'required');
+        $this->crudTable->setRule('neighborhood', 'required');
     }
 
     protected function fieldType()
     {
         $ids = [];
+        
+        $this->crudTable->displayAs([
+            'companies_id' => 'Sede',
+            'type_document_identifications_id' => 'Tipo de documento',
+            'identification_number' => 'Numero de identificacion',
+            'phone' => 'Numero de telefono',
+            'address' => 'Dirección',
+            'neighborhood' => 'Barrio',
+            'password' => 'Contraseña'
+        ]);
         $this->crudTable->fieldType('password', 'password');
         $this->crudTable->setFieldUpload('photo', 'assets/upload/images', '/assets/upload/images');
         $company = new Company();
         $headquartersController = new HeadquartersController();
-        $companies = $company->select(['id', 'company'])->whereIn('id', $headquartersController->idsCompaniesHeadquarters())->where(['id !=' => 1])->asObject()->get()->getResult();
+        $companies = $company->select(['id', 'company'])->whereIn('id', $headquartersController->idsCompaniesHeadquarters())->where(['headquarters_id !=' => 1])->asObject()->get()->getResult();
         foreach ($companies as $item) {
             $ids[$item->id] = $item->company;
         }
         $this->crudTable->fieldType('companies_id', 'dropdown_search', $ids);
+        $this->crudTable->fieldType('phone', 'int');
+
     }
 
     protected function callback()
     {
+        
+        $this->crudTable->setRelation('type_document_identifications_id', 'type_document_identifications', 'name');
+        $this->crudTable->where('role_id >= 15');
+
         if (session('user')->role_id == 2) {
             $role = new Role();
             $roles = $role->select(['id', 'name'])
@@ -77,5 +100,9 @@ class UserTable
             }
             return $stateParameters;
         });
+
+        $this->crudTable->setActionButton('Perfil', 'fa fa-user', function ($row) {
+            return base_url('customers/employee') . '/' . $row->id;
+        }, false);
     }
 }

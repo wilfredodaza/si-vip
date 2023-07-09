@@ -72,6 +72,7 @@ class PurchaseOrderController extends BaseController
         if($status != ''){
             $query['invoices.invoice_status_id'] = $status;
         }
+
         $budget = $this->tableBudget->where(['year' => $year, "month" => $month])->asObject()->first();
         if (is_null($budget)) {
             $createBudget = false;
@@ -133,9 +134,10 @@ class PurchaseOrderController extends BaseController
             'indicadores' => $indicadores,
             'months' => $months,
             'valuesExecuted' => $this->_validateValueExecuted($year, $month),
-            'years' => $years
+            'years' => $years,
+            'saldo' => $indicadores[3]->total > 0 ? true : false,
         ];
-
+        // var_dump($data); die;
         return view('PurchaseOrder/index', $data);
     }
 

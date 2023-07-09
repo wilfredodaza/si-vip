@@ -2,7 +2,10 @@
 <table style="width:100%;">
     <tr>
         <td style=" text-align:justify;">
-            <span style="font-size: 9pt;"><?= $invoice->notes ?></span>
+            <span style="font-size: 9pt;"><?= $invoice->invoice_status_id == 28 ? 'Motivo de la anulacion: ' : ''?> <?= $invoice->notes ?></span><br>
+            <?php if($invoice->invoice_status_id == 28): ?>
+                <span style="font-size: 9pt;">Remisión anulada por: <?= $user->name ?></span>
+            <?php endif ?>
         </td>
     </tr>
 </table>

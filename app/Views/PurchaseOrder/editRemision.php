@@ -22,9 +22,12 @@
 <?= $this->section('scripts') ?>
 
 <script>localStorage.setItem('id', <?= $id ?>)</script>
-<script src="<?= base_url() ?>/assets/js/remissionOcSave/runtime.58e5c3603de5b46c8a86.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/remissionOcSave/runtime.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/remissionOcSave/polyfills.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/remissionOcSave/main.js" defer></script>
+<!-- <script src="<?= base_url() ?>/assets/js/remissionOcSave/runtime.58e5c3603de5b46c8a86.js" defer></script>
 <script src="<?= base_url() ?>/assets/js/remissionOcSave/polyfills.dacd6549d6eac8a326be.js" defer></script>
-<script src="<?= base_url() ?>/assets/js/remissionOcSave/main.729253e3aea9b746c0fe.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/remissionOcSave/main.729253e3aea9b746c0fe.js" defer></script> -->
 
 
 <?= $this->endSection() ?>

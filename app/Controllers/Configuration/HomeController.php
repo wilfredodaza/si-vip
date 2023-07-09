@@ -154,6 +154,20 @@ class HomeController extends BaseController
         return view('pages/about');
     }
 
+    public function menu()
+    {
+        $module = new Module();
+        $modules = $module
+            ->join('module_role', 'modules.id = module_role.module_id')
+            ->where(['module_role.role_id' =>  Auth::querys()->role_id ])
+            ->asObject()
+            ->orderBy('position', 'asc')
+            ->get()
+            ->getResult();
+
+        return view('pages/menu', ['modules' => $modules]);
+    }
+
     
 
     public function products()

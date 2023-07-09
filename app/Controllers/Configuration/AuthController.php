@@ -16,6 +16,10 @@ class AuthController extends BaseController
 {
     public function login()
     {
+        // Instruccion solo para local
+        // $db = \Config\Database::connect();
+        // $db->query("SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
+        // No subir produccion
         return view('auth/login');
     }
 

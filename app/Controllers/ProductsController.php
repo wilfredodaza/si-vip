@@ -67,7 +67,7 @@ class ProductsController extends BaseController
             ->select(['groups.name as group', 'sub_group.name as subGroup', 'products.name as producto', 'products.id as productId', 'products.kind_product_id', 'products.tax_iva', 'products.valor', 'products.code', 'products.code_item', 'products.description']);
         $rol = $this->headquartersController->permissionManager(session('user')->role_id);
         $idCompanies = $this->headquartersController->idsCompaniesHeadquarters();
-        $product->whereIn('companies_id', $idCompanies)->where('products.tax_iva !=', null);
+        $product->whereIn('companies_id', $idCompanies)->where(['products.tax_iva !=' => null, 'products.kind_product_id' => NULL]);
         if (count($this->searchIndex()) != 0) {
             if (isset($_GET['product_name']) && isset($_GET['product_code']) && empty($_GET['product_name']) && empty($_GET['product_code'])) {
                 $product->where($this->searchIndex());
@@ -90,7 +90,7 @@ class ProductsController extends BaseController
             'categories' => $this->tableCategories->where(['expenses' => 'no'])->asObject()->get()->getResult(),
             'rol' => $rol
         ];
-        echo view('products/index', $data);
+        return view('products/index', $data);
     }
 
     public function searchIndex(): array
@@ -221,10 +221,12 @@ class ProductsController extends BaseController
             $product->cost = $politics->cost_value;
         }
         $details = $this->tableProductsDetails
-            ->join('invoices', 'invoices.id = products_details.id_invoices', 'left')
             ->select('products_details.*, invoices.resolution, invoices.created_at as invoiceCreate, products_details.created_at as detailCreate')
+            ->join('invoices', 'invoices.id = products_details.id_invoices', 'left')
             ->where(['id_product' => $id])
+            // ->whereNotIn('invoices.type_documents_id', [108])
             ->orderBy('status', 'ASC');
+        // var_dump($details->paginate(10)); die();
         $data = [
             'product' => $product,
             'details' => $details->paginate(10),

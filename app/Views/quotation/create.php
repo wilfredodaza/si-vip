@@ -21,10 +21,13 @@
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 
+<script src="<?= base_url('/assets/js/quotation/runtime.js') ?>"></script>
+<script src="<?= base_url('/assets/js/quotation/polyfills.js') ?>"></script>
+<script src="<?= base_url('/assets/js/quotation/main.js') ?>"></script>
 
-<script src="<?= base_url('/assets/js/quotation/runtime.8a0d85ac5d6090c1b45f.js') ?>"></script>
+<!-- <script src="<?= base_url('/assets/js/quotation/runtime.8a0d85ac5d6090c1b45f.js') ?>"></script>
 <script src="<?= base_url('/assets/js/quotation/polyfills.f3159b30db96eccd9ca2.js') ?>"></script>
-<script src="<?= base_url('/assets/js/quotation/main.73d14d50b526fd70508c.js') ?>"></script>
+<script src="<?= base_url('/assets/js/quotation/main.e816c225dd3bc2d520e9.js') ?>"></script> -->
 
 
 <?= $this->endSection() ?>

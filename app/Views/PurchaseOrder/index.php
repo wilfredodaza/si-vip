@@ -28,7 +28,7 @@
                 <div class="col s12 m3 l3">
                     <div class="card padding-4 animate fadeLeft shop">
                         <div class="row">
-                            <div class="col s6 align-items-center" id="indicador-<?= $indicador->id ?>">
+                            <div class="col s9 align-items-center" id="indicador-<?= $indicador->id ?>">
                                 <h6 class="mb-0"><?= '$ ' . number_format(($indicador->total), '0', ',', '.') ?></h6>
                                 <p class="no-margin" style="line-height:1;"><?= $indicador->name ?><br>
                                     <span class="no-padding no-margin" style="font-size: 10px !important;"><?= $indicador->observaciones ?></span></p>
@@ -38,7 +38,7 @@
                                 <br><i class='material-icons text-red red-text tiny'>brightness_1</i> 1 Por vencerse "> <strong> 3 </strong> por vencer <i class="material-icons text-red red-text tiny">brightness_1</i></p> -->
                             </div>
 
-                            <div class="col s6 icon align-items-center">
+                            <div class="col s3 icon align-items-center">
                                 <i class="material-icons <?= $indicador->color ?> background-round mt-5 white-text right"><?= $indicador->icon ?></i>
                             </div>
                         </div>
@@ -56,7 +56,7 @@
                                         class="btn btn-light-indigo right  modal-trigger step-5 active-red">
                                     Filtrar <i class="material-icons right">filter_list</i>
                                 </button>
-                                <a <?= (!$manager) ? 'disabled' : '' ?>
+                                <a <?= (!$manager || !$saldo) ? 'disabled' : '' ?>
                                         href="<?= base_url() . route_to('purchaseOrder-create') ?>"
                                         class="btn indigo right mr-3 step-2 active-red">Registrar</a>
                             </div>

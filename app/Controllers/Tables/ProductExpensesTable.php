@@ -13,7 +13,7 @@ class ProductExpensesTable
     /**
      * Campos que no deben ser vistos.
      * @var string[] $hidden
-     */
+     */ 
     protected  $hidden = [
         'created_at',
         'updated_at'
@@ -33,16 +33,18 @@ class ProductExpensesTable
 
     protected function rules()
     {
-        $this->crudTable->setRule('code', 'required');
+        // $this->crudTable->setRule('code', 'required');
         $this->crudTable->setRule('name', 'required');
-        $this->crudTable->setRule('valor', 'required');
-        $this->crudTable->setRule('entry_credit', 'required');
-        $this->crudTable->setRule('entry_debit', 'required');
-        $this->crudTable->setRule('iva', 'required');
-        $this->crudTable->setRule('retefuente', 'required');
-        $this->crudTable->setRule('reteica', 'required');
-        $this->crudTable->setRule('reteiva', 'required');
-        $this->crudTable->setRule('account_pay', 'required');
+        // $this->crudTable->setRule('valor', 'required');
+        // $this->crudTable->setRule('entry_credit', 'required');
+        // $this->crudTable->setRule('entry_debit', 'required');
+        // $this->crudTable->setRule('iva', 'required');
+        // $this->crudTable->setRule('retefuente', 'required');
+        // $this->crudTable->setRule('reteica', 'required');
+        // $this->crudTable->setRule('reteiva', 'required');
+        // $this->crudTable->setRule('account_pay', 'required');
+        $this->crudTable->setRule('category_id', 'required');
+        // $this->crudTable->setRule('description', 'required');
         // $this->crudTable->setRule('type_generation_transmition_id', 'required');
     }
 
@@ -74,24 +76,42 @@ class ProductExpensesTable
     protected function callback()
     {
         $this->crudTable->where(['kind_product_id' => 3]);
+        $this->crudTable->displayAs(['name' => 'Gasto']);
         if (session('user')->role_id == 2 || session('user')->role_id >= 3) {
 
-            $this->crudTable->columns(['code', 'name', 'valor', 'description', 'category_id']);
+            $this->crudTable->columns(['category_id', 'name', 'description']);
+            $this->crudTable->addFields(['category_id', 'name', 'description']);
+            $this->crudTable->editFields(['category_id', 'name', 'description']);
             $this->crudTable->fieldType('companies_id', 'hidden');
+            $this->crudTable->callbackBeforeInsert(function ($stateParameters) {
+                $stateParameters->data['reference_prices_id']           = 1;
+                $stateParameters->data['type_item_identifications_id']  = 4;
+                $stateParameters->data['unit_measures_id']              = 70;
+                $stateParameters->data['companies_id']                  = Auth::querys()->companies_id;
+                $stateParameters->data['code']                          = 00;
+                $stateParameters->data['valor']                         = 0;
+                $stateParameters->data['iva']                           = 17;
+                $stateParameters->data['retefuente']                    = 2;
+                $stateParameters->data['reteica']                       = 2;
+                $stateParameters->data['reteiva']                       = 2;
+                $stateParameters->data['kind_product_id']               = 3;
+                return $stateParameters;
+            });
             $this->crudTable->callbackAddForm(function ($data) {
                 $data['reference_prices_id']                = 1;
                 $data['type_item_identifications_id']       = 4;
                 $data['unit_measures_id']                   = 70;
                 $data['companies_id']                       = Auth::querys()->companies_id;
-                $data['brandname']                          = 'No Aplica';
-                $data['modelname']                          = 'No Aplica';
-                $data['entry_credit']                       = array_keys($this->_getAccountingAccount(1, 'Crédito'))[0];
-                $data['entry_debit']                        = array_keys($this->_getAccountingAccount(1, 'Débito'))[0];
-                $data['iva']                                = array_keys($this->_getAccountingAccount(2))[0];
-                $data['retefuente']                         = array_keys($this->_getAccountingAccount(3))[0];
-                $data['reteica']                            = array_keys($this->_getAccountingAccount(3))[0];
-                $data['reteiva']                            = array_keys($this->_getAccountingAccount(3))[0];
-                $data['account_pay']                        = array_keys($this->_getAccountingAccount(4))[0];
+                $data['companies_id']                       = Auth::querys()->companies_id;
+                // $data['brandname']                          = 'No Aplica';
+                // $data['modelname']                          = 'No Aplica';
+                // $data['entry_credit']                       = array_keys($this->_getAccountingAccount(1, 'Crédito'))[0];
+                // $data['entry_debit']                        = array_keys($this->_getAccountingAccount(1, 'Débito'))[0];
+                // $data['iva']                                = array_keys($this->_getAccountingAccount(2))[0];
+                // $data['retefuente']                         = array_keys($this->_getAccountingAccount(3))[0];
+                // $data['reteica']                            = array_keys($this->_getAccountingAccount(3))[0];
+                // $data['reteiva']                            = array_keys($this->_getAccountingAccount(3))[0];
+                // $data['account_pay']                        = array_keys($this->_getAccountingAccount(4))[0];
                 $data['kind_product_id']                    = 3;
                 return $data;
             });

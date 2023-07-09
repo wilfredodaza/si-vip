@@ -35,7 +35,7 @@
                         <ol class="breadcrumbs mb-0">
                             <li class="breadcrumb-item"><a href="<?= base_url('home') ?>">Home</a></li>
                             <li class="breadcrumb-item active"><a
-                                        href="<?= base_url('table/employees') ?>">Empleados</a></li>
+                                        href="<?= base_url('table/users') ?>">Empleados</a></li>
                             <li class="breadcrumb-item active"><a href="#">Datos empleados</a></li>
                         </ol>
                     </div>
@@ -53,7 +53,7 @@
                                         Información personal
                                     </div>
                                     <div class="col s12 m6 l6">
-                                        <a href="<?= base_url('table/employees') ?>"
+                                        <a href="<?= base_url('table/users') ?>"
                                            class=" btn btn-light-indigo right invoice-print">
                                             <i class="material-icons left">reply</i>
                                             <span>Retroceder</span>

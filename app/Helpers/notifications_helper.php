@@ -9,12 +9,14 @@ function notification($type = 'all')
 
     if(!is_null(Auth::querys()->companies_id)) {
         if($type == 'companies'){
-            $data =  $notification
-	    	->where(['created_at <= ' =>  date('Y-m-d')])
-                ->where('companies_id = '. session('user')->companies_id.' or companies_id IS NULL and view = "false" and status = "Active"' )
-		
-                ->get()
-                ->getResult();
+            $validation = (session('user')->role_id == 1 || session('user')->role_id == 15 || session('user')->role_id == 17) ? true : false;
+            if($validation){
+                $data =  $notification
+                ->where(['created_at <= ' =>  date('Y-m-d')])
+                    ->where('companies_id = '. session('user')->companies_id.' or companies_id IS NULL and view = "false" and status = "Active"' )
+                    ->get()
+                    ->getResult();
+            }else $data = [];
         } else {
             $data =  $notification->where(['status' => 'Active'])
 	    	->where(['created_at <= ' =>  date('Y-m-d')])

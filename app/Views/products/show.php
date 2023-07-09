@@ -55,52 +55,27 @@
                                             <div class="media-body">
                                                 <h6 class="media-heading">
                                                     <span class="users-view-name grey-text">Producto: </span>
-                                                    <span class="users-view-username"><?= $product->producto ?></span>
+                                                    <span class="users-view-username"><?= $product->producto ?> - <?= $product->tax_iva ?></span>
                                                 </h6>
                                                 <span>Código:</span>
-                                                <span class="users-view-id"><?= $product->code ?></span>
+                                                <span class="users-view-id"><?= $product->code ?></span><br>
+                                                <span>Costo:</span>
+                                                <span class="users-view-id">$ <?= number_format($product->cost , '2', ',', '.')?></span><br>
+                                                <span>Valor venta:</span>
+                                                <span class="users-view-id">$ <?= number_format($product->valor,'2',  ',', '.') ?></span>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="col s12 m5 quick-action-btns display-flex justify-content-end align-items-center pt-2">
-                                        <a href="" data-target="create_detail" class="btn-small modal-trigger btn-light-indigo">Agregar Politica</a>
-                                        <a style="margin-left: 5px !important; " href="<?=  base_url().route_to('products-edit', $product->productId) ?>" class="btn-small indigo">Editar</a>
+                                        <a href="" data-target="create_detail" class="btn-small modal-trigger btn-light-indigo">Agregar Politica de costos</a>
+                                        <!-- <a style="margin-left: 5px !important; " href="<?=  base_url().route_to('products-edit', $product->productId) ?>" class="btn-small indigo">Editar</a> -->
                                     </div>
                                 </div>
                             </div>
                             <div class="card">
                                 <div class="card-content">
                                     <div class="row">
-                                        <div class="col s12 m4">
-                                            <h6 class="media-heading">
-                                                <span class="users-view-name grey-text">Resumen de producto </span>
-                                            </h6>
-                                            <table class="striped">
-                                                <tbody>
-                                                <tr>
-                                                    <td>Categoría</td>
-                                                    <td><?= $product->categoria ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Costo</td>
-                                                    <td class="users-view-latest-activity">$ <?= $product->cost ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Valor venta</td>
-                                                    <td class="users-view-verified"> $  <?= $product->valor ?> </td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Marca </td>
-                                                    <td class="users-view-role"><?= $product->brandname ?></td>
-                                                </tr>
-                                                <tr>
-                                                    <td>Modelo</td>
-                                                    <td class="users-view-role"><?= $product->modelname ?></td>
-                                                </tr>
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                        <div class="col s12 m8">
+                                        <div class="col s12 ">
                                             <h6 class="media-heading">
                                                 <span class="users-view-name grey-text">Resumen de entradas </span>
                                             </h6>
@@ -126,7 +101,7 @@
                                                         <td><?= date("d-m-Y", strtotime($date)); ?></td>
                                                         <td><?= $detail['resolution'] ?></td>
                                                         <td><?= $detail['policy_type'] ?></td>
-                                                        <td><?= $detail['cost_value'] ?></td>
+                                                        <td>$ <?= number_format($detail['cost_value'], '2', ',', '.') ?></td>
                                                         <td>
                                                             <form action="">
                                                                 <div class="switch">
@@ -167,7 +142,7 @@
 <form action="<?=  base_url().route_to('productsDetails-create', $product->productId) ?>" method="post" autocomplete="off">
     <div id="create_detail" class="modal" role="dialog" style="height:auto; width: 600px">
         <div class="modal-content">
-            <h5>Agregar politica</h5>
+            <h5>Agregar politica de costos</h5>
             <div class="row">
                 <div class="col s12 m6 l6 input-field">
                     <select name="policy_type" id="policy_type" class="validate" required>
@@ -180,8 +155,8 @@
                     <input type="number" id="cost_value" name="cost_value" class="validate" required>
                 </div>
                 <div class="col s12 m12 l12 " >
-                    <label for="editorCreate">Observaciones</label>
-                    <textarea  id="snippet-classic-editor" class="editor" rows="15" cols="5" name="observations" ></textarea>
+                    <label for="observations">Observaciones</label>
+                    <textarea id="observations" class="materialize-textarea" rows="15" cols="5" name="observations" ></textarea>
                 </div>
             </div>
         </div>

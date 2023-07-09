@@ -653,10 +653,11 @@ class ImportController extends BaseController
 
     public function invoice($file, $idCompany)
     {
+        $errors = [];
 
         try {
             $controllerHeadquarters = new HeadquartersController();
-            $manager = $controllerHeadquarters->permissionManager(session('user')->role_id);
+            // $manager = $controllerHeadquarters->permissionManager(session('user')->role_id);
             /*if ($manager) {
                 $idCompany = $controllerHeadquarters->idSearchBodega();
             } else {
@@ -670,14 +671,32 @@ class ImportController extends BaseController
             $documents              = [];
             $sheet                  = $excel->getSheet(0);
             $largestRowNumber       = $sheet->getHighestRow();
-
+            $errors = [];
             for ($rowIndex = 2; $rowIndex <= $largestRowNumber; $rowIndex++) {
+                
+                $model = new Product();
+                $productId = $model->select(['id','cost'])
+                    ->where([
+                        'code' => $sheet->getCell('A'.$rowIndex)->getValue(),
+                        //'companies_id'          => Auth::querys()->companies_id,
+                        'tax_iva' => 'R'
+                    ])
+                    ->asObject()
+                    ->first();
+                if(empty($productId)){
+                    array_push($errors, "El producto {$sheet->getCell('A'.$rowIndex)->getValue()} no existe.");
+                }else{
+                    if(empty($sheet->getCell('A'.$rowIndex)->getValue()))
+                        array_push($errors, "El campo Código del Producto de la celda A{$rowIndex} es obligatorio.");
+                    if(empty($sheet->getCell('C'.$rowIndex)->getValue()))
+                        array_push($errors, "El campo Cantidad de la celda C{$rowIndex} es obligatorio.");
+                }
                 // $this->required($sheet->getCell('A'.$rowIndex)->getValue(), 'Consecutivo', 'A'.$rowIndex);
                 //$this->required($sheet->getCell('B'.$rowIndex)->getValue(), 'Tipo de Factura', 'B'.$rowIndex);
-                $this->required($sheet->getCell('C'.$rowIndex)->getValue(), 'Código del Producto', 'A'.$rowIndex);
+                // $this->requiredInventory($sheet->getCell('A'.$rowIndex)->getValue(), 'Código del Producto', 'A'.$rowIndex); --- 
                 //$this->required($sheet->getCell('D'.$rowIndex)->getValue(), 'Descripción de producto', 'D'.$rowIndex);
                 //$this->required($sheet->getCell('E'.$rowIndex)->getValue(), 'Valor por Unidad', 'E'.$rowIndex);
-                $this->required($sheet->getCell('F'.$rowIndex)->getValue(), 'Cantidad', 'C'.$rowIndex);
+                // $this->requiredInventory($sheet->getCell('C'.$rowIndex)->getValue(), 'Cantidad', 'C'.$rowIndex);
                 // $this->required($sheet->getCell('G'.$rowIndex)->getValue(), 'Descuento por Unidad', 'G'.$rowIndex);
                 //$this->required($sheet->getCell('H'.(string)$rowIndex)->getValue(), 'IVA %', 'H'.$rowIndex);
                 //$this->required($sheet->getCell('I'.(string)$rowIndex)->getValue(), 'ReteFuente %', 'I'.$rowIndex);
@@ -697,10 +716,10 @@ class ImportController extends BaseController
                 //    $this->required($sheet->getCell('Q'.$rowIndex)->getValue(), 'Fecha TRM', 'Q'.$rowIndex);
                 //}
             }
-            if (count($this->getErrors()) > 0) {
-                return redirect()->back()->with('errors', implode('<br>', $this->getErrors()));
+            if (count($errors) > 0) {
+                return redirect()->back()->with('errors', implode('<br>', $errors));
             }
-
+            // return redirect()->back()->with('errors', 'error');
             for ($rowIndex = 2; $rowIndex <= $largestRowNumber; $rowIndex++) {
                 if (key_exists($sheet->getCell('A' . $rowIndex)->getValue(), $documents)) {
                     $position = count($documents[$sheet->getCell('A' . $rowIndex)->getValue()]);
@@ -738,11 +757,12 @@ class ImportController extends BaseController
             $dataInvoice = [
                 'payment_forms_id' => 1,
                 'payment_methods_id' => 10,
-                'type_documents_id' => 101,
+                'type_documents_id' => 119,
                 'idcurrency' => 35,
                 'invoice_status_id' => 1,
                 'customers_id' => $customerId->id,
-                'companies_id' => $idCompany,
+                'companies_id' => 2, // Proveedores
+                'company_destination_id' => $idCompany,
                 'user_id' => Auth::querys()->id,
                 'resolution' => 900782726,
                 'resolution_id' => null,
@@ -780,63 +800,68 @@ class ImportController extends BaseController
                         ])
                         ->asObject()
                         ->first();
+                    
+                        if(!empty($productId)){
+                            $dataLine = [
+                                'invoices_id' => $invoiceId,
+                                'discounts_id' => 1,
+                                'products_id' => $productId->id,
+                                'discount_amount' => ($line->discount * $line->quantity),
+                                'quantity' => $line->quantity,
+                                'price_amount' => $productId->cost,
+                                'line_extension_amount' => ($productId->cost * $line->quantity) - ($line->discount * $line->quantity),
+                                'description' => $line->description
+                            ];
+                            $lineExtesionAmount += $dataLine['line_extension_amount'];
+        
+                            $modelLine = new LineInvoice();
+                            $lineInvoiceId = $modelLine->insert($dataLine);
+        
+                            $modelTax = new LineInvoiceTax();
+        
+                            $dataTax = [
+                                'line_invoices_id' => $lineInvoiceId,
+                                'taxes_id' => 1,
+                                'tax_amount' => ($line->iva == 0 ? 0 : $dataLine['line_extension_amount'] * $line->iva / 100),
+                                'taxable_amount' => $dataLine['line_extension_amount'],
+                                'percent' => $line->iva
+                            ];
+        
+                            $modelTax->insert($dataTax);
+        
+                            $tax += $dataTax['tax_amount'];
+        
+                            $dataTax = [
+                                'line_invoices_id' => $lineInvoiceId,
+                                'taxes_id' => 5,
+                                'tax_amount' => 0,
+                                'taxable_amount' => $dataLine['line_extension_amount'],
+                                'percent' => 0
+                            ];
+                            $modelTax->insert($dataTax);
+        
+                            $dataTax = [
+                                'line_invoices_id' => $lineInvoiceId,
+                                'taxes_id' => 6,
+                                'tax_amount' => ($line->retefuente == 0 ? 0 : $dataLine['line_extension_amount'] * $line->retefuente / 100),
+                                'taxable_amount' => $dataLine['line_extension_amount'],
+                                'percent' => $line->retefuente
+                            ];
+        
+                            $modelTax->insert($dataTax);
+        
+                            $dataTax = [
+                                'line_invoices_id' => $lineInvoiceId,
+                                'taxes_id' => 7,
+                                'tax_amount' => ($line->reteICA == 0 ? 0 : $dataLine['line_extension_amount'] * $line->reteICA / 100),
+                                'taxable_amount' => $dataLine['line_extension_amount'],
+                                'percent' => $line->reteICA
+                            ];
+                            $modelTax->insert($dataTax);
 
-                    $dataLine = [
-                        'invoices_id' => $invoiceId,
-                        'discounts_id' => 1,
-                        'products_id' => $productId->id,
-                        'discount_amount' => ($line->discount * $line->quantity),
-                        'quantity' => $line->quantity,
-                        'price_amount' => $productId->cost,
-                        'line_extension_amount' => ($productId->cost * $line->quantity) - ($line->discount * $line->quantity),
-                        'description' => $line->description
-                    ];
-                    $lineExtesionAmount += $dataLine['line_extension_amount'];
-
-                    $modelLine = new LineInvoice();
-                    $lineInvoiceId = $modelLine->insert($dataLine);
-
-                    $modelTax = new LineInvoiceTax();
-
-                    $dataTax = [
-                        'line_invoices_id' => $lineInvoiceId,
-                        'taxes_id' => 1,
-                        'tax_amount' => ($line->iva == 0 ? 0 : $dataLine['line_extension_amount'] * $line->iva / 100),
-                        'taxable_amount' => $dataLine['line_extension_amount'],
-                        'percent' => $line->iva
-                    ];
-
-                    $modelTax->insert($dataTax);
-
-                    $tax += $dataTax['tax_amount'];
-
-                    $dataTax = [
-                        'line_invoices_id' => $lineInvoiceId,
-                        'taxes_id' => 5,
-                        'tax_amount' => 0,
-                        'taxable_amount' => $dataLine['line_extension_amount'],
-                        'percent' => 0
-                    ];
-                    $modelTax->insert($dataTax);
-
-                    $dataTax = [
-                        'line_invoices_id' => $lineInvoiceId,
-                        'taxes_id' => 6,
-                        'tax_amount' => ($line->retefuente == 0 ? 0 : $dataLine['line_extension_amount'] * $line->retefuente / 100),
-                        'taxable_amount' => $dataLine['line_extension_amount'],
-                        'percent' => $line->retefuente
-                    ];
-
-                    $modelTax->insert($dataTax);
-
-                    $dataTax = [
-                        'line_invoices_id' => $lineInvoiceId,
-                        'taxes_id' => 7,
-                        'tax_amount' => ($line->reteICA == 0 ? 0 : $dataLine['line_extension_amount'] * $line->reteICA / 100),
-                        'taxable_amount' => $dataLine['line_extension_amount'],
-                        'percent' => $line->reteICA
-                    ];
-                    $modelTax->insert($dataTax);
+                        }else{
+                            array_push($line->cod_producto, $errors);
+                        }
                 }
                 $taxExclusiveAmount = $lineExtesionAmount;
                 $payableAmount = $lineExtesionAmount + $tax;
@@ -853,7 +878,6 @@ class ImportController extends BaseController
                 $l++;
 
             }
-
             return redirect()->back()->with('success', 'El documento excel fue cargado correctamente.');
         } catch (\exception $e) {
             return redirect()->back()->with('errors', $e->getMessage());

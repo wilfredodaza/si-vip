@@ -19,8 +19,11 @@
 
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
-<script src="<?= base_url() ?>/assets/js/out_transfer/runtime.58e5c3603de5b46c8a86.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/out_transfer/runtime.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/out_transfer/polyfills.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/out_transfer/main.js" defer></script>
+<!-- <script src="<?= base_url() ?>/assets/js/out_transfer/runtime.58e5c3603de5b46c8a86.js" defer></script>
 <script src="<?= base_url() ?>/assets/js/out_transfer/polyfills.dacd6549d6eac8a326be.js" defer></script>
-<script src="<?= base_url() ?>/assets/js/out_transfer/main.c6c77bd1667faa27cc40.js" defer></script>
+<script src="<?= base_url() ?>/assets/js/out_transfer/main.c6c77bd1667faa27cc40.js" defer></script> -->
 
 <?= $this->endSection() ?>

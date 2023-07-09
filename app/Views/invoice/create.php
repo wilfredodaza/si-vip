@@ -21,10 +21,13 @@
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
 
+<script src="<?= base_url('/js/invoice/runtime.js') ?>"></script>
+<script src="<?= base_url('/js/invoice/polyfills.js') ?>"></script>
+<script src="<?= base_url('/js/invoice/main.js') ?>"></script>
 
-<script src="<?= base_url('/js/invoice/runtime.58e5c3603de5b46c8a86.js') ?>"></script>
+<!-- <script src="<?= base_url('/js/invoice/runtime.58e5c3603de5b46c8a86.js') ?>"></script>
 <script src="<?= base_url('/js/invoice/polyfills.dacd6549d6eac8a326be.js') ?>"></script>
-<script src="<?= base_url('/js/invoice/main.67650301f726a650c016.js') ?>"></script>
+<script src="<?= base_url('/js/invoice/main.67650301f726a650c016.js') ?>"></script> -->
 
 
 <?= $this->endSection() ?>

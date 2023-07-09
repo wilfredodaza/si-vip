@@ -22,9 +22,12 @@
 <?= $this->section('scripts') ?>
 
 <script>localStorage.setItem('id', <?= $id ?>)</script>
-<script src="<?= base_url('assets/js/quotation_edit/runtime.1306ddb3afdde7b8303d.js') ?>"></script>
+<script src="<?= base_url('assets/js/quotation_edit/runtime.js') ?>"></script>
+<script src="<?= base_url('assets/js/quotation_edit/polyfills.js') ?>"></script>
+<script src="<?= base_url('assets/js/quotation_edit/main.js') ?>"></script>
+<!-- <script src="<?= base_url('assets/js/quotation_edit/runtime.1306ddb3afdde7b8303d.js') ?>"></script>
 <script src="<?= base_url('assets/js/quotation_edit/polyfills.dacd6549d6eac8a326be.js') ?>"></script>
-<script src="<?= base_url('assets/js/quotation_edit/main.a60dfd56d4e4727f3f0d.js') ?>"></script>
+<script src="<?= base_url('assets/js/quotation_edit/main.cd3a7e5cf68cc03a4432.js') ?>"></script> -->
 
 
 <?= $this->endSection() ?>
