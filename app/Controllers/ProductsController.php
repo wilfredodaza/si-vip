@@ -127,7 +127,7 @@ class ProductsController extends BaseController
             'subGroup' => $this->tableSubGroups->asObject()->get()->getResult(),
             'materials' => $this->tableMaterials->asObject()->get()->getResult(),
         ];
-        echo view('products/create', $data);
+        return view('products/create', $data);
     }
 
     /**
@@ -150,18 +150,19 @@ class ProductsController extends BaseController
             $groups = $this->tableGroups->where(['code' => $_POST['group_id']])->asObject()->first();
             $subGroup = $this->tableSubGroups->where(['code' => $_POST['sub_group_id']])->asObject()->first();
             $materials = $this->tableMaterials->where(['code' => $_POST['material_id']])->asObject()->first();
-            $unionCode = "{$_POST['provider_id']}{$_POST['gender_id']}{$_POST['group_id']}{$_POST['sub_group_id']}{$_POST['material_id']}";
-            $code= substr($_POST['product_code'], 0, -2);
-            if ($unionCode != $code) {
-                throw  new \Exception('El código no coincide con la union de sus partes.');
-            }
+            // $unionCode = "{$_POST['provider_id']}{$_POST['gender_id']}{$_POST['group_id']}{$_POST['sub_group_id']}{$_POST['material_id']}";
+            // $code= substr($_POST['product_code'], 0, -2);
+            // if ($unionCode != $code) {
+            //     throw  new \Exception('El código no coincide con la union de sus partes.');
+            // }
             $productExists = $this->validateCode($_POST['product_code'], $_POST['code_item']);
             if (!$productExists) {
                 throw  new \Exception('El producto con el código: ' . $_POST['product_code'] . ' ya se encuentra creado.');
             }
             $id = $this->tableAccountingAccount->where(['code' => '0000000'])->asObject()->first();
+            $requets = (object) $this->request->getPost();
             $data = [
-                'name' => $_POST['product_name'],
+                'name' => $requets->product_name,
                 'code' => "{$_POST['product_code']}",
                 'code_item' => $_POST['code_item'],
                 'valor' => $_POST['product_value'],

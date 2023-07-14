@@ -10,6 +10,7 @@ use App\Traits\ValidationsTrait2;
 use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\AccountingAcount;
+use App\Models\ProductsSerial;
 
 
 class Product extends ResourceController
@@ -125,11 +126,12 @@ class Product extends ResourceController
                     ],
                     // 'tax_totals' => [],
                     'tax_iva' => $item->tax_iva,
-                    'max_quantity' => $this->controllerInventory->availabilityProduct($item->id, Auth::querys()->companies_id )
+                    'max_quantity' => $this->controllerInventory->availabilityProduct($item->id, Auth::querys()->companies_id ),
+                    'serials' => $this->getSerials($item->id)
                 ];
                 array_push($arrayProducts, $product);
                 // if(count($product->tax_totals[1]) < 2){
-                //     return $this->respond(['status' =>  200, 'code' => 200, 'data' => $item ], 500);
+                    // return $this->respond(['status' =>  200, 'code' => 200, 'data' => $item ], 500);
                 // }
             }
         } catch (\Exception $e) {
@@ -137,6 +139,14 @@ class Product extends ResourceController
         }
 
         return $this->respond(['status' =>  200, 'code' => 200, 'data' => $arrayProducts ]);
+    }
+
+    public function getSerials($id_product){
+        $pSerialM = new ProductsSerial();
+        // if(Auth::querys()->role_id != 15){
+            $serilas = $pSerialM->where(['products_id' => $id_product, 'status' => 1])->get()->getResult();
+            return $serilas;
+        // }
     }
 
     public function create()
