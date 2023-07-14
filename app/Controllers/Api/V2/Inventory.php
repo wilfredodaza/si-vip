@@ -125,7 +125,7 @@ class Inventory extends ResourceController
 
             $invoice = $this->tableInvoices->insert([
                 'resolution' => ($json->type_document_id == 108) ? $number : $json->number,
-                'resolution_id' => ($json->type_document_id == 108) ? 1 : ($json->type_document_id == 114)? null :$json->resolution,
+                'resolution_id' => ($json->type_document_id == 108) ? 1 : (($json->type_document_id == 114)? null :$json->resolution),
                 'payment_forms_id' => $json->payment_form->payment_form_id,
                 'payment_methods_id' => ($json->type_document_id == 108) ? ( $json->payment_form->payment_form_id == 1 ? ($account->type_entry == 1 ? 47 : 10) : 1) : $json->payment_form->payment_method_id,//$json->payment_form->payment_method_id
                 'payment_due_date' => ($json->payment_form->duration_measure == 0) ? date('Y-m-d') : $json->payment_form->payment_due_date,
