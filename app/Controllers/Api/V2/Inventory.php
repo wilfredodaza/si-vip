@@ -10,6 +10,8 @@ use App\Controllers\HeadquartersController;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\ProductsDetails;
+use App\Models\ProductsSerial;
+use App\Models\ProductsSerialDetail;
 use App\Models\TrackingCustomer;
 use App\Models\AccountingAcount;
 use App\Models\Wallet;
@@ -64,8 +66,6 @@ class Inventory extends ResourceController
 
     public function create()
     {
-        // $json = $this->request->getJSON();
-        // return $this->respond(['status' => 500, 'code' => 500, 'data' => $json], 500);
         try {
             $json = $this->request->getJSON();
             $close = true;
@@ -91,6 +91,25 @@ class Inventory extends ResourceController
                     $number = $outNew[0]->resolution + 1;
                 } else {
                     $number = 1;
+                }
+            }
+
+            if ($json->type_document_id == 107) {
+                $serials = [];
+                foreach ($json->invoice_lines  as $key => $detail) {
+                    if(count($detail->serials) > 0) {
+                        $pSerialM = new ProductsSerial();
+                        $data = $pSerialM->whereIn('serial', $detail->serials)->get()->getResult();
+                        if(count($data) > 0) {
+                            foreach ($data as $key => $value) {
+                                array_push($serials, $value->serial);
+                            }
+                        }
+                    }
+                }
+                if(count($serials) > 0) {
+                    $serial = implode(',', $serials);
+                    return $this->respond(['status' => 500, 'code' => 500, 'title' => 'Seriales repetidos',  'data' => $serial]);
                 }
             }
             // echo json_encode(session('user'));
@@ -538,6 +557,31 @@ class Inventory extends ResourceController
                     'cost_value' => $value->price_amount,
                 ];
                 $this->tableProductsDetails->insert($productDetail);
+                foreach ($value->serials as $key => $serial) {
+                    $pSerialM = new ProductsSerial();
+                    $id = $pSerialM->insert([
+                        'products_id' => $value->product_id,
+                        'serial' => $serial
+                    ]);
+                    $pSerialDetailM = new ProductsSerialDetail();
+                    $pSerialDetailM->save([
+                        'products_serial_id' => $id,
+                        'invoices_id' => $invoice
+                    ]);
+                }
+            }else{
+                foreach ($value->serials as $key => $serial) {
+                    $pSerialM = new ProductsSerial();
+                    $pSerialM->save([
+                        'id' => $serial->id,
+                        'status' => 0
+                    ]);
+                    $pSerialDetailM = new ProductsSerialDetail();
+                    $pSerialDetailM->save([
+                        'products_serial_id' => $serial->id,
+                        'invoices_id' => $invoice
+                    ]);
+                }
             }
             
             foreach ($value->tax_totals as $taxe) {
