@@ -144,8 +144,32 @@ class Product extends ResourceController
     public function getSerials($id_product){
         $pSerialM = new ProductsSerial();
         // if(Auth::querys()->role_id != 15){
-            $serilas = $pSerialM->where(['products_id' => $id_product, 'status' => 1])->get()->getResult();
+            $serilas = $pSerialM
+            // has un select para las tablas products_serial y products_serial_detail.invoices_id y invoices.company_destination_id
+            ->select(['products_serial.*', 'products_serial_detail.invoices_id', 'invoices.company_destination_id'])
+            // has un where para el campo products_id sea igual a la vaiable que se envia
+            // que el status sea igual a 1
+            // y el company_destination_id sea igual al Auth::querys()->companies_id
+            // y si el invoices.type_documents_id es igual a 115 que el invoice_status_id sea igual a 21
+            ->where(['products_id' => $id_product, 'products_serial.status' => 1, 'invoices.company_destination_id' => Auth::querys()->companies_id, 'invoices.type_documents_id !=' => 115])
+            // ->where('invoices.type_documents_id !=', 115)
+            ->orWhere('invoices.type_documents_id = 115 and invoices.invoice_status_id = 21')
+            // Realiza un join a la tabla products_serial_detail teniendo como referencia al campo products_serial_id de la tabla products_serial
+            // y que a su vez el campo invoices_id de products_serial_detail sea el mas grande
+            ->join('products_serial_detail', 'products_serial_detail.products_serial_id = products_serial.id and products_serial_detail.invoices_id = (select max(invoices_id) from products_serial_detail where products_serial_id = products_serial.id)', 'left')
+            // realiza un join a la tabla invoices teniendo como referencia al campo invoices_id de la tabla products_serial_detail y ya
+            ->join('invoices', 'invoices.id = products_serial_detail.invoices_id', 'left')
+
+            ->get()->getResult();
             return $serilas;
+            // // Realiza un join a la tabla products_serial_detail teniendo como referencia al campo products_serial_id de la tabla products_serial
+            // // y que a su vez el campo invoices_id de products_serial_detail sea el mas grande
+            // ->join('products_serial_detail', 'products_serial_detail.products_serial_id = products_serial.id and products_serial_detail.invoices_id = (select max(invoices_id) from products_serial_detail where products_serial_id = products_serial.id)', 'left')
+            // // realiza un join a la tabla invoices teniendo como referencia al campo invoices_id de la tabla products_serial_detail y ya
+            // ->join('invoices', 'invoices.id = products_serial_detail.invoices_id', 'left')
+
+            // ->get()->getResult();
+            // return $serilas;
         // }
     }
 

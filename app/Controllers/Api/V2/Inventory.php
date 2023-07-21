@@ -85,13 +85,14 @@ class Inventory extends ResourceController
             //         $headquarters = $customer->headquarters_id;
             //     }
             // }
-            if ($json->type_document_id == 108) {
-                $outNew = $this->tableInvoices->where(['type_documents_id' => 108])->orderBy('id', 'DESC')->asObject()->get()->getResult();
-                if (count($outNew) > 0) {
-                    $number = $outNew[0]->resolution + 1;
-                } else {
-                    $number = 1;
-                }
+            if ($json->type_document_id == 108 || $json->type_document_id == 115) {
+                $outNew = $this->tableInvoices->where(['type_documents_id' => $json->type_document_id])->orderBy('id', 'DESC')->asObject()->first();
+                $number = $outNew ? $outNew->resolution + 1 : 1;
+                // if (count($outNew) > 0) {
+                //     $number = $outNew[0]->resolution + 1;
+                // } else {
+                //     $number = 1;
+                // }
             }
 
             if ($json->type_document_id == 107) {
@@ -558,11 +559,15 @@ class Inventory extends ResourceController
                 ];
                 $this->tableProductsDetails->insert($productDetail);
                 foreach ($value->serials as $key => $serial) {
-                    $pSerialM = new ProductsSerial();
-                    $id = $pSerialM->insert([
-                        'products_id' => $value->product_id,
-                        'serial' => $serial
-                    ]);
+                    if($json->type_document_id == 115){
+                        $id = $serial->id;
+                    }else{
+                        $pSerialM = new ProductsSerial();
+                        $id = $pSerialM->insert([
+                            'products_id' => $value->product_id,
+                            'serial' => $serial
+                        ]);
+                    }
                     $pSerialDetailM = new ProductsSerialDetail();
                     $pSerialDetailM->save([
                         'products_serial_id' => $id,

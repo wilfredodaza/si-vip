@@ -85,7 +85,8 @@ class InventoryController extends BaseController
         ];
         $model = new Invoice();
 
-        $type_documents = Auth::querys()->role_id == 19 || Auth::querys()->role_id == 20 ? '108, 119' : '107, 108, 115, 116, 119';
+        $type_documents =  Auth::querys()->role_id == 20 ? '108' : '107, 108, 115, 116, 119';
+        $type_documents = Auth::querys()->role_id == 19 ? '108, 115, 119' : $type_documents;
         $aux_query = Auth::querys()->role_id == 20 ? ' and invoices.user_id = ' . Auth::querys()->id : '';
 
         $invoices = $model
@@ -371,7 +372,7 @@ class InventoryController extends BaseController
     {
         $product = new Product();
         $rol= session('user')->role_id;
-        $manager = ($rol == 15 || $rol == 19) ? true : false;
+        $manager = ($rol == 15 ) ? true : false;
         $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters());
         $idsCompanies = '';
         foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters() as $id => $item) {
