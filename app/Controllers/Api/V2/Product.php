@@ -151,9 +151,13 @@ class Product extends ResourceController
             // que el status sea igual a 1
             // y el company_destination_id sea igual al Auth::querys()->companies_id
             // y si el invoices.type_documents_id es igual a 115 que el invoice_status_id sea igual a 21
-            ->where(['products_id' => $id_product, 'products_serial.status' => 1, 'invoices.company_destination_id' => Auth::querys()->companies_id, 'invoices.type_documents_id !=' => 115])
+            ->where([
+                'products_id' => $id_product,
+                'products_serial.status' => 1,
+                'invoices.company_destination_id' => Auth::querys()->companies_id,
+                'invoices.type_documents_id !=' => 115])
             // ->where('invoices.type_documents_id !=', 115)
-            ->orWhere('invoices.type_documents_id = 115 and invoices.invoice_status_id = 21')
+            ->orWhere('(invoices.type_documents_id = 115 and invoices.invoice_status_id = 21 and invoices.company_destination_id = '.Auth::querys()->companies_id.')')
             // Realiza un join a la tabla products_serial_detail teniendo como referencia al campo products_serial_id de la tabla products_serial
             // y que a su vez el campo invoices_id de products_serial_detail sea el mas grande
             ->join('products_serial_detail', 'products_serial_detail.products_serial_id = products_serial.id and products_serial_detail.invoices_id = (select max(invoices_id) from products_serial_detail where products_serial_id = products_serial.id)', 'left')

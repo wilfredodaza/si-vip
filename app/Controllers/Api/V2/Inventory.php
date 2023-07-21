@@ -124,6 +124,20 @@ class Inventory extends ResourceController
                 // return $this->respond(['status' => 500, 'code' => 500, 'data' => $account], 500);
             }
 
+            if($json->type_document_id == 115){
+                $notes = '<span>Se adjuntaron: </span><ul>';
+                foreach ($json->invoice_lines as $key => $line) {
+                    foreach ($line->serials as $key => $serial) {
+                        $notes .= "<li>{$line->name} - {$serial->serial}</li>";
+                    }
+                }
+                $notes .= '</ul>';
+                $json->notes = $notes;
+            }
+            // var_dump($json); die();
+
+            // return $this->respond(['status' => 500, 'code' => 500, 'title' => 'Seriales repetidos',  'data' => $notes], 500);
+
             $invoice = $this->tableInvoices->insert([
                 'resolution' => ($json->type_document_id == 108) ? $number : $json->number,
                 'resolution_id' => ($json->type_document_id == 108) ? 1 : (($json->type_document_id == 114)? null :$json->resolution),
