@@ -62,7 +62,7 @@ class ProductsController extends BaseController
     public function index()
     {
         $product = $this->tableProducts
-            ->join('providers', 'providers.id = products.category_id', 'left')
+            ->join('providers', 'providers.id = products.provider_id', 'left')
             ->join('gender', 'gender.id = products.gender_id', 'left')
             ->select(['providers.name_providers as group', 'gender.gender as subGroup', 'products.name as producto', 'products.id as productId', 'products.kind_product_id', 'products.tax_iva', 'products.valor', 'products.code', 'products.code_item', 'products.description']);
         $rol = $this->headquartersController->permissionManager(session('user')->role_id);
