@@ -54,20 +54,20 @@
                                     <form action="<?= base_url() . route_to('products-save') ?>" method="post"
                                           enctype="multipart/form-data">
                                         <div class="row">
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 l4">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="provider_id"
                                                             onchange="ShowSelected('providers')" name="provider_id" required>
-                                                        <option selected disabled value="">Seleccione proveedor
+                                                        <option selected disabled value="">Seleccione categoria
                                                         </option>
                                                         <?php foreach ($providers as $provider): ?>
                                                             <option value="<?= $provider->code ?>"><?= "[{$provider->code}] - {$provider->name_providers}" ?></option>
                                                         <?php endforeach; ?>
                                                     </select>
-                                                    <label for="provider_id">Proveedor <span class='red-text'> * </span></label>
+                                                    <label for="provider_id">Categoria <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 l4">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="gender_id"
                                                             name="gender_id" onchange="ShowSelected('gender')" required>
@@ -81,60 +81,22 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="group_id"
-                                                            name="group_id" onchange="ShowSelected('groups')" required>
-                                                        <option selected disabled value="">Seleccione grupo
-                                                        </option>
-                                                        <?php foreach ($groups as $group): ?>
-                                                            <option value="<?= $group->code ?>"><?= "[{$group->code}] - {$group->name}" ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="group_id">Grupo <span
-                                                                class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="sub_group_id"
-                                                            name="sub_group_id" onchange="ShowSelected('subGroup')" required>
-                                                    </select>
-                                                    <label for="sub_group_id">Sub Grupo <span
-                                                                class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 l4">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="material_id"
                                                             name="material_id" onchange="ShowSelected('materials')" required>
-                                                        <option selected disabled value="">Seleccione material
+                                                        <option selected disabled value="">Seleccione linea
                                                         </option>
                                                         <?php foreach ($materials as $item): ?>
                                                             <option value="<?= $item->code ?>"><?= "[{$item->code}] - {$item->name}" ?></option>
                                                         <?php endforeach; ?>
                                                     </select>
-                                                    <label for="material_id">Material <span class='red-text'> * </span></label>
+                                                    <label for="material_id">Linea <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s4 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="code_item" onchange="ShowSelected('code_item')"
-                                                            name="code_item" required>
-                                                        <option selected disabled value="">Seleccione un item
-                                                        </option>
-                                                        <?php for($i = 0; $i <= 99; $i++):
-                                                            $number = (strlen($i) == 1) ? "0{$i}" : "{$i}";
-                                                            ?>
-                                                            <option value="<?= $number  ?>"><?= $number ?></option>
-                                                        <?php endfor;?>
-                                                    </select>
-                                                    <label for="code_item">Item<span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s8 m3 l3">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col s12 l4">
                                                 <div class="input-field">
                                                     <input placeholder="" id="product_code" name="product_code"
                                                            type="text" class="validate" required>
@@ -142,7 +104,7 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 l4">
                                                 <div class="input-field">
                                                     <input placeholder="" id="product_name" name="product_name"
                                                            type="text" class="validate" required>
@@ -150,9 +112,7 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 l4">
                                                 <div class="input-field">
                                                     <input placeholder="$ 0" id="product_cost" name="product_cost"
                                                            type="text" class="validate" required>
@@ -160,7 +120,9 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m3 l3">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col s12 l3">
                                                 <div class="input-field">
                                                     <input placeholder="$ 0" id="product_value" name="product_value"
                                                            type="text" class="validate" required>
@@ -168,21 +130,21 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m2 l2">
+                                            <div class="col s12 l3">
                                                 <div class="input-field">
                                                     <input placeholder="$ 0" id="value_one" name="value_one"
                                                            type="text">
                                                     <label for="value_one">Valor tipo 1</label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m2 l2">
+                                            <div class="col s12 l3">
                                                 <div class="input-field">
                                                     <input placeholder="$ 0" id="value_two" name="value_two"
                                                            type="text">
                                                     <label for="value_two">Valor tipo 2</label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m2 l2">
+                                            <div class="col s12 l3">
                                                 <div class="input-field">
                                                     <input placeholder="$ 0" id="value_three" name="value_three"
                                                            type="text" >
@@ -234,7 +196,7 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>-->
-                                            <div class="col s12 m3 l3">
+                                            <!-- <div class="col s12 m3 l3">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="unitMeasure"
                                                             name="unitMeasure">
@@ -285,9 +247,9 @@
                                                     </select>
                                                     <label for="entry_credit">Entrada <span class='red-text'> * </span></label>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                         </div>
-                                        <div class="row">
+                                        <!-- <div class="row">
                                             <div class="col s12 m3 l3">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="entry_debit"
@@ -391,7 +353,7 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </div> -->
                                         <div class="row">
                                             <div class="col s2 m12 l12">
                                                 <button type="submit"

@@ -7,7 +7,7 @@
     <meta name="description" content="Lonoo">
     <meta name="keywords" content="DIAN, Factura electrónica, Nomina Electrónica">
     <meta name="author" content="IPLanetColomba S.A.S">
-    <title><?= $this->renderSection('title') ?> Nevao</title>
+    <title><?= $this->renderSection('title') ?> Si-Vip</title>
     <link rel="stylesheet" type="text/css" href="<?= base_url('/css/vendors.min.css') ?>">
     <link rel="stylesheet" href="<?= base_url('/css/shepherd-theme-default.min.css') ?>">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">

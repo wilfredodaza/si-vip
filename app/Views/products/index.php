@@ -51,8 +51,8 @@
                                     <table class="responsive-table striped">
                                         <thead>
                                         <tr>
-                                            <th class="center">Grupo</th>
-                                            <th class="center">Subgrupo</th>
+                                            <th class="center">Categoria</th>
+                                            <th class="center">Marca</th>
                                             <th class="center">Producto</th>
                                             <th class="center">Código</th>
                                             <th class="center">Valor</th>

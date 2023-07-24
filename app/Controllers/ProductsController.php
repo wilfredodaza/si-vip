@@ -62,9 +62,9 @@ class ProductsController extends BaseController
     public function index()
     {
         $product = $this->tableProducts
-            ->join('groups', 'groups.id = products.group_id', 'left')
-            ->join('sub_group', 'sub_group.id = products.sub_group_id', 'left')
-            ->select(['groups.name as group', 'sub_group.name as subGroup', 'products.name as producto', 'products.id as productId', 'products.kind_product_id', 'products.tax_iva', 'products.valor', 'products.code', 'products.code_item', 'products.description']);
+            ->join('providers', 'providers.id = products.category_id', 'left')
+            ->join('gender', 'gender.id = products.gender_id', 'left')
+            ->select(['providers.name_providers as group', 'gender.gender as subGroup', 'products.name as producto', 'products.id as productId', 'products.kind_product_id', 'products.tax_iva', 'products.valor', 'products.code', 'products.code_item', 'products.description']);
         $rol = $this->headquartersController->permissionManager(session('user')->role_id);
         $idCompanies = $this->headquartersController->idsCompaniesHeadquarters();
         $product->whereIn('companies_id', $idCompanies)->where(['products.tax_iva !=' => null, 'products.kind_product_id' => NULL]);
@@ -83,7 +83,7 @@ class ProductsController extends BaseController
             }
         }
         $product->orderBy('products.id','DESC');
-        // echo json_encode($product->get()->getResult());die();
+        // var_dump($product->get()->getResult());die();
         $data = [
             'products' => $product->paginate(10),
             'pager' => $product->pager,
@@ -145,58 +145,59 @@ class ProductsController extends BaseController
                     $file->move('assets/upload/products/', $imagen);
                 }
             }
-            $providers = $this->tableProviders->where(['code' => $_POST['provider_id']])->asObject()->first();
-            $gender = $this->tableGender->where(['code' => $_POST['gender_id']])->asObject()->first();
-            $groups = $this->tableGroups->where(['code' => $_POST['group_id']])->asObject()->first();
-            $subGroup = $this->tableSubGroups->where(['code' => $_POST['sub_group_id']])->asObject()->first();
-            $materials = $this->tableMaterials->where(['code' => $_POST['material_id']])->asObject()->first();
+            $request = (object)$this->request->getPost();
+            $providers = $this->tableProviders->where(['code' => $request->provider_id])->asObject()->first();
+            $gender = $this->tableGender->where(['code' => $request->gender_id])->asObject()->first();
+            // $groups = $this->tableGroups->where(['code' => $request->group_id])->asObject()->first();
+            // $subGroup = $this->tableSubGroups->where(['code' => $request->sub_group_id])->asObject()->first();
+            $materials = $this->tableMaterials->where(['code' => $request->material_id])->asObject()->first();
             // $unionCode = "{$_POST['provider_id']}{$_POST['gender_id']}{$_POST['group_id']}{$_POST['sub_group_id']}{$_POST['material_id']}";
             // $code= substr($_POST['product_code'], 0, -2);
             // if ($unionCode != $code) {
             //     throw  new \Exception('El código no coincide con la union de sus partes.');
             // }
-            $productExists = $this->validateCode($_POST['product_code'], $_POST['code_item']);
+            $productExists = $this->validateCode($request->product_code);
             if (!$productExists) {
-                throw  new \Exception('El producto con el código: ' . $_POST['product_code'] . ' ya se encuentra creado.');
+                throw  new \Exception("El producto con el código: {$request->product_code} ya se encuentra creado.");
             }
             $id = $this->tableAccountingAccount->where(['code' => '0000000'])->asObject()->first();
             $requets = (object) $this->request->getPost();
             $data = [
                 'name' => $requets->product_name,
-                'code' => "{$_POST['product_code']}",
-                'code_item' => $_POST['code_item'],
-                'valor' => $_POST['product_value'],
-                'value_one' => ($_POST['value_one'] ?? 0),
-                'value_two' => ($_POST['value_two'] ?? 0),
-                'value_three' => ($_POST['value_three'] ?? 0),
-                'cost' => $_POST['product_cost'],
-                'description' => $_POST['description'],
-                'unit_measures_id' => $_POST['unitMeasure'],
-                'type_item_identifications_id' => $_POST['typeItemDocument'],
+                'code' => $request->product_code,
+                // 'code_item' => $request->code_item ?? 00,
+                'valor' => $request->product_value,
+                'value_one' => ($request->value_one ?? 0),
+                'value_two' => ($request->value_two ?? 0),
+                'value_three' => ($request->value_three ?? 0),
+                'cost' => $request->product_cost,
+                'description' => $request->description,
+                'unit_measures_id' => $request->unitMeasure ?? 70,
+                'type_item_identifications_id' => $request->typeItemDocument ?? 4,
                 'reference_prices_id' => 1,
-                'free_of_charge_indicator' => ($_POST['product_free'] == 'no') ? 'false' : 'true',
+                'free_of_charge_indicator' => 'false',//($request->product_free == 'no') ? 'false' : 'true'
                 'companies_id' => company()->id,
-                'entry_credit' => $_POST['entry_credit'],
-                'entry_debit' => $_POST['entry_debit'],
-                'iva' => $_POST['iva'],
-                'retefuente' => $_POST['reteFuente'],
-                'reteica' => $_POST['reteIca'],
-                'reteiva' => $_POST['reteIva'],
-                'account_pay' => $_POST['account_pay'],
+                'entry_credit' => 1,
+                'entry_debit' => 3,
+                'iva' => 4,
+                'retefuente' => 2,
+                'reteica' => 2,
+                'reteiva' => 2,
+                'account_pay' => 5,
                 'foto' => $imagen,
                 'tax_iva' => 'F',
                 'provider_id' => $providers->id,
                 'gender_id' => $gender->id,
-                'group_id' => $groups->id,
-                'sub_group_id' => $subGroup->id,
+                // 'group_id' => $groups->id,
+                // 'sub_group_id' => $subGroup->id,
                 'material_id' => $materials->id
             ];
             //$products->update(['id' => $this->request->getPost('product')], $data)
             if ($this->tableProducts->save($data)) {
-                $data['tax_iva'] = 'R';
-                $data['iva'] = $id->id;
+                $request->tax_iva = 'R';
+                $request->iva = $id->id;
                 $this->tableProducts->save($data);
-                return redirect()->to(base_url() . route_to('products-index'))->with('success', 'Se cambio la foto exitosamente.');
+                return redirect()->to(base_url() . route_to('products-index'))->with('success', 'Se creo producto exitosamente.');
             } else {
                 throw  new \Exception('No se pudo guardar el producto');
             }
@@ -423,7 +424,7 @@ class ProductsController extends BaseController
         if(!is_null($code_item)){
             $validate = $this->tableProducts->where(['code' => $code, 'code_item' => $code_item])->first();
         }else{
-            $validate = $this->tableProducts->like('code', $code, 'both')->first();
+            $validate = $this->tableProducts->where('code', $code)->first();
         }
         if (is_null($validate)) {
             return true;
