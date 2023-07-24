@@ -194,8 +194,8 @@ class ProductsController extends BaseController
             ];
             //$products->update(['id' => $this->request->getPost('product')], $data)
             if ($this->tableProducts->save($data)) {
-                $request->tax_iva = 'R';
-                $request->iva = $id->id;
+                $data['tax_iva'] = 'R';
+                $data['iva'] = $id->id;
                 $this->tableProducts->save($data);
                 return redirect()->to(base_url() . route_to('products-index'))->with('success', 'Se creo producto exitosamente.');
             } else {
