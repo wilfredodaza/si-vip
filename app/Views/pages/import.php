@@ -191,8 +191,9 @@
                 //$('#resolution').show();
                 $('#ayuda').attr('href',url+'/upload/Facturas.pdf');
                 $('#ayuda').attr('download','Facturas.pdf');
-                $('#plantilla').attr('href',url+'/upload/Inventario.xlsx');
-                $('#plantilla').attr('download','Inventario.xlsx');
+                $('#plantilla').attr('href', url+'/import/download/Inventario');
+                $('#plantilla').removeAttr('download')
+                // $('#plantilla').attr('download','Inventario.xlsx');
                 $('#sede').show();
             }
             if(documento == 6){

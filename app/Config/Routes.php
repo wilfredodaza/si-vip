@@ -503,6 +503,7 @@
     //imports
     $routes->get('import','ImportController::index');
     $routes->post('import/upload', 'ImportController::upload');
+    $routes->get('import/download/(:segment)', 'ImportController::download/$1');
 
 
     //Document External y RADIAN

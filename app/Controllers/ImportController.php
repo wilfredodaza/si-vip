@@ -104,445 +104,462 @@ class ImportController extends BaseController
                 $reader->setShouldFormatDates(true);
                 $reader->open($inputFileName);
                 $count = 1;
-
-                foreach ($reader->getSheetIterator() as $sheet) {
-                    foreach ($sheet->getRowIterator() as $row) {
-                        // do stuff with the row
-                        if ($count > 1) {
-                            $cells = $row->getCells();
-                            // Guardar Productos
-                            if ($_POST['tipoD'] == 1) {
-                                $account = new AccountingAcount();
-                                $products = new Product();
-                                $tableGender = new Gender();
-                                $tableGroups = new Groups();
-                                $tablePrices = new Prices();
-                                $tableSubGroups = new SubGroup();
-                                $tableMaterials = new Materials();
-                                $tableProviders = new Providers();
-                                $tableTypeItemIdentifications = new TypeItemIdentification();
-                                $tableAccountingAccount = new AccountingAcount();
-                                $tableUnit = new UnitMeasure();
-                                // validations tables
-                                // providers
-                                $error = [];
-                                if (isset($cells[0]) && trim($cells[0]) != '') {
-                                    $code = explode('-', trim($cells[0]));
-                                    $codeProvider = $code[0];
-                                    $provider = $tableProviders->where(['code' => $code[0]])->asObject()->first();
-                                    if (is_null($provider)) {
-                                        array_push($error, "No existe código para 'proveedor'.  Fila # " . $count);
+                if ($_POST['tipoD'] == 1) {
+                    return $this->products($this->request->getFile('file'), $_POST['sede']);
+                }else{
+                    foreach ($reader->getSheetIterator() as $sheet) {
+                        foreach ($sheet->getRowIterator() as $row) {
+                            // do stuff with the row
+                            if ($count > 1) {
+                                $cells = $row->getCells();
+                                // Guardar Productos
+                                if ($_POST['tipoD'] == 1) {
+                                    return $this->products($this->request->getFile('file'), $_POST['sede']);
+                                    $account = new AccountingAcount();
+                                    $products = new Product();
+                                    $tableGender = new Gender();
+                                    $tableGroups = new Groups();
+                                    $tablePrices = new Prices();
+                                    $tableSubGroups = new SubGroup();
+                                    $tableMaterials = new Materials();
+                                    $tableProviders = new Providers();
+                                    $tableTypeItemIdentifications = new TypeItemIdentification();
+                                    $tableAccountingAccount = new AccountingAcount();
+                                    $tableUnit = new UnitMeasure();
+                                    // validations tables
+                                    // Categoria
+                                    $error = [];
+                                    if (isset($cells[0]) && trim($cells[0]) != '') {
+                                        $code = explode('-', trim($cells[0]));
+                                        $codeCategoria = $code[0];
+                                        $categoria = $tableProviders->where(['code' => $codeCategoria])->asObject()->first();
+                                        if (is_null($categoria)) {
+                                            array_push($error, "No existe código para 'Categoria'.  Fila # " . $count);
+                                        }
+                                    } else {
+                                        array_push($error, "El campo Categoria es obligatorio.  Fila # " . $count);
                                     }
-                                } else {
-                                    array_push($error, "El campo Proveedor es obligatorio.  Fila # " . $count);
-                                }
-                                // gender
-                                if (isset($cells[1]) && trim($cells[1]) != '') {
-                                    $code = explode('-', trim($cells[1]));
-                                    $codeGender = $code[0];
-                                    $gender = $tableGender->where(['code' => $code[0]])->asObject()->first();
-                                    if (is_null($gender)) {
-                                        array_push($error, "No existe código para 'genero'.  Fila # " . $count);
+    
+                                    // Linea
+                                    if (isset($cells[1]) && trim($cells[1]) != '') {
+                                        $code = explode('-', trim($cells[1]));
+                                        $codeLinea = $code[0];
+                                        $linea = $tableMaterials->where(['code' => $codeLinea])->asObject()->first();
+                                        if (is_null($linea)) {
+                                            array_push($error, "No existe código para 'Linea'.  Fila # " . $count);
+                                        }
+                                    } else {
+                                        array_push($error, "El campo Linea es obligatorio.  Fila # " . $count);
                                     }
-                                } else {
-                                    array_push($error, "El campo Genero es obligatorio.  Fila # " . $count);
-                                }
-                                // groups
-                                if (isset($cells[2]) && trim($cells[2]) != '') {
-                                    $code = explode('-', trim($cells[2]));
-                                    $codeGroup = $code[0];
-                                    $group = $tableGroups->where(['code' => $code[0]])->asObject()->first();
-                                    if (is_null($group)) {
-                                        array_push($error, "No existe código para 'grupo'.  Fila # " . $count);
+    
+                                    $codeMarca = 0;
+                                    $marca = $tableGender->where(['code' => $codeMarca])->asObject()->first();
+    
+    
+                                    // groups
+                                    // if (isset($cells[2]) && trim($cells[2]) != '') {
+                                    //     $code = explode('-', trim($cells[2]));
+                                    //     $codeGroup = $code[0];
+                                    //     $group = $tableGroups->where(['code' => $code[0]])->asObject()->first();
+                                    //     if (is_null($group)) {
+                                    //         array_push($error, "No existe código para 'grupo'.  Fila # " . $count);
+                                    //     }
+                                    // } else {
+                                    //     array_push($error, "El campo Grupo es obligatorio.  Fila # " . $count);
+                                    // }
+    
+                                    // subgroups
+                                    // if (isset($cells[3]) && trim($cells[3]) != '') {
+                                    //     $code = explode('-', trim($cells[3]));
+                                    //     $codeSubGroup = $code[0];
+                                    //     $subGroup = $tableSubGroups->where(['code' => $code[0], 'group_id' => $group->id])->asObject()->first();
+                                    //     if (is_null($subGroup)) {
+                                    //         array_push($error, "No existe código para 'Sub Grupo'.  Fila # " . $count);
+                                    //     }
+                                    // } else {
+                                    //     array_push($error, "El campo Sub Grupo es obligatorio.  Fila # " . $count);
+                                    // }
+                                    // Materials
+                                    // if (isset($cells[4]) && trim($cells[4]) != '') {
+                                    //     $code = explode('-', trim($cells[4]));
+                                    //     $codeMaterial = $code[0];
+                                    //     $material = $tableMaterials->where(['code' => $code[0]])->asObject()->first();
+                                    //     // echo json_encode($material);die();
+                                    //     if (is_null($material)) {
+                                    //         array_push($error, "No existe código para 'Material'.  Fila # " . $count);
+                                    //     }
+                                    // } else {
+                                    //     array_push($error, "El campo Material es obligatorio.  Fila # " . $count);
+                                    // }
+    
+                                    // producto
+                                    if (isset($cells[2]) && trim($cells[2]) == '') {
+                                        array_push($error, "El campo nombres es obligatorio.  Fila # " . $count);
                                     }
-                                } else {
-                                    array_push($error, "El campo Grupo es obligatorio.  Fila # " . $count);
-                                }
-                                // subgroups
-                                if (isset($cells[3]) && trim($cells[3]) != '') {
-                                    $code = explode('-', trim($cells[3]));
-                                    $codeSubGroup = $code[0];
-                                    $subGroup = $tableSubGroups->where(['code' => $code[0], 'group_id' => $group->id])->asObject()->first();
-                                    if (is_null($subGroup)) {
-                                        array_push($error, "No existe código para 'Sub Grupo'.  Fila # " . $count);
+    
+                                    // precio Producto
+                                    if (isset($cells[4]) && trim($cells[4]) != '') {
+                                        /*if (!is_numeric(trim($cells[6]))) {
+                                            $error = "El campo 'valor' deben ser solo tipo numericos. Fila # " . $count;
+                                        }*/
+                                    } else {
+                                        array_push($error, "El campo Valor es obligatorio.  Fila # " . $count);
                                     }
-                                } else {
-                                    array_push($error, "El campo Sub Grupo es obligatorio.  Fila # " . $count);
-                                }
-                                // Materials
-                                if (isset($cells[4]) && trim($cells[4]) != '') {
-                                    $code = explode('-', trim($cells[4]));
-                                    $codeMaterial = $code[0];
-                                    $material = $tableMaterials->where(['code' => $code[0]])->asObject()->first();
-                                    // echo json_encode($material);die();
-                                    if (is_null($material)) {
-                                        array_push($error, "No existe código para 'Material'.  Fila # " . $count);
+    
+                                    // costo Producto
+                                    if (isset($cells[5]) && trim($cells[5]) != '') {
+                                        /*if (!is_numeric(trim($cells[7]))) {
+                                            $error = "El campo 'Costo' deben ser solo tipo numericos. Fila # " . $count;
+                                        }¨*/
+                                    } else {
+                                        array_push($error, "El campo Costo es obligatorio.  Fila # " . $count);
                                     }
-                                } else {
-                                    array_push($error, "El campo Material es obligatorio.  Fila # " . $count);
-                                }
-                                // producto
-                                if (isset($cells[5]) && trim($cells[5]) == '') {
-                                    array_push($error, "El campo nombres es obligatorio.  Fila # " . $count);
-                                }
-                                // precio Producto
-                                if (isset($cells[6]) && trim($cells[6]) != '') {
-                                    /*if (!is_numeric(trim($cells[6]))) {
-                                        $error = "El campo 'valor' deben ser solo tipo numericos. Fila # " . $count;
+                                    // validation Product FREE
+                                    /*if (isset($cells[8]) && trim($cells[8]) != '') {
+                                        if (trim($cells[8]) != 'Si' && trim($cells[8]) != 'No') {
+                                            $error = "Los parámetros son incorrectos. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo Producto Gratis es obligatorio";
                                     }*/
-                                } else {
-                                    array_push($error, "El campo Valor es obligatorio.  Fila # " . $count);
-                                }
-                                // costo Producto
-                                if (isset($cells[7]) && trim($cells[7]) != '') {
-                                    /*if (!is_numeric(trim($cells[7]))) {
-                                        $error = "El campo 'Costo' deben ser solo tipo numericos. Fila # " . $count;
-                                    }¨*/
-                                } else {
-                                    array_push($error, "El campo Costo es obligatorio.  Fila # " . $count);
-                                }
-                                // validation Product FREE
-                                /*if (isset($cells[8]) && trim($cells[8]) != '') {
-                                    if (trim($cells[8]) != 'Si' && trim($cells[8]) != 'No') {
-                                        $error = "Los parámetros son incorrectos. Fila # " . $count;
+                                    // validation entry credit
+                                    $entryCredit = $account->select('id')->where(['nature' => 'Crédito', 'type_accounting_account_id' => 1])->get()->getResult()[0];
+                                    /*if (isset($cells[9]) && trim($cells[9]) != '') {
+                                        $code = explode('-', trim($cells[9]));
+                                        $entryCredit = $code[0];
+                                    } else {
+                                        $error = "El campo Entrada es obligatorio";
+                                    }*/
+                                    // validation campo entry debit
+                                    $entryDebit = $account->select('id')->where(['nature' => 'Débito', 'type_accounting_account_id' => 1])->get()->getResult()[0];
+                                    /*if (isset($cells[10]) && trim($cells[10]) != '') {
+                                        $code = explode('-', trim($cells[10]));
+                                        $entryDebit = $code[0];
+                                    } else {
+                                        $error = "El campo Devolucion es obligatorio";
+                                    }*/
+                                    // validation campo iva
+                                    $sinIva = $account->select('id')->where(['code' => '0000000', 'type_accounting_account_id' => 2])->get()->getResult()[0];
+                                    $iva = $account->select('id')->where(['type_accounting_account_id' => 2])->get()->getResult()[0];
+                                    /*if (isset($cells[11]) && trim($cells[11]) != '') {
+                                        $code = explode('-', trim($cells[11]));
+                                        $iva = $code[0];
+                                    } else {
+                                        $error = "El campo Iva es obligatorio";
+                                    }*/
+                                    // validation campo retefuente
+                                    $retefuente = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+                                    /*if (isset($cells[12]) && trim($cells[12]) != '') {
+                                        $code = explode('-', trim($cells[12]));
+                                        $reteFuente = $code[0];
+                                    } else {
+                                        $error = "El campo Retención de fuente es obligatorio";
+                                    }*/
+                                    // validation campo reteica
+                                    $reteica = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+                                    /*if (isset($cells[13]) && trim($cells[13]) != '') {
+                                        $code = explode('-', trim($cells[13]));
+                                        $reteIca = $code[0];
+                                    } else {
+                                        $error = "El campo Reteica es obligatorio";
+                                    }*/
+                                    // validation campo reteiva
+                                    $reteiva = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+                                    /*if (isset($cells[14]) && trim($cells[14]) != '') {
+                                        $code = explode('-', trim($cells[14]));
+                                        $reteIva = $code[0];
+                                    } else {
+                                        $error = "El campo Reteiva es obligatorio";
+                                    }*/
+                                    //validation campo account pay
+                                    $account_pay = $account->select('id')->where(['type_accounting_account_id' => 4])->get()->getResult()[0];
+                                    /*if (isset($cells[15]) && trim($cells[15]) != '') {
+                                        $code = explode('-', trim($cells[15]));
+                                        $account_pay = $code[0];
+                                    } else {
+                                        $error = "El campo cuenta por cobrar es obligatorio";
+                                    }*/
+                                    if (count($error) > 0) {
+                                        array_push($errores, $error);
+                                    } else {
+                                        $controllerProduct = new ProductsController();
+                                        $serial = "{$codeCategoria}{$codeMarca}{$codeLinea}00";
+                                        $disponible = [];
+                                        for ($i = 0; $i <= 499; $i++) {
+                                            $number = (strlen($i) == 1) ? "0{$i}" : "{$i}";
+                                            array_push($disponible, ['id' => $number]);
+                                        }
+                                        $validate = $controllerProduct->validateCode($serial);
+                                        if (!$validate) {
+                                            $codesItems = $products
+                                                ->where(['provider_id' => $categoria->id, 'gender_id' => $marca->id, 'material_id' => $linea->id])
+                                                ->asObject()->get()->getResult();
+                                            foreach ($codesItems as $codesItem) {
+                                                unset($disponible[(int)$codesItem->code_item]);
+                                            }
+                                        }
+                                        $disponible = array_values($disponible);
+                                        if (!$validate) {
+                                            $serial = substr($serial, 0, -2);
+                                            echo "{$disponible[0]['id']}<br>";
+                                            $serial = "{$serial}{$disponible[0]['id']}";
+                                            // var_dump("{$disponible[0]['id']}"); die;
+                                        }
+    
+                                        $data = array(
+                                            'name' => trim($cells[2]),
+                                            'tax_iva' => 'F',
+                                            'code' => $serial,
+                                            'code_item' => $disponible[0],
+                                            'valor' => trim($cells[4]),
+                                            'cost' => trim($cells[5]),
+                                            'description' => trim($cells[3] ? $cells[3] : $cells[2]),
+                                            'unit_measures_id' => 70,
+                                            'type_item_identifications_id' => 4,
+                                            'reference_prices_id' => 1,
+                                            'free_of_charge_indicator' => 'false',
+                                            'companies_id' => session('user')->companies_id,
+                                            'entry_credit' => $entryCredit->id,
+                                            'entry_debit' => $entryDebit->id,
+                                            'iva' => $iva->id,
+                                            'retefuente' => $retefuente->id,
+                                            'reteica' => $reteica->id,
+                                            'reteiva' => $reteiva->id,
+                                            'account_pay' => $account_pay->id,
+                                            'provider_id' => $categoria->id,
+                                            'gender_id' => $marca->id,
+                                            'group_id' => null,
+                                            'sub_group_id' => null,
+                                            'material_id' => $linea->id
+                                        );
+                                        if ($products->insert($data)) {
+                                            $data['tax_iva'] = 'R';
+                                            $data['iva'] = $sinIva->id;
+                                            $products->insert($data);
+                                        }
+    
                                     }
-                                } else {
-                                    $error = "El campo Producto Gratis es obligatorio";
-                                }*/
-                                // validation entry credit
-                                $entryCredit = $account->select('id')->where(['nature' => 'Crédito', 'type_accounting_account_id' => 1])->get()->getResult()[0];
-                                /*if (isset($cells[9]) && trim($cells[9]) != '') {
-                                    $code = explode('-', trim($cells[9]));
-                                    $entryCredit = $code[0];
-                                } else {
-                                    $error = "El campo Entrada es obligatorio";
-                                }*/
-                                // validation campo entry debit
-                                $entryDebit = $account->select('id')->where(['nature' => 'Débito', 'type_accounting_account_id' => 1])->get()->getResult()[0];
-                                /*if (isset($cells[10]) && trim($cells[10]) != '') {
-                                    $code = explode('-', trim($cells[10]));
-                                    $entryDebit = $code[0];
-                                } else {
-                                    $error = "El campo Devolucion es obligatorio";
-                                }*/
-                                // validation campo iva
-                                $sinIva = $account->select('id')->where(['code' => '0000000', 'type_accounting_account_id' => 2])->get()->getResult()[0];
-                                $iva = $account->select('id')->where(['type_accounting_account_id' => 2])->get()->getResult()[0];
-                                /*if (isset($cells[11]) && trim($cells[11]) != '') {
-                                    $code = explode('-', trim($cells[11]));
-                                    $iva = $code[0];
-                                } else {
-                                    $error = "El campo Iva es obligatorio";
-                                }*/
-                                // validation campo retefuente
-                                $retefuente = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
-                                /*if (isset($cells[12]) && trim($cells[12]) != '') {
-                                    $code = explode('-', trim($cells[12]));
-                                    $reteFuente = $code[0];
-                                } else {
-                                    $error = "El campo Retención de fuente es obligatorio";
-                                }*/
-                                // validation campo reteica
-                                $reteica = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
-                                /*if (isset($cells[13]) && trim($cells[13]) != '') {
-                                    $code = explode('-', trim($cells[13]));
-                                    $reteIca = $code[0];
-                                } else {
-                                    $error = "El campo Reteica es obligatorio";
-                                }*/
-                                // validation campo reteiva
-                                $reteiva = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
-                                /*if (isset($cells[14]) && trim($cells[14]) != '') {
-                                    $code = explode('-', trim($cells[14]));
-                                    $reteIva = $code[0];
-                                } else {
-                                    $error = "El campo Reteiva es obligatorio";
-                                }*/
-                                //validation campo account pay
-                                $account_pay = $account->select('id')->where(['type_accounting_account_id' => 4])->get()->getResult()[0];
-                                /*if (isset($cells[15]) && trim($cells[15]) != '') {
-                                    $code = explode('-', trim($cells[15]));
-                                    $account_pay = $code[0];
-                                } else {
-                                    $error = "El campo cuenta por cobrar es obligatorio";
-                                }*/
-                                if (count($error) > 0) {
-                                    array_push($errores, $error);
-                                } else {
-                                    $controllerProduct = new ProductsController();
-                                    $serial = "{$codeProvider}{$codeGender}{$codeGroup}{$codeSubGroup}{$codeMaterial}00";
-                                    $disponible = [];
-                                    for ($i = 0; $i <= 99; $i++) {
-                                        $number = (strlen($i) == 1) ? "0{$i}" : "{$i}";
-                                        array_push($disponible, ['id' => $number]);
+                                }
+                                // Guardar Clientes
+                                if ($_POST['tipoD'] == 2) {
+                                    // validacion campo Regimen
+                                    if (isset($cells[8]) && trim($cells[8]) != '') {
+                                        $regimen = new TypeRegimes();
+                                        $idregimen = $regimen->where('id', trim($cells[8]))->countAllResults();
+                                        if ($idregimen == 0) {
+                                            $error = "El Id en 'regimen' no existe. Fila # " . $count;
+                                        }
+                                        if (!is_numeric(trim($cells[8]))) {
+                                            $error = "El código del 'regimen' debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo Regimen es obligatorio.";
                                     }
-                                    $validate = $controllerProduct->validateCode($serial);
-                                    if (!$validate) {
-                                        $codesItems = $products
-                                            ->where(['provider_id' => $provider->id, 'gender_id' => $gender->id,
-                                                'group_id' => $group->id, 'sub_group_id' => $subGroup->id, 'material_id' => $material->id])
-                                            ->asObject()->get()->getResult();
-                                        foreach ($codesItems as $codesItem) {
-                                            unset($disponible[(int)$codesItem->code_item]);
+                                    // validacion campo Tipo documento
+                                    if (isset($cells[1]) && trim($cells[1]) != '') {
+                                        $documentos = new TypeDocumentIdentifications();
+                                        $documento = $documentos->where('id', trim($cells[1]))->countAllResults();
+                                        if ($documento == 0) {
+                                            $error = "El Id en 'Tipo de Documento' no existe. Fila # " . $count;
+                                        }
+                                        if (!is_numeric(trim($cells[1]))) {
+                                            $error = "Id Tipo de 'Documento'  debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo Tipo de Documento es obligatorio.";
+                                    }
+                                    // validacion campo municipio
+                                    if (isset($cells[9]) && trim($cells[9]) != '') {
+                                        $municipios = new Municipalities();
+                                        $municipio = $municipios->where(['id' => trim($cells[9])])->countAllResults();
+                                        if ($municipio == 0) {
+                                            $error = "El Id en 'Municipio' no existe. Fila # " . $count;
+                                        }
+                                        if (!is_numeric(trim($cells[9]))) {
+                                            $error = "El código de 'municipio' debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo Municipio es obligatorio.";
+                                    }
+                                    // validacion campo tipo organizacion
+                                    if (isset($cells[10]) && trim($cells[10]) != '') {
+                                        $tipoOrganizacion = new TypeOrganizations();
+                                        $organizacion = $tipoOrganizacion->where('id', trim($cells[10]))->countAllResults();
+                                        if ($organizacion == 0) {
+                                            $error = "El Id en 'Tipo de organizacion' no existe. Fila # " . $count;
+                                        }
+                                        if (!is_numeric(trim($cells[10]))) {
+                                            $error = "El código de 'tipo de organización' debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo Tipo de Organizacion es obligatorio.";
+                                    }
+                                    // validacion campo nombre
+                                    if (isset($cells[0]) && trim($cells[0]) != '') {
+                                        if (!is_string(trim($cells[0]))) {
+                                            $error = "Los 'nombres' deben ser de tipo string, no puede contener números. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo nombre es obligatorio.";
+                                    }
+                                    // validacion campo telefono
+                                    if (isset($cells[3]) && trim($cells[3]) != '') {
+                                        if (!is_numeric(trim($cells[3]))) {
+                                            $error = "Número de 'Teléfono' debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo Teléfono es obligatorio.";
+                                    }
+                                    //validacion campo correo
+                                    if (isset($cells[5]) && trim($cells[5]) != '') {
+                                        if (!filter_var(trim($cells[5]), FILTER_VALIDATE_EMAIL)) {
+                                            $error = "El 'correo electrico 1' no es valido. Fila # " . $count;;
+                                        }
+                                    } else {
+                                        $error = "El campo correo electrico es obligatorio.";
+                                    }
+                                    if (isset($cells[6]) && trim($cells[6]) != '') {
+                                        if (!filter_var(trim($cells[6]), FILTER_VALIDATE_EMAIL)) {
+                                            $error = "El 'correo electrico 2' no es valido. Fila # " . $count;;
                                         }
                                     }
-                                    $disponible = array_values($disponible);
-                                    if (!$validate) {
-                                        $serial = substr($serial, 0, -2);
-                                        $serial = "{$serial}{$disponible[0]['id']}";
-                                    }
-                                    $data = array(
-                                        'name' => trim($cells[5]),
-                                        'tax_iva' => 'F',
-                                        'code' => $serial,
-                                        'code_item' => $disponible[0],
-                                        'valor' => trim($cells[6]),
-                                        'cost' => trim($cells[7]),
-                                        'description' => trim($cells[5]),
-                                        'unit_measures_id' => 70,
-                                        'type_item_identifications_id' => 4,
-                                        'reference_prices_id' => 1,
-                                        'free_of_charge_indicator' => 'false',
-                                        'companies_id' => session('user')->companies_id,
-                                        'entry_credit' => $entryCredit->id,
-                                        'entry_debit' => $entryDebit->id,
-                                        'iva' => $iva->id,
-                                        'retefuente' => $retefuente->id,
-                                        'reteica' => $reteica->id,
-                                        'reteiva' => $reteiva->id,
-                                        'account_pay' => $account_pay->id,
-                                        'provider_id' => $provider->id,
-                                        'gender_id' => $gender->id,
-                                        'group_id' => $group->id,
-                                        'sub_group_id' => $subGroup->id,
-                                        'material_id' => $material->id
-                                    );
-                                    if ($products->insert($data)) {
-                                        $data['tax_iva'] = 'R';
-                                        $data['iva'] = $sinIva->id;
-                                        $products->insert($data);
-                                    }
-
-                                }
-                            }
-                            // Guardar Clientes
-                            if ($_POST['tipoD'] == 2) {
-                                // validacion campo Regimen
-                                if (isset($cells[8]) && trim($cells[8]) != '') {
-                                    $regimen = new TypeRegimes();
-                                    $idregimen = $regimen->where('id', trim($cells[8]))->countAllResults();
-                                    if ($idregimen == 0) {
-                                        $error = "El Id en 'regimen' no existe. Fila # " . $count;
-                                    }
-                                    if (!is_numeric(trim($cells[8]))) {
-                                        $error = "El código del 'regimen' debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = "El campo Regimen es obligatorio.";
-                                }
-                                // validacion campo Tipo documento
-                                if (isset($cells[1]) && trim($cells[1]) != '') {
-                                    $documentos = new TypeDocumentIdentifications();
-                                    $documento = $documentos->where('id', trim($cells[1]))->countAllResults();
-                                    if ($documento == 0) {
-                                        $error = "El Id en 'Tipo de Documento' no existe. Fila # " . $count;
-                                    }
-                                    if (!is_numeric(trim($cells[1]))) {
-                                        $error = "Id Tipo de 'Documento'  debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = "El campo Tipo de Documento es obligatorio.";
-                                }
-                                // validacion campo municipio
-                                if (isset($cells[9]) && trim($cells[9]) != '') {
-                                    $municipios = new Municipalities();
-                                    $municipio = $municipios->where(['id' => trim($cells[9])])->countAllResults();
-                                    if ($municipio == 0) {
-                                        $error = "El Id en 'Municipio' no existe. Fila # " . $count;
-                                    }
-                                    if (!is_numeric(trim($cells[9]))) {
-                                        $error = "El código de 'municipio' debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = "El campo Municipio es obligatorio.";
-                                }
-                                // validacion campo tipo organizacion
-                                if (isset($cells[10]) && trim($cells[10]) != '') {
-                                    $tipoOrganizacion = new TypeOrganizations();
-                                    $organizacion = $tipoOrganizacion->where('id', trim($cells[10]))->countAllResults();
-                                    if ($organizacion == 0) {
-                                        $error = "El Id en 'Tipo de organizacion' no existe. Fila # " . $count;
-                                    }
-                                    if (!is_numeric(trim($cells[10]))) {
-                                        $error = "El código de 'tipo de organización' debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = "El campo Tipo de Organizacion es obligatorio.";
-                                }
-                                // validacion campo nombre
-                                if (isset($cells[0]) && trim($cells[0]) != '') {
-                                    if (!is_string(trim($cells[0]))) {
-                                        $error = "Los 'nombres' deben ser de tipo string, no puede contener números. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = "El campo nombre es obligatorio.";
-                                }
-                                // validacion campo telefono
-                                if (isset($cells[3]) && trim($cells[3]) != '') {
-                                    if (!is_numeric(trim($cells[3]))) {
-                                        $error = "Número de 'Teléfono' debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = "El campo Teléfono es obligatorio.";
-                                }
-                                //validacion campo correo
-                                if (isset($cells[5]) && trim($cells[5]) != '') {
-                                    if (!filter_var(trim($cells[5]), FILTER_VALIDATE_EMAIL)) {
-                                        $error = "El 'correo electrico 1' no es valido. Fila # " . $count;;
-                                    }
-                                } else {
-                                    $error = "El campo correo electrico es obligatorio.";
-                                }
-                                if (isset($cells[6]) && trim($cells[6]) != '') {
-                                    if (!filter_var(trim($cells[6]), FILTER_VALIDATE_EMAIL)) {
-                                        $error = "El 'correo electrico 2' no es valido. Fila # " . $count;;
-                                    }
-                                }
-                                if (isset($cells[7]) && trim($cells[7]) != '') {
-                                    if (!filter_var(trim($cells[7]), FILTER_VALIDATE_EMAIL)) {
-                                        $error = "El 'correo electrico 3' no es valido. Fila # " . $count;;
-                                    }
-                                }
-                                if (strlen(trim($cells[3])) < 7) {
-                                    $error = "El campo 'Teléfono' debe tener minimo 7 caracteres. Fila # " . $count;;
-                                }
-                                if (isset($cells[2]) && trim($cells[2] != '')) {
-                                    if (!is_numeric(trim($cells[2]))) {
-                                        $error = "Número de Documento No puede llevar ningun tipo de caracter. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = "El campo Número de Documento es obligatorio.";
-                                }
-                                //guardar datos clientes
-                                if (!isset($error)) {
-                                    $data = [
-                                        'name' => trim($cells[0]),
-                                        'type_document_identifications_id' => trim($cells[1]),
-                                        'identification_number' => trim($cells[2]),
-                                        'dv' => $this->calcularDV(trim($cells[2])),
-                                        'phone' => trim($cells[3]),
-                                        'address' => trim($cells[4]),
-                                        'email' => trim($cells[5]),
-                                        'email2' => (isset($cells[6]) && trim($cells[6]) != '') ? trim($cells[6]) : '',
-                                        'email3' => (isset($cells[7]) && trim($cells[7]) != '') ? trim($cells[7]) : '',
-                                        'merchant_registration' => '0000',
-                                        'type_customer_id' => 1,
-                                        'type_regime_id' => trim($cells[8]),
-                                        'municipality_id' => trim($cells[9]),
-                                        'companies_id' => session('user')->companies_id,
-                                        'type_organization_id' => trim($cells[10])
-                                    ];
-                                    $clientes->insert($data);
-                                }
-                            }
-                            // Guardar Cuentas Contables
-                            if ($_POST['tipoD'] == 3) {
-                                $account = new AccountingAcount();
-                                // validacion campo tipo cuenta
-                                if (isset($cells[0]) && trim($cells[0]) != '') {
-                                    $type = new TypeAccountingAccount();
-                                    $tipo = $type->where('id', trim($cells[0]))->countAllResults();
-                                    if ($tipo == 0) {
-                                        $error = "Id de 'tipó de cuenta'  no se encuentra en la base de datos";
-                                    }
-                                    if (!is_numeric(trim($cells[0]))) {
-                                        $error = "Id 'Tipo de Cuenta'  debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = 'El campo Tipo de Cuenta es obligatorio';
-                                }
-                                // validacion campo codigo
-                                if (isset($cells[1]) && trim($cells[1]) != '') {
-                                    if (!is_numeric(trim($cells[1]))) {
-                                        $error = "'Código' debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = 'El campo Código es obligatorio';
-                                }
-                                //validacion campo nombres
-                                if (isset($cells[2]) && trim($cells[2]) != '') {
-                                    if (!is_string(trim($cells[2]))) {
-                                        $error = "Los 'nombres 'deben ser de tipo string, no puede contener números. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = 'El campo Nombres es obligatorio';
-                                }
-                                // validacion campo porcentaje
-                                if (isset($cells[3]) && trim($cells[3]) != '') {
-                                    if (!is_numeric(trim($cells[3]))) {
-                                        $error = "'Porcentaje' debe ser de valor numérico. Fila # " . $count;
-                                    }
-                                } else {
-                                    $error = 'El campo porcentaje es obligatorio';
-                                }
-                                // validacion campo naturaleza
-                                if (isset($cells[4]) && trim($cells[4]) != '') {
-                                    if (trim($cells[4]) != 'Débito' && trim($cells[4]) != 'Crédito') {
-                                        $error = "Los parámetros son incorrectos en 'naturaleza'. Fila # " . $count;
-                                        if (trim($cells[4]) == 'Debito' || trim($cells[4]) == 'debito' || trim($cells[4]) == 'débito') {
-                                            $error = "Los parámetros son incorrectos en 'naturaleza'. Asegúrese que la palabra este escrita de la forma correcta (Débito) Fila # " . $count;
-                                        }
-                                        if (trim($cells[4]) == 'Credito' || trim($cells[4]) == 'credito' || trim($cells[4]) == 'crédito') {
-                                            $error = "Los parámetros son incorrectos en 'naturaleza'. Asegúrese que la palabra este escrita de la forma correcta (Crédito) Fila # " . $count;
+                                    if (isset($cells[7]) && trim($cells[7]) != '') {
+                                        if (!filter_var(trim($cells[7]), FILTER_VALIDATE_EMAIL)) {
+                                            $error = "El 'correo electrico 3' no es valido. Fila # " . $count;;
                                         }
                                     }
-                                } else {
-                                    $error = 'El campo Naturaleza es obligatorio';
-                                }
-                                // validacion campo Estado
-                                if (isset($cells[5]) && trim($cells[5]) != '') {
-                                    if (trim($cells[5]) != 'Activa' && trim($cells[5]) != 'Inactiva') {
-                                        $error = "Los parámetros son incorrectos en 'Estado'. Fila # " . $count;
+                                    if (strlen(trim($cells[3])) < 7) {
+                                        $error = "El campo 'Teléfono' debe tener minimo 7 caracteres. Fila # " . $count;;
                                     }
-                                } else {
-                                    $error = 'El campo Estado es obligatorio';
+                                    if (isset($cells[2]) && trim($cells[2] != '')) {
+                                        if (!is_numeric(trim($cells[2]))) {
+                                            $error = "Número de Documento No puede llevar ningun tipo de caracter. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = "El campo Número de Documento es obligatorio.";
+                                    }
+                                    //guardar datos clientes
+                                    if (!isset($error)) {
+                                        $data = [
+                                            'name' => trim($cells[0]),
+                                            'type_document_identifications_id' => trim($cells[1]),
+                                            'identification_number' => trim($cells[2]),
+                                            'dv' => $this->calcularDV(trim($cells[2])),
+                                            'phone' => trim($cells[3]),
+                                            'address' => trim($cells[4]),
+                                            'email' => trim($cells[5]),
+                                            'email2' => (isset($cells[6]) && trim($cells[6]) != '') ? trim($cells[6]) : '',
+                                            'email3' => (isset($cells[7]) && trim($cells[7]) != '') ? trim($cells[7]) : '',
+                                            'merchant_registration' => '0000',
+                                            'type_customer_id' => 1,
+                                            'type_regime_id' => trim($cells[8]),
+                                            'municipality_id' => trim($cells[9]),
+                                            'companies_id' => session('user')->companies_id,
+                                            'type_organization_id' => trim($cells[10])
+                                        ];
+                                        $clientes->insert($data);
+                                    }
                                 }
-
-                                if (!isset($error)) {
-                                    $data = [
-                                        'companies_id' => session('user')->companies_id,
-                                        'type_accounting_account_id' => trim($cells[0]),
-                                        'code' => trim($cells[1]),
-                                        'name' => trim($cells[2]),
-                                        'percent' => trim($cells[3]),
-                                        'nature' => trim($cells[4]),
-                                        'status' => trim($cells[5]),
-                                    ];
-                                    $account->insert($data);
+                                // Guardar Cuentas Contables
+                                if ($_POST['tipoD'] == 3) {
+                                    $account = new AccountingAcount();
+                                    // validacion campo tipo cuenta
+                                    if (isset($cells[0]) && trim($cells[0]) != '') {
+                                        $type = new TypeAccountingAccount();
+                                        $tipo = $type->where('id', trim($cells[0]))->countAllResults();
+                                        if ($tipo == 0) {
+                                            $error = "Id de 'tipó de cuenta'  no se encuentra en la base de datos";
+                                        }
+                                        if (!is_numeric(trim($cells[0]))) {
+                                            $error = "Id 'Tipo de Cuenta'  debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = 'El campo Tipo de Cuenta es obligatorio';
+                                    }
+                                    // validacion campo codigo
+                                    if (isset($cells[1]) && trim($cells[1]) != '') {
+                                        if (!is_numeric(trim($cells[1]))) {
+                                            $error = "'Código' debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = 'El campo Código es obligatorio';
+                                    }
+                                    //validacion campo nombres
+                                    if (isset($cells[2]) && trim($cells[2]) != '') {
+                                        if (!is_string(trim($cells[2]))) {
+                                            $error = "Los 'nombres 'deben ser de tipo string, no puede contener números. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = 'El campo Nombres es obligatorio';
+                                    }
+                                    // validacion campo porcentaje
+                                    if (isset($cells[3]) && trim($cells[3]) != '') {
+                                        if (!is_numeric(trim($cells[3]))) {
+                                            $error = "'Porcentaje' debe ser de valor numérico. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = 'El campo porcentaje es obligatorio';
+                                    }
+                                    // validacion campo naturaleza
+                                    if (isset($cells[4]) && trim($cells[4]) != '') {
+                                        if (trim($cells[4]) != 'Débito' && trim($cells[4]) != 'Crédito') {
+                                            $error = "Los parámetros son incorrectos en 'naturaleza'. Fila # " . $count;
+                                            if (trim($cells[4]) == 'Debito' || trim($cells[4]) == 'debito' || trim($cells[4]) == 'débito') {
+                                                $error = "Los parámetros son incorrectos en 'naturaleza'. Asegúrese que la palabra este escrita de la forma correcta (Débito) Fila # " . $count;
+                                            }
+                                            if (trim($cells[4]) == 'Credito' || trim($cells[4]) == 'credito' || trim($cells[4]) == 'crédito') {
+                                                $error = "Los parámetros son incorrectos en 'naturaleza'. Asegúrese que la palabra este escrita de la forma correcta (Crédito) Fila # " . $count;
+                                            }
+                                        }
+                                    } else {
+                                        $error = 'El campo Naturaleza es obligatorio';
+                                    }
+                                    // validacion campo Estado
+                                    if (isset($cells[5]) && trim($cells[5]) != '') {
+                                        if (trim($cells[5]) != 'Activa' && trim($cells[5]) != 'Inactiva') {
+                                            $error = "Los parámetros son incorrectos en 'Estado'. Fila # " . $count;
+                                        }
+                                    } else {
+                                        $error = 'El campo Estado es obligatorio';
+                                    }
+    
+                                    if (!isset($error)) {
+                                        $data = [
+                                            'companies_id' => session('user')->companies_id,
+                                            'type_accounting_account_id' => trim($cells[0]),
+                                            'code' => trim($cells[1]),
+                                            'name' => trim($cells[2]),
+                                            'percent' => trim($cells[3]),
+                                            'nature' => trim($cells[4]),
+                                            'status' => trim($cells[5]),
+                                        ];
+                                        $account->insert($data);
+                                    }
+                                }
+                                // Guardar cotizaciones
+                                if ($_POST['tipoD'] == 4) {
+    
+                                }
+    
+                                if ($_POST['tipoD'] == 5) {
+                                    return $this->invoice($this->request->getFile('file'), $_POST['sede']);
+                                }
+    
+                                if ($_POST['tipoD'] == 6) {
+                                    return $this->payrollRemovable($this->request->getFile('file'));
+                                }
+    
+                                if ($_POST['tipoD'] == 7) {
+    
+                                    $import = new CustomerImportController();
+                                    return $import->create();
                                 }
                             }
-                            // Guardar cotizaciones
-                            if ($_POST['tipoD'] == 4) {
-
-                            }
-
-                            if ($_POST['tipoD'] == 5) {
-                                return $this->invoice($this->request->getFile('file'), $_POST['sede']);
-                            }
-
-                            if ($_POST['tipoD'] == 6) {
-                                return $this->payrollRemovable($this->request->getFile('file'));
-                            }
-
-                            if ($_POST['tipoD'] == 7) {
-
-                                $import = new CustomerImportController();
-                                return $import->create();
-                            }
+                            $count++;
                         }
-                        $count++;
                     }
                 }
+
 
                 $reader->close();
 
@@ -643,6 +660,234 @@ class ImportController extends BaseController
             return $dv;
         }
 
+    }
+
+    public function products($file, $idCompany){
+        $errors = [];
+
+        try {
+            $controllerHeadquarters = new HeadquartersController();
+            // $manager = $controllerHeadquarters->permissionManager(session('user')->role_id);
+            /*if ($manager) {
+                $idCompany = $controllerHeadquarters->idSearchBodega();
+            } else {
+                $idCompany = Auth::querys()->companies_id;
+            }*/
+            if(!$file) {
+                return redirect()->back()->with('errors', 'Por favor ingresa un documento');
+            }
+
+            $excel                  = IOFactory::load($file);
+            $documents              = [];
+            $sheet                  = $excel->getSheet(0);
+            $largestRowNumber       = $sheet->getHighestRow();
+            $errors = [];
+            for ($rowIndex = 2; $rowIndex <= $largestRowNumber; $rowIndex++) {
+                $account = new AccountingAcount();
+                $products = new Product();
+                $tableGender = new Gender();
+                $tableMaterials = new Materials();
+                $tableProviders = new Providers();
+                $tableTypeItemIdentifications = new TypeItemIdentification();
+                $tableAccountingAccount = new AccountingAcount();
+                $tableUnit = new UnitMeasure();
+                
+
+                // validations tables
+                // Categoria
+                $error = [];
+                if (!empty($sheet->getCell('A'.$rowIndex)->getValue())) {
+                    $code = explode('-', trim($sheet->getCell('A'.$rowIndex)->getValue()));
+                    $codeCategoria = $code[0];
+                    $categoria = $tableProviders->where(['code' => $codeCategoria])->asObject()->first();
+                    if (is_null($categoria)) {
+                        array_push($error, "No existe código para 'Categoria'.  Fila # " . $rowIndex);
+                    }
+                } else {
+                    array_push($error, "El campo Categoria es obligatorio.  Fila # " . $rowIndex);
+                }
+
+                // Linea
+                if (!empty($sheet->getCell('B'.$rowIndex)->getValue()) && trim($sheet->getCell('B'.$rowIndex)->getValue()) != '') {
+                    $code = explode('-', trim($sheet->getCell('B'.$rowIndex)->getValue()));
+                    $codeLinea = $code[0];
+                    $linea = $tableMaterials->where(['code' => $codeLinea])->asObject()->first();
+                    if (is_null($linea)) {
+                        array_push($error, "No existe código para 'Linea'.  Fila # " . $rowIndex);
+                    }
+                } else {
+                    array_push($error, "El campo Linea es obligatorio.  Fila # " . $rowIndex);
+                }
+
+                $codeMarca = 0;
+                $marca = $tableGender->where(['code' => $codeMarca])->asObject()->first();
+
+                // producto
+                if (empty($sheet->getCell('C'.$rowIndex)->getValue()) && trim($sheet->getCell('C'.$rowIndex)->getValue()) == '') {
+                    array_push($error, "El campo nombres es obligatorio.  Fila # " . $rowIndex);
+                }
+
+                // precio Producto
+                if (empty($sheet->getCell('E'.$rowIndex)->getValue()) && trim($sheet->getCell('E'.$rowIndex)->getValue()) == '') {
+                    /*if (!is_numeric(trim($cells[6]))) {
+                        $error = "El campo 'valor' deben ser solo tipo numericos. Fila # " . $count;
+                    }*/
+                    array_push($error, "El campo Valor es obligatorio.  Fila # " . $rowIndex);
+                } 
+
+                // costo Producto
+                if (empty($sheet->getCell('F'.$rowIndex)->getValue()) && trim($sheet->getCell('F'.$rowIndex)->getValue()) == '') {
+                    /*if (!is_numeric(trim($cells[7]))) {
+                        $error = "El campo 'Costo' deben ser solo tipo numericos. Fila # " . $count;
+                    }¨*/
+                    array_push($error, "El campo Costo es obligatorio.  Fila # " . $rowIndex);
+                }
+            }
+            if (count($error) > 0) {
+                return redirect()->back()->with('errors', implode('<br>', $error));
+            }
+            // return redirect()->back()->with('errors', 'error');
+            for ($rowIndex = 2; $rowIndex <= $largestRowNumber; $rowIndex++) {
+                $account = new AccountingAcount();
+                $products = new Product();
+                $tableGender = new Gender();
+                $tableMaterials = new Materials();
+                $tableProviders = new Providers();
+                $tableTypeItemIdentifications = new TypeItemIdentification();
+                $tableAccountingAccount = new AccountingAcount();
+                $tableUnit = new UnitMeasure();
+                
+
+                // validations tables
+                // Categoria
+                $error = [];
+                if (!empty($sheet->getCell('A'.$rowIndex)->getValue())) {
+                    $code = explode('-', trim($sheet->getCell('A'.$rowIndex)->getValue()));
+                    $codeCategoria = $code[0];
+                    $categoria = $tableProviders->where(['code' => $codeCategoria])->asObject()->first();
+                    if (is_null($categoria)) {
+                        array_push($error, "No existe código para 'Categoria'.  Fila # " . $rowIndex);
+                    }
+                } else {
+                    array_push($error, "El campo Categoria es obligatorio.  Fila # " . $rowIndex);
+                }
+
+                // Linea
+                if (!empty($sheet->getCell('B'.$rowIndex)->getValue()) && trim($sheet->getCell('B'.$rowIndex)->getValue()) != '') {
+                    $code = explode('-', trim($sheet->getCell('B'.$rowIndex)->getValue()));
+                    $codeLinea = $code[0];
+                    $linea = $tableMaterials->where(['code' => $codeLinea])->asObject()->first();
+                    if (is_null($linea)) {
+                        array_push($error, "No existe código para 'Linea'.  Fila # " . $rowIndex);
+                    }
+                } else {
+                    array_push($error, "El campo Linea es obligatorio.  Fila # " . $rowIndex);
+                }
+
+                $codeMarca = 0;
+                $marca = $tableGender->where(['code' => $codeMarca])->asObject()->first();
+
+                // producto
+                if (empty($sheet->getCell('C'.$rowIndex)->getValue()) && trim($sheet->getCell('C'.$rowIndex)->getValue()) == '') {
+                    array_push($error, "El campo nombres es obligatorio.  Fila # " . $rowIndex);
+                }
+
+                // precio Producto
+                if (empty($sheet->getCell('E'.$rowIndex)->getValue()) && trim($sheet->getCell('E'.$rowIndex)->getValue()) == '') {
+                    /*if (!is_numeric(trim($cells[6]))) {
+                        $error = "El campo 'valor' deben ser solo tipo numericos. Fila # " . $count;
+                    }*/
+                    array_push($error, "El campo Valor es obligatorio.  Fila # " . $rowIndex);
+                } 
+
+                // costo Producto
+                if (empty($sheet->getCell('F'.$rowIndex)->getValue()) && trim($sheet->getCell('F'.$rowIndex)->getValue()) == '') {
+                    /*if (!is_numeric(trim($cells[7]))) {
+                        $error = "El campo 'Costo' deben ser solo tipo numericos. Fila # " . $count;
+                    }¨*/
+                    array_push($error, "El campo Costo es obligatorio.  Fila # " . $rowIndex);
+                }
+
+                $entryCredit = $account->select('id')->where(['nature' => 'Crédito', 'type_accounting_account_id' => 1])->get()->getResult()[0];
+    
+                $entryDebit = $account->select('id')->where(['nature' => 'Débito', 'type_accounting_account_id' => 1])->get()->getResult()[0];
+                
+                $sinIva = $account->select('id')->where(['code' => '0000000', 'type_accounting_account_id' => 2])->get()->getResult()[0];
+                $iva = $account->select('id')->where(['type_accounting_account_id' => 2])->get()->getResult()[0];
+                
+                $retefuente = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+                
+                $reteica = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+                
+                $reteiva = $account->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+                
+                $account_pay = $account->select('id')->where(['type_accounting_account_id' => 4])->get()->getResult()[0];
+                if (count($error) > 0) {
+                    return redirect()->back()->with('errors', implode('<br>', $error));
+                } else {
+                    $controllerProduct = new ProductsController();
+                    $serial = "{$codeCategoria}{$codeMarca}{$codeLinea}00";
+                    $disponible = [];
+                    for ($i = 0; $i <= 499; $i++) {
+                        $number = (strlen($i) == 1) ? "0{$i}" : "{$i}";
+                        array_push($disponible, ['id' => $number]);
+                    }
+                    $validate = $controllerProduct->validateCode($serial);
+                    if (!$validate) {
+                        $codesItems = $products
+                            ->where(['provider_id' => $categoria->id, 'gender_id' => $marca->id, 'material_id' => $linea->id])
+                            ->asObject()->get()->getResult();
+                        foreach ($codesItems as $codesItem) {
+                            unset($disponible[(int)$codesItem->code_item]);
+                        }
+                    }
+                    $disponible = array_values($disponible);
+                    if (!$validate) {
+                        $serial = substr($serial, 0, -2);
+                        echo "{$disponible[0]['id']}<br>";
+                        $serial = "{$serial}{$disponible[0]['id']}";
+                        // var_dump("{$disponible[0]['id']}"); die;
+                    }
+
+                    $data = array(
+                        'name' => trim($sheet->getCell('C'.$rowIndex)->getValue()),
+                        'tax_iva' => 'F',
+                        'code' => $serial,
+                        'code_item' => $disponible[0],
+                        'valor' => trim($sheet->getCell('E'.$rowIndex)->getValue()),
+                        'cost' => trim($sheet->getCell('F'.$rowIndex)->getValue()),
+                        'description' => trim($sheet->getCell('D'.$rowIndex)->getValue() ? $sheet->getCell('D'.$rowIndex)->getValue() : $sheet->getCell('C'.$rowIndex)->getValue()),
+                        'unit_measures_id' => 70,
+                        'type_item_identifications_id' => 4,
+                        'reference_prices_id' => 1,
+                        'free_of_charge_indicator' => 'false',
+                        'companies_id' => session('user')->companies_id,
+                        'entry_credit' => $entryCredit->id,
+                        'entry_debit' => $entryDebit->id,
+                        'iva' => $iva->id,
+                        'retefuente' => $retefuente->id,
+                        'reteica' => $reteica->id,
+                        'reteiva' => $reteiva->id,
+                        'account_pay' => $account_pay->id,
+                        'provider_id' => $categoria->id,
+                        'gender_id' => $marca->id,
+                        'group_id' => null,
+                        'sub_group_id' => null,
+                        'material_id' => $linea->id
+                    );
+                    if ($products->insert($data)) {
+                        $data['tax_iva'] = 'R';
+                        $data['iva'] = $sinIva->id;
+                        $products->insert($data);
+                    }
+
+                }
+            }
+
+            return redirect()->back()->with('success', 'El documento excel fue cargado correctamente.');
+        } catch (\exception $e) {
+            return redirect()->back()->with('errors', $e->getMessage());
+        }
     }
 
     /**
@@ -1201,6 +1446,117 @@ class ImportController extends BaseController
 
                 return redirect()->to(base_url('import_health'))->with('success', 'Facturas cargadas con exito.');
             }
+        }
+    }
+
+    public function download($name){
+        if($name == 'Inventario'){
+            $productModal = new Product();
+            $products = $productModal
+            ->select(['code', 'name'])
+            ->where(['tax_iva' => 'R', 'kind_product_id' => NULL])
+            ->asObject()->get()->getResult();
+            // Columnas A8 hasta T8
+            $fileName = 'PlantillaInventario.xlsx';
+
+            $styleArray = [
+                'borders' => [
+                    'bottom' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                    'top' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                    'right' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                    'left' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                ],
+                'font' => [
+                    'bold' => true,
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'argb' => '4472C4',
+                    ],
+    
+                ]
+            ];
+            $spreadsheet = new Spreadsheet();
+       
+            $sheet = $spreadsheet->getActiveSheet();
+            $spreadsheet->setActiveSheetIndex(0)->setCellValue('A1', 'Código del producto')->getStyle('A1')->getFont()->setBold(true)->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE);
+            $spreadsheet->setActiveSheetIndex(0)->setCellValue('B1', 'Descripción del producto')->getStyle('B1')->getFont()->setBold(true)->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE);
+            $spreadsheet->setActiveSheetIndex(0)->setCellValue('C1', 'Cantidad')->getStyle('C1')->getFont()->setBold(true)->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE);
+            $spreadsheet->getActiveSheet()->getStyle('A1:C1')->applyFromArray($styleArray, false);
+            $spreadsheet->getActiveSheet()->getColumnDimension('B')->setWidth(25);
+            $spreadsheet->getActiveSheet()->getColumnDimension('A')->setWidth(35);
+            $spreadsheet->getActiveSheet()->getColumnDimension('C')->setWidth(15);
+            $spreadsheet->getActiveSheet()->getRowDimension('1')->setRowHeight(30);
+            $rows = 2;
+       
+            foreach ($products as $val){
+                $sheet->setCellValue('A' . $rows, $val->code);
+                $sheet->setCellValue('B' . $rows, $val->name);
+                $sheet->setCellValue('C' . $rows, 0);
+                if($rows % 2 == 0){
+                    $styleArray1 = [
+                        'borders' => [
+                            'bottom' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                            'top' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                            'right' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                            'left' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                        ],
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => [
+                                'argb' => 'B4C6E7',
+                            ],
+            
+                        ]
+                    ];
+                }else{
+                    $styleArray1 = [
+                        'borders' => [
+                            'bottom' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                            'top' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                            'right' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                            'left' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                        ],
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => [
+                                'argb' => 'D9E1F2',
+                            ],
+            
+                        ]
+                    ];
+                }
+                $spreadsheet->getActiveSheet()->getStyle('A'.$rows.':C'.$rows)->applyFromArray($styleArray1, false);
+            $rows++;
+            }
+
+            $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+            if (!is_dir(WRITEPATH . 'uploads')) {
+                mkdir(WRITEPATH . 'uploads', 0777, true);
+                chmod(WRITEPATH . 'uploads', 0777);
+            }
+            // $writer->save('php://output');
+            // $writer = new Xlsx($spreadsheet);
+            $writer->save(WRITEPATH . 'uploads/'.$fileName);
+            // header("Content-Type: application/vnd.ms-excel");
+            // redirect(base_url()."/upload/".$fileName); 
+            // unlink()
+            // var_dump($products);
+            $path = WRITEPATH . 'uploads/'.$fileName;
+            return $this->response->download($path, null);
         }
     }
 
