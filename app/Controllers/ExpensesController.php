@@ -55,6 +55,10 @@ class ExpensesController extends BaseController
         if ($this->request->getGet('end_date')) {
             $querys = array_merge($querys, ['line_invoices.start_date <=' => $this->request->getGet('end_date')]);
         }
+        if(session('user')->role_id != 15){
+            $querys = array_merge($querys, ['invoices.companies_id' => session('user')->companies_id]);
+            $querys = array_merge($querys, ['invoices.seller_id !=' => NULL]);
+        }
 
         $invoices = $this->tableLineInvoices
             ->select([
@@ -81,7 +85,8 @@ class ExpensesController extends BaseController
             ->join('products', ' products.id = line_invoices.products_id', 'left')
             ->join('companies', 'companies.id = invoices.company_destination_id', 'left')
             ->whereIn('invoices.type_documents_id', [118, 120])
-            ->where($querys);
+            ->where($querys)
+            ->groupBy('invoices.id');
         // var_dump($invoices->get()->getResult());die();
 
         if ($this->request->getGet('product') && $this->request->getGet('product') != 0) {
