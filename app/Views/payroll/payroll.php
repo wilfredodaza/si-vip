@@ -32,12 +32,12 @@
                 <form action="" method="get">
                   <div class="row">
                     <div class="col s12 m4 ">
-                      <label for="customer">Vendedor</label>
-                      <select class="browser-default" id="customer" name="customer" required>
+                      <label for="user">Usuario</label>
+                      <select class="select browser-default" id="user" name="user" required>
                         <option value="">Seleccione ...</option>
-                        <?php foreach ($customers as $item) : ?>
+                        <?php foreach ($users as $item) : ?>
                         <option value="<?= $item->id ?>"
-                          <?= (isset($_GET['customer']) && $_GET['customer'] == $item->id) ? 'selected' : '' ?>>
+                          <?= (isset($_GET['user']) && $_GET['user'] == $item->id) ? 'selected' : '' ?>>
                           <?= $item->name ?>
                         </option>
                         <?php endforeach; ?>
@@ -45,7 +45,7 @@
                     </div>
                     <div class="col s12 m2 ">
                       <label for="date">Mes</label>
-                      <select class="browser-default" id="date" name="date" required>
+                      <select class="select browser-default" id="date" name="date" required>
                         <option value="">Seleccione ...</option>
                         <?php foreach ($months as $month) : ?>
                         <option value="<?= $month->id ?>"
@@ -60,7 +60,7 @@
                       <?php
                                             $cont = date('Y');
                                             ?>
-                      <select class="select2 browser-default validate" id="year" name="year" required>
+                      <select class="select browser-default validate" id="year" name="year" required>
                         <option value="" disabled="" selected="">Seleccione una opción</option>
                         <?php while ($cont >= 2023) { ?>
                         <option <?= (isset($_GET['year']) && $_GET['year'] == $cont) ? 'selected' : '' ?>
@@ -70,7 +70,7 @@
                     </div>
                     <div class="col s12 m4">
                       <button type="submit" class="modals-action btn indigo mt-5 right">Filtrar</button>
-                      <?php if (isset($_GET['date']) || isset($_GET['customer'])): ?>
+                      <?php if (isset($_GET['date']) || isset($_GET['user'])): ?>
                       <a href="<?= base_url('payrolls') ?>" class="btn right btn-light-red btn mr-1 mt-5"
                         style="padding-left: 10px;padding-right: 10px; margin-right: 10px; ">
                         <i class="material-icons left">close</i>
@@ -86,14 +86,16 @@
             </div>
           </div>
 
-          <?php if(isset($_GET['customer'])): ?>
+          <?php if(isset($_GET['user'])): ?>
           <div class="row" style="padding-bottom: 60px">
-            <div class="col s12">
-              <ul class="tabs">
-                <li class="tab col m6"><a href="#data">Valores</a></li>
-                <li class="tab col m6"><a href="#gastos">Gastos</a></li>
-              </ul>
-            </div>
+            <?php if(!$nomina): ?>
+              <div class="col s12">
+                <ul class="tabs">
+                  <li class="tab col m6"><a href="#data" onclick="changeValues()">Valores</a></li>
+                  <li class="tab col m6"><a href="#gastos">Vales / Otros conceptos</a></li>
+                </ul>
+              </div>
+            <?php endif ?>
             <div id="data" class="col s12">
               <div class="card">
                 <div class="card-content">
@@ -127,27 +129,43 @@
                             </tr>
                           </thead>
                           <tbody>
-                            <tr>
-                              <td class="center"> <?= date('Y-m-d') ?></td>
-                              <td class="center">Salario</td>
-                              <td class="center">$ <?= number_format($customer->salary, '2', ',', '.') ?></td>
-                            </tr>
                             <?php
-                                                      $expenses = 0;
+                              $salary = $nomina ? 0 : $user->salary;
+                              $expenses = 0;
+                            ?>
+                            <?php if(!$nomina): ?>
+                              <tr>
+                                <td class="center"> <?= date('Y-m-d') ?></td>
+                                <td class="center">Salario</td>
+                                <td class="center">$ <?= number_format($user->salary, '2', ',', '.') ?></td>
+                              </tr>
+                            <?php else: ?>
+                              <?php foreach($nomina->line_invoice as $line_invoice): ?>
+                                <tr>
+                                  <td class="center"> <?= date('Y-m-d') ?></td>
+                                  <td class="center"><?= $line_invoice->description ?></td>
+                                  <td class="center"><?= $line_invoice->payroll == 'true' ? '' : '-' ?>$ <?= number_format($line_invoice->price_amount, '2', ',', '.') ?></td>
+                                </tr>
+                                <?php
+                                  $line_invoice->payroll == 'true' ? $salary += (double) $line_invoice->price_amount : $expenses += (double) $line_invoice->price_amount;
+                                ?>
+                              <?php endforeach ?>
+                            <?php endif ?>
+                            <?php
                                                       $payroll = true; ?>
                             <tr>
-                              <th colspan="2" class="black-text right-align">Total Salario</th>
-                              <th class="black-text center">$ <?= number_format($customer->salary, '2', ',', '.') ?>
+                              <th colspan="2" class="black-text right-align">Sub Total</th>
+                              <th class="black-text center salaryParcial">$ <?= number_format($salary, '2', ',', '.') ?>
                               </th>
                             </tr>
                             <tr>
                               <th colspan="2" class="black-text right-align">Total Gastos</th>
-                              <th class="black-text center">- $ <?= number_format($expenses, '2', ',', '.') ?></th>
+                              <th class="black-text center expense">- $ <?= number_format($expenses, '2', ',', '.') ?></th>
                             </tr>
                             <tr>
-                              <th colspan="2" class="black-text right-align">Total </th>
+                              <th colspan="2" class="black-text right-align">Total a pagar</th>
                               <th class="black-text center salary">$
-                                <?= number_format(($customer->salary - $expenses), '2', ',', '.') ?></th>
+                                <?= number_format(($nomina ? $nomina->payable_amount : $salary - $expenses), '2', ',', '.') ?></th>
                             </tr>
                           </tbody>
                         </table>
@@ -157,9 +175,9 @@
                   <div class="row">
                     <div class="col s12 m12 l12">
                       <form
-                        action="<?= base_url('payrolls/payment/'.$_GET['customer'].'/'.($customer->salary - $expenses)) ?>"
+                        action="<?= base_url('payrolls/payment/'.$_GET['user'].'/'.($user->salary - $expenses)) ?>"
                         method="post">
-                        <a href="#pagoNomina" class="btn btn-light-indigo right modal-trigger">Pagar</a>
+                        <a href="#pagoNomina" <?= (!$nomina && ($user->salary && $user->salary != 0))?'':'disabled' ?> class="btn btn-light-indigo right modal-trigger">Pagar</a>
                         <!-- <button type="submit" <?= ($payroll)?'':'disabled' ?> class="btn btn-light-indigo right">Pagar</button> -->
                       </form>
                     </div>
@@ -169,37 +187,47 @@
                 </div>
               </div>
             </div>
-            <div id="gastos" class="col s12">
-              <div class="card">
-                <div class="card-content">
-                  <div class="row">
-                    <table class="centered striped">
-                      <thead>
-                        <tr>
-                          <th>Fecha</th>
-                          <th>Descripción</th>
-                          <th>Valor total</th>
-                          <th>Valor pagado</th>
-                          <th>Acciones</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php foreach($data as $item): ?>
-                        <tr>
-                          <td><?= $item->payment_due_date ?></td>
-                          <td><?= $item->notes ?></td>
-                          <td>$ <?= number_format($item->payable_amount, '2', ',', '.') ?></td>
-                          <td>$ <?= number_format($item->valor_pagado, '2', ',', '.') ?></td>
-                          <td><a href="javascript:void(0);" onclick="viewGastos(<?= $item->id ?>)"><i
-                                class="material-icons">attach_money</i></a></td>
-                        </tr>
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
+            <?php if(!$nomina): ?>
+              <div id="gastos" class="col s12">
+                <div class="card">
+                  <div class="card-content">
+                    <div class="row">
+
+                        <a onclick="bono()" class=" btn btn-light-indigo right invoice-print">
+                          <i class="material-icons right">attach_money</i>
+                          <span>Añadir concepto nómina</span>
+                        </a>
+                      </div>
+                      <table class="centered striped">
+                        <thead>
+                          <tr>
+                            <th>Fecha</th>
+                            <th>Tipo</th>
+                            <th>Descripción</th>
+                            <th>Valor total</th>
+                            <th>Valor pagado</th>
+                            <th>Acciones</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach($data as $item): ?>
+                          <tr>
+                            <td><?= $item->payment_due_date ?></td>
+                            <td>Vale</td>
+                            <td><?= $item->notes ?></td>
+                            <td>$ <?= number_format($item->payable_amount, '2', ',', '.') ?></td>
+                            <td>$ <?= number_format($item->valor_pagado, '2', ',', '.') ?></td>
+                            <td><a href="javascript:void(0);" onclick="viewGastos(<?= $item->id ?>)"><i
+                                  class="material-icons">attach_money</i></a></td>
+                          </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            <?php endif ?>
           </div>
         </div>
         <?php else: ?>
@@ -216,21 +244,21 @@
 </div>
 </div>
 
-<?php if(isset($_GET['customer'])): ?>
+<?php if(isset($_GET['user'])): ?>
 <div id="pagoNomina" class="modal" role="dialog" style="height:auto; width: 600px">
   <div class="modal-content">
     <h4 class="modal-title">Registrar pago</small>
     </h4>
     <form action="" id="formPagoNomina">
-      <input type="hidden" id="salary" value="<?= $customer->salary ?>">
+      <input type="hidden" id="salary" value="<?= $user->salary ?>">
       <input type="hidden" id="expense" value="0">
       <input type="hidden" id="file">
       <input type="hidden" id="filename">
-      <input type="hidden" id="customes" value="<?= $_GET['customer'] ?>">
+      <input type="hidden" id="customes" value="<?= $_GET['user'] ?>">
       <input type="hidden" id="year" value="<?= $_GET['year'] ?>">
       <input type="hidden" id="date" value="<?= $_GET['date'] ?>">
       <div class="row">
-        <div class="input-field col s12 m6">
+        <div class="input-field col s12">
           <select class="browser-default" id="payment_method_id" name="payment_method_id">
             <option value="" disabled>Seleccione ...</option>
             <?php foreach ($paymentMethod as $item): ?>
@@ -241,7 +269,7 @@
           <label for="payment_method_id" class="active">Medio de pago <span
               class="text-red red-text darken-1">*</span></label>
         </div>
-        <div class="input-field col s12 m6">
+        <!-- <div class="input-field col s12 m6">
           <select class="browser-default" id="sede_id" name="sede_id">
             <option value="">Seleccione ...</option>
             <?php foreach ($sedes as $item): ?>
@@ -250,7 +278,7 @@
           </select>
           <label for="sede_id" class="active">Sede de pago <span
               class="text-red red-text darken-1">*</span></label>
-        </div>
+        </div> -->
       </div>
       <div class="row">
         <div class="col s12 input-field">
@@ -317,24 +345,24 @@
           <tbody>
             <tr>
               <td>Nombre:</td>
-              <td><?= $customer->name ?></td>
+              <td><?= $user->name ?></td>
             </tr>
             <tr>
               <td>Salario:</td>
               <td class="users-view-latest-activity">$
-                <?= number_format($customer->salary, '2', ',', '.') ?></td>
+                <?= number_format($user->salary ? $user->salary : 0, '2', ',', '.') ?></td>
             </tr>
             <tr>
               <td>teléfono :</td>
-              <td class="users-view-verified"><?= $customer->phone ?></td>
+              <td class="users-view-verified"><?= $user->phone ?></td>
             </tr>
             <tr>
               <td>Dirección:</td>
-              <td class="users-view-role"><?= $customer->address ?></td>
+              <td class="users-view-role"><?= $user->address ?></td>
             </tr>
             <tr>
               <td>Estado:</td>
-              <td><span class=" users-view-status chip green lighten-5 green-text"><?= $customer->status ?></span>
+              <td><span class=" users-view-status chip green lighten-5 green-text"><?= $user->status ?></span>
               </td>
             </tr>
           </tbody>
@@ -353,6 +381,7 @@
 
 
 <?= $this->section('scripts') ?>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="<?= base_url('/js/advance-ui-modals.js') ?>"></script>
 <script src="<?= base_url('/js/shepherd.min.js') ?>"></script>
 <script src="<?= base_url('/js/vue.js') ?>"></script>
@@ -361,13 +390,18 @@
 
 <script src="<?= base_url('/js/ui-alerts.js') ?>"></script>
 <script src="<?= base_url('/js/views/invoice1.js') ?>"></script>
-<script src="<?= base_url('/js/nomina/payrolls.js') ?>"></script>
 <script src="<?= base_url('/assets/js/new_scripts/funciones.js') ?>"></script>
+<script src="<?= base_url('/js/nomina/payrolls.js') ?>"></script>
 <script>
 const gastos = <?= json_encode($data) ?>;
-const customer = <?= json_encode($customer) ?>;
+const user = <?= json_encode($user) ?>;
+const productOtros = <?= json_encode($productOtros) ?>;
 $(document).ready(function() {
   $('.datepicker').datepicker();
+  $(".select2").select2({
+    dropdownAutoWidth: true,
+    width: '100%'
+  });
 });
 
 function printDiv(nombreDiv) {

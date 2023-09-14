@@ -43,3 +43,18 @@ function base_url(array = []) {
     if (array.length == 0) return `${url}`;
     else return `${url}/${array.join('/')}`;
 }
+
+function formatDate(date) {
+    var day = date.getDate();
+    var month = date.getMonth() + 1; // Los meses en JavaScript son base 0, por lo que se suma 1
+    var year = date.getFullYear();
+
+    // Formatear los componentes de la fecha
+    var formattedDay = (day < 10 ? '0' : '') + day;
+    var formattedMonth = (month < 10 ? '0' : '') + month;
+
+    // Construir el formato deseado
+    var formattedDate = year + '-' + formattedMonth + '-' + formattedDay;
+
+    return formattedDate;
+}
