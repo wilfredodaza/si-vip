@@ -80,7 +80,7 @@ class ExpensesController extends BaseController
             ->join('type_documents', 'type_documents.id = invoices.type_documents_id', 'left')
             ->join('products', ' products.id = line_invoices.products_id', 'left')
             ->join('companies', 'companies.id = invoices.company_destination_id', 'left')
-            ->where(['invoices.type_documents_id' => 118])
+            ->whereIn('invoices.type_documents_id', [118, 120])
             ->where($querys);
         // var_dump($invoices->get()->getResult());die();
 
