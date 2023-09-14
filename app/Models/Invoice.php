@@ -60,10 +60,18 @@ class Invoice extends Model
 
         public function getLineInvoices($id){
             $product = $this->builder('line_invoices')
-                ->select(['line_invoices.*', 'products.name', 'category.payroll as nomina'])
+                ->select([
+                    'line_invoices.*',
+                    'products.name',
+                    'category.payroll as nomina',
+                    'IFNULL(SUM(wallet_line_invoice.value), 0) as line_invoice_payment'
+                ])
                 ->join('products', 'products.id = line_invoices.products_id', 'left')
                 ->join('category', 'category.id = products.category_id', 'left')
-                ->where(["invoices_id" => $id, 'line_invoices.payroll' => 'false'])->get()->getResult();
+                ->join('wallet_line_invoice', 'line_invoices.id = wallet_line_invoice.line_invoice_id', 'left')
+                ->groupBy('line_invoices.id')
+                ->having('(line_invoices.price_amount - line_invoice_payment) !=', 0)
+                ->where(["invoices_id" => $id])->get()->getResult();
             return $product; 
         }
 

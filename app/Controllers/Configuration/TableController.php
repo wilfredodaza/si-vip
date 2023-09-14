@@ -483,46 +483,40 @@ class TableController extends BaseController
                     break;
                 case 'employees':
                     $rol = $this->headquartersController->permissionManager(session('user')->role_id);
-                    $this->crud->setTable('customers');
-                    $this->crud->displayAs(lang('customers.customers'));
+                    $this->crud->setTable('users');
+                    $this->crud->where(['role_id' => 20]);
+                    // $this->crud->displayAs(lang('customers.customers'));
                     $this->crud->setRule('identification_number', 'required');
                     $this->crud->setRule('phone', 'required');
                     $this->crud->setRule('name', 'required');
                     $this->crud->setRule('phone', 'lengthBetween', ['7', '10']);
                     $this->crud->fieldType('phone', 'int');
                     $this->crud->fieldType('dv', 'hidden');
-                    $this->crud->setRule('address', 'required');
                     $this->crud->setRelation('municipality_id', 'municipalities', 'name');
                     $this->crud->setRule('email', 'required');
                     $this->crud->fieldType('status', 'dropdown_search', ['Activo' => 'Activo', 'Inactivo' => 'Inactivo']);
-                    $this->crud->setRule('neighborhood', 'required');
+                    $this->crud->setRule('password', 'required');
+                    $this->crud->fieldType('password', 'password');
                     // relations
-                    $this->crud->setRelation('companies_id', 'companies', 'company');
+                    $this->crud->setRelation('companies_id', 'companies', 'company', ['headquarters_id' => 2]);
                     $this->crud->setRelation('type_document_identifications_id', 'type_document_identifications', 'name');
-                    // $this->crud->setRelation('type_customer_id', 'type_customer', 'name');
-                    // $this->crud->setRelation('type_regime_id', 'type_regimes', 'name');
-                    // $this->crud->setRelation('type_organization_id', 'type_organizations', 'name');
-                    // $this->crud->setRelation('type_liability_id', 'type_liabilities', '[{code}] {name}');
-                    // $this->crud->setRelation('type_customer_id', 'type_customer', 'name');
-                    //hidden
-                    $this->crud->fieldType('type_customer_id', 'hidden');
-                    $this->crud->fieldType('type_regime_id', 'hidden');
-                    $this->crud->fieldType('type_organization_id', 'hidden');
-                    $this->crud->fieldType('type_liability_id', 'hidden');
-                    $this->crud->fieldType('type_customer_id', 'hidden');
-                    $this->crud->fieldType('firm', 'hidden');
-                    $this->crud->fieldType('merchant_registration', 'hidden');
-                    $this->crud->fieldType('rut', 'hidden');
-                    $this->crud->fieldType('quota', 'hidden');
-                    $this->crud->fieldType('bank_certificate', 'hidden');
-                    $this->crud->fieldType('user_id', 'hidden');
-                    $this->crud->fieldType('created_at', 'hidden');
-                    $this->crud->fieldType('headquarters_id', 'hidden');
-                    $this->crud->fieldType('updated_at', 'hidden');
-                    $this->crud->fieldType('deleted_at', 'hidden');
-                    $this->crud->fieldType('payment_policies', 'hidden');
-                    $this->crud->fieldType('type_client_status', 'hidden');
-                    $this->crud->fieldType('frequency', 'hidden');
+
+                    $this->crud->displayAs([
+                        'name' => 'Nombre',
+                        'type_document_identifications_id' => 'Tipo de documento',
+                        'identification_number' => 'Numero de identificacion',
+                        'phone' => 'Telefono',
+                        'email' => 'Correo',
+                        'companies_id' => 'Sede',
+                        'status' => 'Estado',
+                        'username' => 'Usuario',
+                        'password' => 'Contraseña'
+                    ]);
+
+                    $this->crud->fieldType('role_id', 'hidden');
+                    $this->crud->fieldType('address', 'hidden');
+                    $this->crud->fieldType('neighborhood', 'hidden');
+                    $this->crud->fieldType('status', 'hidden');
 
                     $this->crud->columns([
                         'name',
@@ -534,23 +528,26 @@ class TableController extends BaseController
                         'status'
                     ]);
                     $this->crud->unsetDelete();
-                    $this->crud->setActionButton('Perfil', 'fa fa-user', function ($row) {
-                        return base_url('customers/employee') . '/' . $row->id;
-                    }, false);
+                    if(!$rol){
+                        $this->crud->unsetAdd();
+                        $this->crud->unsetEdit();
+                    }else{
+                        $this->crud->setActionButton('Perfil', 'fa fa-user', function ($row) {
+                            return base_url('customers/employee') . '/' . $row->id;
+                        }, false);
+                    }
 
 
                     $this->crud->callbackBeforeInsert(function ($data) {
                         $data->data['phone'] = $this->_clearNumber($data->data['phone']);
                         $data->data['identification_number'] = $this->_clearNumber($data->data['identification_number']);
-                        $data->data['dv'] = $this->calcularDV($data->data['identification_number']);
-                        $data->data['status'] = 'Activo';
-                        $data->data['type_customer_id'] = 3;
+                        $data->data['status'] = 'active';
+                        $data->data['role_id'] = 20;
                         return $data;
                     });
                     $this->crud->callbackBeforeUpdate(function ($data) {
                         $data->data['phone'] = $this->_clearNumber($data->data['phone']);
                         $data->data['identification_number'] = $this->_clearNumber($data->data['identification_number']);
-                        $data->data['dv'] = $this->calcularDV($data->data['identification_number']);
                         return $data;
                     });
 
@@ -559,15 +556,14 @@ class TableController extends BaseController
                         //$this->crud->unsetColumns(['companies_id']);
                         if ($rol || session('user')->role_id == 16) {
                             $idCompanies = $this->headquartersController->idsCompaniesHeadquarters();
-                            $this->crud->where('companies_id IN(' . implode(",", $idCompanies) . ')');
-                            $this->crud->where(['type_customer_id' => 3]);
+                            $this->crud->where('companies_id IN(' . implode(",", $idCompanies) . ') ');
+                            $this->crud->where(['role_id' => 20]);
                         } else {
-                            $this->crud->where(['companies_id' => session('user')->companies_id, 'type_customer_id' => 3]);
+                            $this->crud->where(['companies_id' => session('user')->companies_id, 'role_id' => 20]);
                         }
                         // $this->crud->fieldType('companies_id', 'hidden');
                         $this->crud->callbackAddForm(function ($data) {
                             $data['companies_id'] = session('user')->companies_id;
-                            $data['dv'] = $this->calcularDV($data['identification_number']);
                             $data['merchant_registration'] = '00000';
                             return $data;
                         });
@@ -575,11 +571,12 @@ class TableController extends BaseController
                         if ($rol) {
                             $idCompanies = $this->headquartersController->idsCompaniesHeadquarters();
                             $this->crud->where('companies_id IN(' . implode(",", $idCompanies) . ')');
-                            $this->crud->where(['type_customer_id' => 3]);
+                            $this->crud->where(['role_id' => 20]);
+                        }else{
+                            $this->crud->where(['companies_id' => session('user')->companies_id, 'role_id' => 20]);
                         }
                         $this->crud->callbackAddForm(function ($data) {
                             $data['merchant_registration'] = '00000';
-                            $data['dv'] = $this->calcularDV($data['identification_number']);
                             return $data;
                         });
                     }
