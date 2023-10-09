@@ -35,14 +35,14 @@ class CustomerImportController extends BaseController
             $this->required($sheet->getCell('D'.$rowIndex)->getValue(), 'Telefono', 'D'.$rowIndex);
             $this->required($sheet->getCell('E'.$rowIndex)->getValue(), 'Dirección', 'E'.$rowIndex);
             $this->required($sheet->getCell('F'.$rowIndex)->getValue(), 'Correo electrónico', 'F'.$rowIndex);
-            $this->required($sheet->getCell('I'.$rowIndex)->getValue(), 'Regimen', 'I'.$rowIndex);
-            $this->required($sheet->getCell('J'.$rowIndex)->getValue(), 'Municipio', 'J'.$rowIndex);
-            $this->required($sheet->getCell('K'.$rowIndex)->getValue(), 'Tipo Organización', 'K'.$rowIndex);
-            $this->required($sheet->getCell('L'.$rowIndex)->getValue(), 'Código Postal', 'L'.$rowIndex);
-            $this->validExistDB($sheet->getCell('B'.$rowIndex)->getValue(), 'Tipo de documento identficación', 'B'.$rowIndex, 'type_document_identifications', 'name', false);
-            $this->validExistDB($sheet->getCell('I'.$rowIndex)->getValue(), 'Regimen', 'I'.$rowIndex, 'type_regimes', 'name', false);
-            $this->validExistDB($sheet->getCell('J'.$rowIndex)->getValue(), 'Municipio', 'J'.$rowIndex, 'municipalities', 'name', false);
-            $this->validExistDB($sheet->getCell('K'.$rowIndex)->getValue(), 'Tipo Organización', 'K'.$rowIndex, 'type_organizations', 'name', false);
+            // $this->required($sheet->getCell('I'.$rowIndex)->getValue(), 'Regimen', 'I'.$rowIndex);
+            // $this->required($sheet->getCell('J'.$rowIndex)->getValue(), 'Municipio', 'J'.$rowIndex);
+            // $this->required($sheet->getCell('K'.$rowIndex)->getValue(), 'Tipo Organización', 'K'.$rowIndex);
+            // $this->required($sheet->getCell('L'.$rowIndex)->getValue(), 'Código Postal', 'L'.$rowIndex);
+            // $this->validExistDB($sheet->getCell('B'.$rowIndex)->getValue(), 'Tipo de documento identficación', 'B'.$rowIndex, 'type_document_identifications', 'name', false);
+            // $this->validExistDB($sheet->getCell('I'.$rowIndex)->getValue(), 'Regimen', 'I'.$rowIndex, 'type_regimes', 'name', false);
+            // $this->validExistDB($sheet->getCell('J'.$rowIndex)->getValue(), 'Municipio', 'J'.$rowIndex, 'municipalities', 'name', false);
+            // $this->validExistDB($sheet->getCell('K'.$rowIndex)->getValue(), 'Tipo Organización', 'K'.$rowIndex, 'type_organizations', 'name', false);
         }
 
         if(count($this->getErrors()) > 0) {
@@ -58,19 +58,20 @@ class CustomerImportController extends BaseController
             ])
                 ->get()
                 ->getResult();
+            
 
             if(count($customerId) == 0) {
                 $customers = [
                     'name'                                              => $sheet->getCell('A'.$rowIndex)->getValue(),
-                    'type_document_identifications_id'                  => $this->validExistDB($sheet->getCell('B'.$rowIndex)->getValue(), 'Tipo de documento identficación', 'B'.$rowIndex, 'type_document_identifications', 'name', false)->id,
+                    'type_document_identifications_id'                  => $this->validExistDB($sheet->getCell('B'.$rowIndex)->getValue(), 'Tipo de documento identficación', 'B'.$rowIndex, 'type_document_identifications', 'id', false)->id,
                     'identification_number'                             => $sheet->getCell('C'.$rowIndex)->getValue(),
                     'phone'                                             => $sheet->getCell('D'.$rowIndex)->getValue(),
                     'address'                                           => $sheet->getCell('E'.$rowIndex)->getValue(),
                     'email'                                             => $sheet->getCell('F'.$rowIndex)->getValue(),
-                    'type_regime_id'                                    => $this->validExistDB($sheet->getCell('I'.$rowIndex)->getValue(), 'Regimen', 'I'.$rowIndex, 'type_regimes', 'name', false)->id,
-                    'municipality_id'                                   => $this->validExistDB($sheet->getCell('J'.$rowIndex)->getValue(), 'Municipio', 'J'.$rowIndex, 'municipalities', 'name', false)->id,
-                    'type_organization_id'                              => $this->validExistDB($sheet->getCell('K'.$rowIndex)->getValue(), 'Tipo Organización', 'K'.$rowIndex, 'type_organizations', 'name', false)->id,
-                    'postal_code'                                       => $sheet->getCell('L'.$rowIndex)->getValue(),
+                    'type_regime_id'                                    => null, //$this->validExistDB($sheet->getCell('I'.$rowIndex)->getValue(), 'Regimen', 'I'.$rowIndex, 'type_regimes', 'name', false)->id,
+                    'municipality_id'                                   => null, //$this->validExistDB($sheet->getCell('J'.$rowIndex)->getValue(), 'Municipio', 'J'.$rowIndex, 'municipalities', 'name', false)->id,
+                    'type_organization_id'                              => null, //$this->validExistDB($sheet->getCell('K'.$rowIndex)->getValue(), 'Tipo Organización', 'K'.$rowIndex, 'type_organizations', 'name', false)->id,
+                    'postal_code'                                       => null, //$sheet->getCell('L'.$rowIndex)->getValue(),
                     'companies_id'                                      => Auth::querys()->companies_id,
                     'type_customer_id'                                  => 2,
                     'merchant_registration'                             => '000000',
