@@ -61,7 +61,7 @@
                                         <option value="" disabled selected>Seleccione ...</option>
                                         <option value="1">Productos</option>
                                         <option value="2">Clientes</option>
-                                        <option value="3">Cuentas Contables</option>
+                                        <!-- <option value="3">Cuentas Contables</option> -->
                                         <option value="5">Inventario</option>
                                         <!-- <option value="6">Nomina Electronica</option> -->
                                         <option value="7">Proveedor</option>
@@ -198,6 +198,13 @@
             }
             if(documento == 6){
                 $('#payroll').show();
+            }
+
+            if(documento == 7){
+                $('#ayuda').attr('href',url+'/upload/Proveedores.pdf');
+                $('#ayuda').attr('download','Proveedores.pdf');
+                $('#plantilla').attr('href',url+'/upload/Proveedores.xlsx');
+                $('#plantilla').attr('download','Proveedores.xlsx');
             }
         });
 
