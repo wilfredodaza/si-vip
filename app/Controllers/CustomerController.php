@@ -58,7 +58,7 @@ class CustomerController extends BaseController
                 'customers.frequency'
             ])
             ->join('type_document_identifications', 'customers.type_document_identifications_id = type_document_identifications.id')
-            ->join('customer_worker', 'customers.id = customer_worker.customer_id', 'left')
+            ->join('customer_worker', 'customers.id = customer_worker.user_id', 'left')
             ->where('customers.id', $id)->asObject()->first();
         $invoices = new Invoice();
         $querys = [];
