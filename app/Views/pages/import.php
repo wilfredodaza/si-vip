@@ -162,6 +162,7 @@
         $('#payroll').hide();
         $('#sede').hide();
         $("#tipoD").change(function(){
+            $('#sede').hide();
             $('#resolution').hide();
             $('#ayuda').css('display','block');
             $('#plantilla').css('display','block');

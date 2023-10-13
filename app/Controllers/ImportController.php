@@ -94,6 +94,8 @@ class ImportController extends BaseController
 
         $clientes = new Customer();
         $errores = [];
+        if(empty($_POST['tipoD']))
+            return redirect()->to(base_url('import'))->with('errors', 'No ha seleccionado el tipo de importación');
         if (!empty($_FILES['file']['name'])) {
             $pathinfo = pathinfo($_FILES["file"]["name"]);
             if (($pathinfo['extension'] == 'xlsx' || $pathinfo['extension'] == 'xls')
@@ -597,7 +599,7 @@ class ImportController extends BaseController
                 }
             }
         }
-        return redirect()->to(base_url('import'));
+        return redirect()->to(base_url('import'))->with('errors', 'No ha seleccionado el archivo a cargar');
     }
 
     public function resolutionData($typeDocument, $id = null)
