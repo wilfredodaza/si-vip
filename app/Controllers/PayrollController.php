@@ -410,7 +410,7 @@ class  PayrollController extends BaseController
         ])
         ->where([
             'type_documents_id' => 118,
-            'seller_id' => $this->request->getGet('customer'),
+            'seller_id' => $this->request->getGet('user'),
             'status_wallet' => 'Pendiente'
         ])
         ->join('wallet', 'invoices.id = wallet.invoices_id', 'left')
