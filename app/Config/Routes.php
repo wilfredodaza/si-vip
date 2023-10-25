@@ -99,6 +99,7 @@
       
             // Products
             $routes->get('products', 'Api\Products::list');
+            $routes->get('payroll', 'Api\Products::payroll');
             $routes->post('products', 'Api\Products::store');
             $routes->get('products/edit/(:segment)', 'Api\Products::edit/$1');
             $routes->put('products/(:segment)', 'Api\Products::update/$1');

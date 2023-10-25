@@ -256,6 +256,7 @@ function pagoNomina() {
     var url = base_url(['payrolls', 'payment']);
     var process = proceso_fetch(url, JSON.stringify(data));
     process.then(response => {
+        console.log(response);
         window.location.reload();
         // console.log(response);
     });

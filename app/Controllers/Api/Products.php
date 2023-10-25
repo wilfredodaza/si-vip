@@ -5,6 +5,7 @@ namespace App\Controllers\Api;
 
 use App\Models\AccountingAcount;
 use App\Models\Product;
+use App\Models\Category;
 use App\Traits\ApiTrait;
 use App\Traits\TransformTrait;
 use App\Traits\ValidationsTrait;
@@ -18,6 +19,26 @@ class Products extends ResourceController
 
 
     protected $format = 'json';
+
+    public function payroll(){
+        try {
+            $categoryM = new Category();
+            $categories = $categoryM->where(['expenses' => 'si'])->asObject()->get()->getResult();
+            return $this->respond([
+                'status' =>  200,
+                'message' => 'success',
+                'data' => $categories,
+
+            ], 200);
+
+        } catch (\Exception $e) {
+            return $this->respond([
+                'status' => 400,
+                'message' => 'Bat Request',
+            ], 400);
+        }
+        return $categories;
+    }
 
     public function list()
     {
