@@ -11,6 +11,7 @@ use App\Models\LineInvoice;
 use App\Models\LineInvoiceTax;
 use App\Models\Payroll;
 use App\Models\Wallet;
+use App\Models\WalletLineInvoice;
 use App\Models\User;
 use App\Models\Product;
 use App\Models\PaymentMethod;
@@ -404,16 +405,19 @@ class  PayrollController extends BaseController
             'invoices.payment_due_date',
             'invoices.notes',
             'invoices.payable_amount',
-            'SUM(COALESCE(wallet.value, 0)) as valor_pagado',
-            'invoices.payable_amount - SUM(COALESCE(wallet.value, 0)) as balance'
+            'SUM(COALESCE(wallet_line_invoice.value, 0)) as valor_pagado',
+            'invoices.payable_amount - SUM(COALESCE(wallet_line_invoice.value, 0)) as balance'
         ])
         ->where([
             'type_documents_id' => 118,
-            'seller_id' => $this->request->getGet('user'),
+            'seller_id' => $this->request->getGet('customer'),
             'status_wallet' => 'Pendiente'
         ])
         ->join('wallet', 'invoices.id = wallet.invoices_id', 'left')
+        ->join('line_invoices', 'invoices.id = line_invoices.invoices_id', 'left')
+        ->join('wallet_line_invoice', 'line_invoices.id = wallet_line_invoice.line_invoice_id', 'left')
         ->groupBy('invoices.id')
+        ->having('balance !=', 0)
         ->asObject()->get()->getResult();
 
         foreach ($data as $key => $value) {
@@ -441,8 +445,8 @@ class  PayrollController extends BaseController
         }
         // var_dump($data); die();
 
-        $paymentMethodM = new PaymentMethod();
-        $paymentMethod = $paymentMethodM->asObject()->get()->getResult();
+        $accountingAcountM = new AccountingAcount();
+        $paymentMethod = $accountingAcountM->where(['type_accounting_account_id' => 5])->asObject()->get()->getResult();
 
         $categories = new Category();
         $category = $categories->select(['id'])->where(['payroll' => 'si', 'expenses' => 'si'])->asObject()->first();
@@ -540,7 +544,7 @@ class  PayrollController extends BaseController
                 'user_id' => Auth::querys()->id,
                 'seller_id' => $requests->user,
                 'payment_forms_id' => 1,
-                'payment_methods_id' => $requests->payment_method_id,
+                'payment_methods_id' => ($account->type_entry == 1 ? 47 : 10),
                 'payment_due_date' => $requests->year.'-'.$requests->date.'-'.date('t', strtotime("$requests->year-$requests->date-01")),
                 'duration_measure' => 0,
                 'line_extesion_amount' => $requests->salary, //(($requests->salary + $requests->bono) - (int)$requests->expense)
@@ -642,18 +646,18 @@ class  PayrollController extends BaseController
 
     }
 
-    private function createProductPaymentPayroll($id): int
+    private function createProductPaymentPayroll($id, $name = 'Pago Nomina', $code = 'paymentPayroll'): int
     {
         try {
             $cc = new AccountingAcount();
             $products = new Product();
             $acounting = $cc->where(['code' => '0000000'])->asObject()->first();
             $productId = $products->insert([
-                'name' => 'Pago Nomina',
-                'code' => 'paymentPayroll',
+                'name' =>  $name,
+                'code' =>  $code,
                 'valor' => 0,
                 'cost' => 0,
-                'description' => 'Pago Nomina',
+                'description' =>  $name,
                 'unit_measures_id' => 70,
                 'type_item_identifications_id' => 4,
                 'reference_prices_id' => 1,

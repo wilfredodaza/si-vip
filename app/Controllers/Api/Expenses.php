@@ -145,26 +145,29 @@ class Expenses extends ResourceController
     {
         $model = new Invoice();
         $invoice = $model->select([
-            'invoices.payment_methods_id',
+            'wallet.payment_method_id',
             'invoices.payment_forms_id',
             'invoices.payment_due_date',
             'invoices.duration_measure',
             'invoices.customers_id',
             'invoices.notes',
-            'invoices.seller_id'
+            'invoices.seller_id',
+            'invoices.type_documents_id'
         ])
-            ->where(['id' => $id])
+            ->join('wallet', 'wallet.invoices_id = invoices.id', 'left')
+            ->where(['invoices.id' => $id])
             ->asObject()
             ->first();
 
         $data = [];
-        $data['payment_form']['payment_method_id']  = $invoice->payment_methods_id;
+        $data['payment_form']['payment_method_id']  = $invoice->payment_method_id;
         $data['payment_form']['payment_form_id']    = $invoice->payment_forms_id;
         $data['payment_form']['duration_measure']   = $invoice->duration_measure;
         $data['payment_form']['payment_due_date']   = $invoice->payment_due_date;
         $data['customer_id']                        = $invoice->customers_id;
         $data['note']                               = $invoice->notes;
         $data['seller_id']                        = $invoice->seller_id;
+        $data['type_documents_id']                  = $invoice->type_documents_id;
 
 
         $model = new LineInvoice();
@@ -175,6 +178,7 @@ class Expenses extends ResourceController
 
         $i = 0;
         foreach ($lineInvoice as $line) {
+            $data['invoice_lines'][$i]['line_invoice_id']                        = (int) $line->id;
             $data['invoice_lines'][$i]['unit_measure_id']                        = 70;
             $data['invoice_lines'][$i]['product_id']                             = (int) $line->products_id;
             $data['invoice_lines'][$i]['price_amount']                           = (double) $line->price_amount;
@@ -185,6 +189,7 @@ class Expenses extends ResourceController
             $data['invoice_lines'][$i]['allowance_charges'][0]['base_amount']    = (double) $line->line_extension_amount + $line->discount_amount;
             $data['invoice_lines'][$i]['type_generation_transmition_id']         = $line->type_generation_transmition_id;
             $data['invoice_lines'][$i]['start_date']                             = $line->start_date;
+            $data['invoice_lines'][$i]['payroll']                                = $line->payroll == 'true' ? true : false;
             $model = new LineInvoiceTax();
             $taxs = $model->where(['line_invoices_id' => $line->id])->get()->getResult();
             $l = 0;

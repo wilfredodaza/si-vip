@@ -76,7 +76,7 @@
                                         <td class="center"><?= $item->product_name ?></td>
                                         <td class="center"><?= $item->company ?></td>
                                         <td class="center"><?= $item->customer ?></td>
-                                        <td class="center">$ <?= number_format($item->line_extension_amount, '2', ',', '.') ?></td>
+                                        <td class="center">$ <?= number_format($item->total, '2', ',', '.') ?></td>
                                         <td class="center">
                                             <div class="btn-group" role="group">
                                                 <!--<a href=""
