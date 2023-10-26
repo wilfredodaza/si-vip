@@ -46,42 +46,36 @@
                                     </div>
                                     <div class="row">
                                         <div class="input-field col s12 l4">
-                                            <select name="headquarters_providers" class="select2 browser-default" <?=  (!$data->permiso) ? 'disabled' : '' ?>>
-                                                <option value="">Todos</option>
+                                            <select name="headquarters_providers" class="select2 browser-default">
+                                                <!-- <option value="">Todos</option> -->
                                                 <?php foreach ($headquarters as $headquarter): ?>
-                                                    <option <?= $data->permiso ? (isset($_GET['headquarters_providers']) && $_GET['headquarters_providers'] == $headquarter->id ? 'selected' : '' ) : (session('user')->companies_id == $headquarter->id) ? 'selected' : '' ?>
+                                                    <option <?= isset($_GET['headquarters_providers']) && $_GET['headquarters_providers'] == $headquarter->id ? 'selected' : '' ?>
                                                             value="<?= $headquarter->id ?>"><?= $headquarter->company ?></option>
                                                 <?php endforeach; ?>
                                             </select>
-                                            <label>Sede :</label>
+                                            <label>Sede: </label>
                                         </div>
                                         <div class="input-field col s12 l4">
-                                            <select name="user" class="select2 browser-default" <?=  (!$data->permiso) ? 'disabled' : '' ?>>
-                                                <option value="">Todos</option>
+                                            <select name="user" class="select2 browser-default">
+                                                <!-- <option value="">Todos</option> -->
                                                 <?php foreach ($users as $user): ?>
-                                                    <option <?= $data->permiso ? (isset($_GET['user']) && $_GET['user'] == $user->id  ? 'selected' : '') : (session('user')->id == $user->id) ? 'selected' : '' ?>
-                                                            value="<?= $user->id ?>"><?= $user->name ?> [<?= $user->username ?>]</option>
+                                                    <option <?= isset($_GET['user']) && $_GET['user'] == $user->id  ? 'selected' : '' ?>
+                                                            value="<?= $user->id ?>"><?= $user->name ?> <?= $user->username ? "[$user->username]" : '' ?> </option>
                                                 <?php endforeach; ?>
                                             </select>
                                             <label>Vendedores:</label>
                                         </div>
                                         <div class="input-field col s12 l4">
-                                                <select name="type">
-                                                    <option <?= (isset($_GET['type']) && $_GET['type'] == 'ventas') ? 'selected' : '' ?>
-                                                            value="ventas">Ventas</option>
-                                                        <!-- <option <?= (isset($_GET['type']) && $_GET['type'] == 'gastos') ? 'selected' : '' ?>
-                                                                value="gastos">Gastos
-                                                        </option> -->
-                                                    <option <?= (!$data->permiso || session('user')->role_id != 15) ? 'disabled' : '' ?> <?= (isset($_GET['type']) && $_GET['type'] == 'utilidad') ? 'selected' : '' ?>
-                                                            value="utilidad">Utilidad</option>
-                                                    <option <?= (isset($_GET['type']) && $_GET['type'] == 'productos') ? 'selected' : '' ?>
-                                                            value="productos">Productos</option>
-                                            </select>
+                                                <select name="type" id="">
+                                                    <?php foreach($types as $type): ?>
+                                                        <option <?= (isset($_GET['type']) && $_GET['type'] == $type->id) ? 'selected' : '' ?> value="<?= $type->id ?>"><?= $type->name ?></option>
+                                                    <?php endforeach ?>
+                                                </select>
                                             <label>Tipo de informe:</label>
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <?php if((isset($_GET['type']) && $_GET['type'] == 'productos')): ?>
+                                        <?php if(($type_informe == 'productos') ): ?>
                                             <div class="input-field col s12 l4">
                                                 <select name="orderBy">
                                                     <option <?= (isset($_GET['orderBy']) && $_GET['orderBy'] == 'quantity') ? 'selected' : '' ?>
@@ -123,7 +117,7 @@
                         <div class="card">
                             <div class="card-content" style="margin-bottom:70px !important">
                                 <div id="card-with-analytics" class="section"> 
-                                    <h3 class="header center-align">Informe de <?= (!isset($_GET['type'])) ? 'Ventas': ucwords($_GET['type']) ?></h3>
+                                    <h3 class="header center-align">Informe de <?= (!isset($_GET['type'])) ? $type_informe : ucwords($_GET['type']) ?></h3>
                                     <div class="row center-align">
                                         <div class="col s12">
                                             <p>
@@ -171,12 +165,26 @@
                                                                     <?php endif ?>
                                                                 <?php endforeach; ?>
                                                                 <tr>
+                                                                    <td><h6><b>Credi-Contado</b></h6></td>
+                                                                    <td class="right-align"><h6><b>$ <?= number_format($data->CrediContado->total, '2', ',', '.') ?></h6></td>
+                                                                </tr>
+                                                                <?php foreach($data->CrediContado->detail as $detail): ?>
+                                                                    <?php if($detail->total > 0): ?>
+                                                                    <tr>
+                                                                        <td><?= $detail->name ?></td>
+                                                                        <td class="right-align">
+                                                                            $ <?= number_format($detail->total, '2', ',', '.') ?>
+                                                                        </td>
+                                                                    </tr>
+                                                                    <?php endif ?>
+                                                                <?php endforeach; ?>
+                                                                <tr>
                                                                     <td><h5><b>Total de Ingresos</b></h5></td>
-                                                                    <td class="right-align"><h5><b>$ <?= number_format(($data->ventas->total + $data->CxC->total), '2', ',', '.') ?></b></h5></td>
+                                                                    <td class="right-align"><h5><b>$ <?= number_format(($data->ventas->total + $data->CxC->total + $data->CrediContado->total), '2', ',', '.') ?></b></h5></td>
                                                                 </tr>
                                                                 <tr>
                                                                     <td><h6><b>Efectivo</b></h6></td>
-                                                                    <td class="right-align"><h6><b>$ <?= number_format(($data->ventas->detail->efectivo->total + $data->CxC->detail->efectivo->total), '2', ',', '.') ?></b></h6></td>
+                                                                    <td class="right-align"><h6><b>$ <?= number_format(($data->ventas->detail->efectivo->total + $data->CxC->detail->efectivo->total + $data->CrediContado->detail->efectivo->total), '2', ',', '.') ?></b></h6></td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -193,6 +201,16 @@
                                                                     <td class="right-align"><h6>$ <?= number_format($data->gastos->total, '2', ',', '.') ?></h6><b></b></td>
                                                                 </tr>
                                                                 <?php foreach($data->gastos->detail as $detail): ?>
+                                                                    <?php if($detail->total > 0): ?>
+                                                                        <tr>
+                                                                            <td><?= $detail->name ?></td>
+                                                                            <td class="right-align">
+                                                                                $ <?= number_format($detail->total, '2', ',', '.') ?>
+                                                                            </td>
+                                                                        </tr>
+                                                                    <?php endif ?>
+                                                                <?php endforeach; ?>
+                                                                <?php foreach($data->gastos->nomina as $detail): ?>
                                                                     <?php if($detail->total > 0): ?>
                                                                         <tr>
                                                                             <td><?= $detail->name ?></td>
@@ -222,7 +240,7 @@
                                                                 </tr>
                                                                 <tr>
                                                                     <td><h6><b>Efectivo</b></h6></td>
-                                                                    <td class="right-align"><h6><b>$ <?= number_format(($data->gastos->detail->efectivo->total + $data->CxP->detail->efectivo->total), '2', ',', '.') ?></b></h6></td>
+                                                                    <td class="right-align"><h6><b>$ <?= number_format(($data->gastos->detail->efectivo->total + $data->CxP->detail->efectivo->total + $data->gastos->nomina->efectivo->total), '2', ',', '.') ?></b></h6></td>
                                                                 </tr>
                                                             </tbody>
                                                         </table>
@@ -278,14 +296,20 @@
                                                             </tr>
                                                             <?php endif ?>
                                                         <?php endforeach; ?>
+                                                        <?php if($data->gastos->otros_gastos > 0): ?>
+                                                            <tr>
+                                                                <td><h6><b>Otros Gastos</b></h6></td>
+                                                                <td><h6><b>$ <?= number_format($data->gastos->otros_gastos, '2', ',', '.') ?></b></h6></td>
+                                                            </tr>
+                                                        <?php endif ?>
                                                         <tr>
                                                             <td><h5><b>Total Gastos</b></h5></td>
-                                                            <td><h5><b>$ <?= number_format(($data->gastos->total), '2', ',', '.') ?></b></h5></td>
+                                                            <td><h5><b>$ <?= number_format(($data->gastos->total + $data->gastos->otros_gastos), '2', ',', '.') ?></b></h5></td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                                 <h5>Utilidad Neta</h5>
-                                                <?php $total_neta = ($data->ventas->total - $data->ventas->total_costos) - ($data->gastos->total) ?>
+                                                <?php $total_neta = ($data->ventas->total - $data->ventas->total_costos) - ($data->gastos->total + $data->gastos->otros_gastos) ?>
                                                 <h4 class="m-0"><b>$ <?= number_format($total_neta, '2', ',', '.') ?></b></h4>
                                             </div>
                                         <?php break;
@@ -295,10 +319,14 @@
                                                 <tr>
                                                     <th>Producto</th>
                                                     <th>Cantidad</th>
-                                                    <?php if ($data->permiso): ?>
-                                                        <th>Valor venta</th>
-                                                        <th>Valor costo</th>
-                                                        <th>Utilidad</th>
+                                                    <?php if(session('user')->role_id == 15): ?>
+                                                        <?php if ($data->permiso): ?>
+                                                            <th>Valor venta</th>
+                                                            <?php if (!$data->permiso): ?>
+                                                                <th>Valor costo</th>
+                                                            <?php endif; ?>
+                                                            <th>Utilidad</th>
+                                                        <?php endif ?>
                                                     <?php endif ?>
                                                 </tr>
                                             </thead>
@@ -307,12 +335,16 @@
                                                     <tr>
                                                         <td><?= $product->name_product ?></td>
                                                         <td><?= $product->quantity ?></td>
-                                                        <?php if ($data->permiso): ?>
-                                                            <td>$ <?= number_format($product->price_amount, '2', ',', '.') ?></td>
-                                                            <td>$ <?= number_format($product->cost_amount, '2', ',', '.') ?></td>
-                                                            <td>$ <?= number_format($product->price_amount - $product->cost_amount, '2', ',', '.') ?></td>
+                                                        <?php if(session('user')->role_id == 15): ?>
+                                                            <?php if ($data->permiso): ?>
+                                                                <td>$ <?= number_format($product->price_amount, '2', ',', '.') ?></td>
+                                                                <?php if (!$data->permiso): ?>
+                                                                    <td>$ <?= number_format($product->cost_amount, '2', ',', '.') ?></td>
+                                                                <?php endif; ?>
+                                                                <td>$ <?= number_format($product->price_amount - $product->cost_amount, '2', ',', '.') ?></td>
                                                             <?php endif ?>
-                                                        </tr>
+                                                        <?php endif ?>
+                                                    </tr>
                                                 <?php endforeach; ?>
                                             </tbody>
                                         </table>

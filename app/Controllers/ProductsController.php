@@ -161,6 +161,12 @@ class ProductsController extends BaseController
                 throw  new \Exception("El producto con el código: {$request->product_code} ya se encuentra creado.");
             }
             $id = $this->tableAccountingAccount->where(['code' => '0000000'])->asObject()->first();
+
+            $sinIva = $this->tableAccountingAccount->select('id')->where(['code' => '0000000', 'type_accounting_account_id' => 2])->get()->getResult()[0];
+            $retefuente = $this->tableAccountingAccount->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+            $reteica = $this->tableAccountingAccount->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+            $reteiva = $this->tableAccountingAccount->select('id')->where(['type_accounting_account_id' => 3])->get()->getResult()[0];
+
             $requets = (object) $this->request->getPost();
             $data = [
                 'name' => $requets->product_name,
@@ -179,13 +185,13 @@ class ProductsController extends BaseController
                 'companies_id' => company()->id,
                 'entry_credit' => 1,
                 'entry_debit' => 3,
-                'iva' => 4,
-                'retefuente' => 2,
-                'reteica' => 2,
-                'reteiva' => 2,
+                'iva' => $sinIva->id,
+                'retefuente' => $retefuente->id,
+                'reteica' => $reteica->id,
+                'reteiva' => $reteiva->id,
                 'account_pay' => 5,
                 'foto' => $imagen,
-                'tax_iva' => 'F',
+                'tax_iva' => 'R',
                 'provider_id' => $providers->id,
                 'gender_id' => $gender->id,
                 // 'group_id' => $groups->id,
@@ -194,9 +200,9 @@ class ProductsController extends BaseController
             ];
             //$products->update(['id' => $this->request->getPost('product')], $data)
             if ($this->tableProducts->save($data)) {
-                $data['tax_iva'] = 'R';
-                $data['iva'] = $id->id;
-                $this->tableProducts->save($data);
+                // $data['tax_iva'] = 'R';
+                // $data['iva'] = $id->id;
+                // $this->tableProducts->save($data);
                 return redirect()->to(base_url() . route_to('products-index'))->with('success', 'Se creo producto exitosamente.');
             } else {
                 throw  new \Exception('No se pudo guardar el producto');
@@ -268,15 +274,15 @@ class ProductsController extends BaseController
             $gender = $this->tableGender->where(['code' => $_POST['gender_id']])->asObject()->first();
             $providers = $this->tableProviders->where(['code' => $_POST['provider_id']])->asObject()->first();
             $materials = $this->tableMaterials->where(['code' => $_POST['material_id']])->asObject()->first();
-            $subGroup = $this->tableSubGroups->where(['code' => $_POST['sub_group_id']])->asObject()->first();
-            $groups = $this->tableGroups->where(['code' => $_POST['group_id']])->asObject()->first();
-            $unionCode = "{$_POST['provider_id']}{$_POST['gender_id']}{$_POST['group_id']}{$_POST['sub_group_id']}{$_POST['material_id']}";
+            // $subGroup = $this->tableSubGroups->where(['code' => $_POST['sub_group_id']])->asObject()->first();
+            // $groups = $this->tableGroups->where(['code' => $_POST['group_id']])->asObject()->first();
+            // $unionCode = "{$_POST['provider_id']}{$_POST['gender_id']}{$_POST['group_id']}{$_POST['sub_group_id']}{$_POST['material_id']}";
             $code= substr($_POST['product_code'], 0, -2);
-            if ($unionCode != $code) {
-                throw  new \Exception('El código no coincide con la union de sus partes.');
-            }
+            // if ($unionCode != $code) {
+            //     throw  new \Exception('El código no coincide con la union de sus partes.');
+            // }
             if($_POST['product_code'] != $productOriginal->code){
-                $productExists = $this->validateCode($_POST['product_code'], $_POST['code_item']);
+                $productExists = $this->validateCode($_POST['product_code']);
                 if (!$productExists) {
                     throw  new \Exception('El producto con el código: ' . $_POST['product_code'] . ' ya se encuentra creado.');
                 }
@@ -286,27 +292,14 @@ class ProductsController extends BaseController
             $data = [
                 'name' => $_POST['product_name'],
                 'code' => "{$_POST['product_code']}",
-                'code_item' => $_POST['code_item'],
                 'valor' => $_POST['product_value'],
                 'value_one' => ($_POST['value_one'] ?? 0),
                 'value_two' => ($_POST['value_two'] ?? 0),
                 'value_three' => ($_POST['value_three'] ?? 0),
                 'cost' => $_POST['product_cost'],
                 'description' => $_POST['description'],
-                'unit_measures_id' => $_POST['unitMeasure'],
-                'type_item_identifications_id' => $_POST['typeItemDocument'],
-                'free_of_charge_indicator' => ($_POST['product_free'] == 'no') ? 'false' : 'true',
-                'entry_credit' => $_POST['entry_credit'],
-                'entry_debit' => $_POST['entry_debit'],
-                'iva' => $_POST['iva'],
-                'retefuente' => $_POST['reteFuente'],
-                'reteica' => $_POST['reteIca'],
-                'reteiva' => $_POST['reteIva'],
-                'account_pay' => $_POST['account_pay'],
                 'provider_id' => $providers->id,
                 'gender_id' => $gender->id,
-                'group_id' => $groups->id,
-                'sub_group_id' => $subGroup->id,
                 'material_id' => $materials->id
             ];
 

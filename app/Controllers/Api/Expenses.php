@@ -81,7 +81,10 @@ class Expenses extends ResourceController
         $account = $account->where(['id' => $data->payment_form->payment_method_id])->asObject()->first();
         // return $this->respond($data);
         $model = new Invoice();
+        $invoice = $model->where(['type_documents_id' => 118])->orderBy('id', 'DESC')->asObject()->first(); 
+        $model = new Invoice();
         $invoiceId = $model->insert([
+            'resolution'                => $invoice ? ((int)$invoice->resolution + 1) : 1,
             'type_documents_id'         => 118,
             'invoice_status_id'         => 8,
             'companies_id'              => Auth::querys()->companies_id,
