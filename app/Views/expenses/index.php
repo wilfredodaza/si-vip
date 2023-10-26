@@ -33,7 +33,7 @@
                                 <?php
                                 $total = 0;
                                 foreach ($invoices as $invoice){
-                                    $total += $invoice->line_extension_amount;
+                                    $total += $invoice->total;
                                 }
                                 ?>
                                 Gastos Total : $ <?= number_format($total, '2', ',', '.') ?>

@@ -54,8 +54,11 @@
                                     <th class="center"># Documento</th>
                                     <th class="center">Tipo de Documento</th>
                                     <th class="center">Metodo pago</th>
-                                    <th class="center">Sede</th>
-                                    <th class="center">Valor</th>
+                                    <th class="center">Sede Origen</th>
+                                    <th class="center">Sede Destino</th>
+                                    <?php if(session('user')->companies_id != 69 || session('user')->role_id == 15): ?>
+                                        <th class="center">Valor</th>
+                                    <?php endif ?>
                                 </tr>
                                 </thead>
                                 <tbody>
@@ -69,7 +72,7 @@
                                 $nameCompany = '';
                                 $methodPayment = '';
                                 foreach ($total as $value):
-                                    $balance += $value->payable_amount - ($value->withholdings + $value->balance);
+                                    $balance += $value->payable_amount;
                                     $count += 1;
                                 endforeach;
                                 foreach ($totalE as $item):
@@ -79,45 +82,41 @@
                                 ?>
 
 
-                                <?php foreach ($info as $item):
-                                    foreach ($companies as $company){
-                                        if($company->id == $item->companies_id){
-                                            $nameCompany = $company->company;
-                                        }
-                                    }
-                                    foreach ($paymentMethod as $key){
-                                        if($key->id == $item->payment_methods_id){
-                                            $methodPayment = $key->name;
-                                        }
-                                    }
-                                    ?>
+                                <?php foreach ($info as $item):?>
                                     <tr>
 
-                                        <?php if (($item->payable_amount - $item->withholdings - $item->balance - ($item->credit_note - $item->credit_note_withholdings)) <= 0) {
+                                        <!-- < if (($item->payable_amount - $item->withholdings - $item->balance - ($item->credit_note - $item->credit_note_withholdings)) <= 0) {
                                             statusPay($item->id);
-                                        } ?>
+                                        } ?> -->
                                         <td class="center"><?= $item->created_at ?></td>
                                         <td class="center"><?= ucwords($item->name) ?></td>
                                         <td class="center"><?= $item->resolution ?></td>
                                         <td class="center"><?= $item->name_document ?></td>
-                                        <td class="center"><?= $methodPayment ?></td>
-                                        <td class="center"><?= $nameCompany ?></td>
-                                        <td class="center">
-                                            $ <?= number_format($item->payable_amount - $item->withholdings, '2', ',', '.') ?></td>
-                                        <td class="center">
-                                            <div class="btn-group" role="group">
-                                                <a href="<?= base_url() ?>/reports/view/<?= $item->id ?>" target="_blank"
-                                                   class="btn btn-small green darken-1  tooltipped" data-position="top" data-tooltip="ver detalle">
-                                                    <i class="material-icons">insert_drive_file</i>
-                                                </a>
-                                            </div>
-                                        </td>
+                                        <td class="center"><?= $item->method_payment ?></td>
+                                        <td class="center"><?= $item->company ?></td>
+                                        <td class="center"><?= $item->company_destination ?></td>
+                                        
+                                        <?php if(session('user')->companies_id != 69 || session('user')->role_id == 15): ?>
+                                            <td class="center">
+                                                $ <?= number_format($item->payable_amount, '2', ',', '.') ?></td>
+                                            <td class="center">
+                                                <div class="btn-group" role="group">
+                                                    <a href="<?= base_url() ?>/reports/view/<?= $item->id ?>" target="_blank"
+                                                    class="btn btn-small green darken-1  tooltipped" data-position="top" data-tooltip="ver detalle">
+                                                        <i class="material-icons">insert_drive_file</i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        <?php endif ?>
                                     </tr>
                                 <?php endforeach; ?>
+                                
+                                <?php if(session('user')->companies_id != 69 || session('user')->role_id == 15): ?>
                                 <tr>
                                     <th class="center" colspan="4">Ingresos : $ <?= (isset($_GET['option']) && $_GET['option'] == 'Egresos')?0:number_format($balance, '2', ',', '.') ?></th>
                                     <th class="center" colspan="4">Egresos : $ <?= (isset($_GET['option']) && $_GET['option'] == 'Ingresos')?0:number_format($balanceE, '2', ',', '.') ?></th>
                                 </tr>
+                                <?php endif ?>
                                 <?php if (count($info) == 0): ?>
                                     <tr>
                                         <td colspan="4">

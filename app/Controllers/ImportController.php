@@ -311,7 +311,7 @@ class ImportController extends BaseController
         
                                             $data = array(
                                                 'name' => trim($cells[2]),
-                                                'tax_iva' => 'F',
+                                                'tax_iva' => 'R',
                                                 'code' => $serial,
                                                 'code_item' => $disponible[0],
                                                 'valor' => trim($cells[4]),
@@ -324,7 +324,7 @@ class ImportController extends BaseController
                                                 'companies_id' => session('user')->companies_id,
                                                 'entry_credit' => $entryCredit->id,
                                                 'entry_debit' => $entryDebit->id,
-                                                'iva' => $iva->id,
+                                                'iva' => $sinIva->id,
                                                 'retefuente' => $retefuente->id,
                                                 'reteica' => $reteica->id,
                                                 'reteiva' => $reteiva->id,
@@ -335,11 +335,11 @@ class ImportController extends BaseController
                                                 'sub_group_id' => null,
                                                 'material_id' => $linea->id
                                             );
-                                            if ($products->insert($data)) {
-                                                $data['tax_iva'] = 'R';
-                                                $data['iva'] = $sinIva->id;
-                                                $products->insert($data);
-                                            }
+                                            // if ($products->insert($data)) {
+                                            //     $data['tax_iva'] = 'R';
+                                            //     $data['iva'] = $sinIva->id;
+                                            //     $products->insert($data);
+                                            // }
         
                                         }
                                     }

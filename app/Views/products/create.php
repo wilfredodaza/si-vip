@@ -71,13 +71,13 @@
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="gender_id"
                                                             name="gender_id" onchange="ShowSelected('gender')" required>
-                                                        <option selected disabled value="">Seleccione genero
+                                                        <option selected disabled value="">Seleccione marca
                                                         </option>
                                                         <?php foreach ($gender as $item): ?>
                                                             <option value="<?= $item->code ?>"><?= "[{$item->code}] - {$item->gender}" ?></option>
                                                         <?php endforeach; ?>
                                                     </select>
-                                                    <label for="gender_id">Genero <span
+                                                    <label for="gender_id">Marca <span
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>

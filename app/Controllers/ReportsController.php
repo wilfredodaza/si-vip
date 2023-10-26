@@ -242,10 +242,29 @@ class ReportsController extends BaseController
         $model = new Invoice();
         $total = $this->totals('income');
         $totalExpense = session('user')->role_id == 16 ? [] : $this->totals();
-        $data = $model->select($this->walletController->dataSearch($this->manager, $this->idsCompanies))
-            ->select('type_documents.name as name_document')
+        $data = $model
+            // ->select($this->walletController->dataSearch($this->manager, $this->idsCompanies))
+            // ->select('type_documents.name as name_document')
+            ->select([
+                'invoices.id',
+                'invoices.created_at',
+                'IFNULL(customers.name, IFNULL(users.name, usr.name)) as name',
+                'invoices.resolution',
+                'invoices.payable_amount',
+                'companies.company',
+                'com.company as company_destination',
+                'IFNULL(accounting_account.name, payment_methods.name) as method_payment',
+            ])
+            ->select('IF(invoices.resolution_id != 0 and invoices.type_documents_id = 115, CONCAT(type_documents.name, " - Venta"), type_documents.name) as name_document')
             ->join('customers', 'customers.id = invoices.customers_id', 'left')
+            ->join('users', 'users.id = invoices.user_id', 'left')
+            ->join('users as usr', 'usr.id = invoices.seller_id', 'left')
             ->join('type_documents', 'type_documents.id = invoices.type_documents_id', 'left')
+            ->join('companies', 'companies.id = invoices.companies_id', 'left')
+            ->join('companies as com', 'com.id = invoices.company_destination_id', 'left')
+            ->join('wallet', 'wallet.invoices_id = invoices.id and invoices.payment_forms_id = 1', 'left')
+            ->join('accounting_account', 'accounting_account.id = wallet.payment_method_id', 'left')
+            ->join('payment_methods', 'payment_methods.id = invoices.payment_methods_id', 'left')
             ->whereIn('invoices.type_documents_id', $documents);
         
  
@@ -462,28 +481,43 @@ class ReportsController extends BaseController
                 'invoices.created_at',
                 'invoices.user_id',
                 'invoices.invoice_status_id',
-                'customers.name as name',
-                'customers.identification_number as identification',
-                'customers.phone',
-                'customers.address',
-                'customers.email',
+                'IFNULL(customers.name, usr.name) as name',
+                'IFNULL(customers.identification_number, usr.identification_number) as identification',
+                'IFNULL(customers.phone, usr.phone) as phone',
+                'IFNULL(customers.address, usr.address) as address',
+                'IFNULL(customers.email, usr.email) as email',
                 'type_documents.name as nameDocument',
                 'type_document_identifications.name as typeDocumentIdentification',
                 'municipalities.name as municipio',
                 'invoices.type_documents_id',
                 'payment_forms.name as payment_forms_name',
                 'users.name as user_name',
-                'companies.company as company_name',
-                'companies.address as company_address',
-                'companies.email as company_email',
+                '(
+                    CASE invoices.companies_id
+                        WHEN 2 then com.company
+                        else companies.company
+                END) as company_name',
+                '(
+                    CASE invoices.companies_id
+                        WHEN 2 then com.phone
+                        else companies.phone
+                END) as company_phone',
+                '(
+                    CASE invoices.companies_id
+                        WHEN 2 then com.email
+                        else companies.email
+                END) as company_email',
                 'accounting_account.name as accounting_account_name',
+                'IFNULL(usr.name, users.name) as responsable',
             ])
-            ->join('customers', 'customers.id = invoices.customers_id')
+            ->join('customers', 'customers.id = invoices.customers_id', 'left')
             ->join('users', 'users.id = invoices.user_id', 'left')
+            ->join('users as usr', 'usr.id = invoices.seller_id', 'left')
             ->join('municipalities', 'customers.municipality_id = municipalities.id', 'left')
-            ->join('type_documents', 'invoices.type_documents_id = type_documents.id')
-            ->join('type_document_identifications', 'customers.type_document_identifications_id = type_document_identifications.id')
+            ->join('type_documents', 'invoices.type_documents_id = type_documents.id', 'left')
+            ->join('type_document_identifications', 'customers.type_document_identifications_id = type_document_identifications.id', 'left')
             ->join('companies', 'invoices.companies_id = companies.id','left')
+            ->join('companies as com', 'invoices.company_destination_id = com.id','left')
             ->join('payment_forms', 'payment_forms.id = invoices.payment_forms_id', 'left')
             ->join('wallet', 'wallet.invoices_id = invoices.id', 'left')
             ->join('accounting_account', 'accounting_account.id = wallet.payment_method_id', 'left')
@@ -521,14 +555,16 @@ class ReportsController extends BaseController
             }
         }
 
+        $newVersion = $document->type_documents_id == 108 && Auth::querys()->companies_id == 67 ? true : false;
+
         $mpdf = new \Mpdf\Mpdf([
-            'format' => 'Letter',
+            'format' => $newVersion ? [80, 236] : 'Letter',
             'default_font_size' => 9,
             'default_font' => 'Roboto',
             'margin_left' => 5,
             'margin_right' => 5,
-            'margin_top' => 38,
-            'margin_bottom' => 5,
+            'margin_top' => 32,
+            'margin_bottom' => 10,
             'margin_header' => 5,
             'margin_footer' => 5
         ]);
@@ -537,22 +573,42 @@ class ReportsController extends BaseController
         $stylesheet = file_get_contents(base_url() . '/assets/css/bootstrap.css');
 
         $mpdf->WriteHtml($stylesheet, \Mpdf\HTMLParserMode::HEADER_CSS);
-        $mpdf->SetHTMLHeader(view('invoice/previsualizador/header', [
-            'invoice'       => $document,
-        ]));
-        $mpdf->WriteHtml(view('invoice/previsualizador/body', [
-            'invoice'       => $document,
-            'taxTotal' =>   $taxTotal,
-            'withholding'   => $lineDocuments,
-            'user' => $user
-        ]), \Mpdf\HTMLParserMode::HTML_BODY);
+        $mpdf->SetHTMLHeader('
+        <table width="100%">
+            <tr>
+                <td width="100%" align="center">
+                    <div>
+                        <div class="text-center">
+                            <h2 class="text-center">'.configInfo()['name_app'].'</h2><br>
+                            <p>
+                            Email: '.$document->company_email .' <br>
+                            Telefono: '.$document->company_phone .'<br>
+                            Sede: '.$document->company_name .'
+                            </p>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+        </table>
+        <hr>');
+        // $mpdf->SetHTMLHeader(view('invoice/previsualizador/header', [
+        //     'invoice'       => $document,
+        // ]));
         $mpdf->SetHTMLFooter('
+        <hr>
         <table width="100%">
             <tr>
                 <td width="50%" align="left">Software elaborado por IPlanet Colombia SAS</td>
                 <td width="50%" align="right">Pagina {PAGENO}/{nbpg}</td>
             </tr>
         </table>');
+        $mpdf->WriteHtml(view('invoice/previsualizador/body', [
+            'invoice'       => $document,
+            'taxTotal'      =>   $taxTotal,
+            'withholding'   => $lineDocuments,
+            'user'          => $user,
+            'newVersion'    => $newVersion
+        ]), \Mpdf\HTMLParserMode::HTML_BODY);
         // $mpdf->setFooter('{PAGENO}');
         $mpdf->Output();
 
@@ -625,151 +681,112 @@ class ReportsController extends BaseController
         $paymentTotal = 0;
         $idsCost = [];
         // todas la ventas
-        $headquarters = $this->tableCompanies->select(['id', 'company'])->where(['headquarters_id' => 2])->whereIn('id', $this->controllerHeadquarters->idsCompaniesHeadquarters())->asObject()->get()->getResult();
-        /*
-            $invoices = new Invoice();
-            $totalSell = $invoices->select([
-                'invoices.id',
-                'invoices.payment_methods_id as method_payment',
-                'SUM(invoices.payable_amount) as payable_amount',
-                '(SELECT  IFNULL(SUM(value), 0) FROM wallet WHERE wallet.invoices_id = invoices.id  GROUP  BY wallet.invoices_id) as balance',
-                '(SELECT IFNULL(SUM(tax_amount), 0) FROM line_invoices INNER JOIN line_invoice_taxs ON line_invoice_taxs.line_invoices_id  =  line_invoices.id WHERE line_invoices.invoices_id = invoices.id AND line_invoice_taxs.taxes_id IN (5,6,7) GROUP BY line_invoices.invoices_id) AS withholdings'
-            ]);
-            $this->extracted($totalSell);
-            $totalSell 
-                //->whereIn('invoices.invoice_status_id', [2, 3, 4])
-                ->whereIn('invoices.type_documents_id', [1, 2, 5, 108])
-                ->where(['invoices.deleted_at' => null])->orderBy('invoices.id', 'DESC')
-                ->groupBy('invoices.id')
-                ->asObject();
-
-            // echo json_encode($totalSell->get()->getResult());die();
-            $methodPayments = $this->tableMethodPayment->get()->getResult();
-            foreach ($totalSell->get()->getResult() as $item) {
-                $pay += $item->balance;
-                array_push($idsCost, $item->id);
-                foreach ($methodPayments as $methodPayment) {
-                    if ($methodPayment->id == $item->method_payment) {
-                        $valor = ($item->payable_amount - $item->withholdings) - $item->balance;
-                        $sellTotal += $valor;
-                        if (isset($paymentsMethod[$methodPayment->name])) {
-                            $paymentsMethod[$methodPayment->name]['total'] = $paymentsMethod[$methodPayment->name]['total'] + $valor;
-                        } else {
-                            $paymentsMethod[$methodPayment->name] = ['total' => $valor, 'name' => $methodPayment->name];
-                        }
-                    }
+        
+        switch (Auth::querys()->role_id) {
+            case 1: // Super admin
+            case 15: // Gerente
+            case 17: // Comercial
+            case 18: // Contabilidad General
+                $headquarters = $this->tableCompanies->select(['id', 'company'])->where(['headquarters_id' => 2])->whereIn('id', $this->controllerHeadquarters->idsCompaniesHeadquarters())->asObject()->get()->getResult();
+                array_unshift($headquarters, (object) ['id' => '', 'company' => 'Todos']);
+                $types = [
+                    (object)['id' => 'ventas', 'name' => 'Ventas'],
+                    (object)['id' => 'utilidad', 'name' => 'Utilidad'],
+                    (object)['id' => 'productos', 'name' => 'Productos']
+                ];
+                $userM = new User();
+                $usuarios = $userM->where('id !=', 1)->asObject()->get()->getResult();
+                array_unshift($usuarios, (object) ['id' => '', 'name' => 'Todos', 'username' => '']);
+                break;
+            case 19: // Administrador punto de venta
+                switch (Auth::querys()->companies_id) {
+                    case 69: // Sede bodega
+                        $types = [
+                            (object)['id' => 'productos', 'name' => 'Productos']
+                        ];
+                        break;
+                    
+                    default: // Otras sedes
+                        $types = [
+                            (object)['id' => 'ventas', 'name' => 'Ventas'],
+                            (object)['id' => 'productos', 'name' => 'Productos']
+                        ];
+                        break;
                 }
-            }
-            foreach ($paymentsMethod as $key => $row) {
-                $order[$key] = $row['name'];
-            }
-            array_multisort($order, SORT_ASC, $paymentsMethod);
-            //sort($paymentsMethod, 'SORT_NATURAL');
-
-            // abonos
-            $wallet = new Wallet();
-            $pays = $wallet
-                ->select(['Sum(wallet.value) as total'])
-                ->join('invoices', 'wallet.invoices_id = invoices.id')
-                //->whereIn('invoices.invoice_status_id', [2, 3, 4])
-                ->whereIn('invoices.type_documents_id', [1, 2, 5, 108]);
-            if (!isset($_GET['headquarters']) || $_GET['headquarters'] == 'todos') {
-                $pays->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
-            } else {
-                $pays->where('invoices.companies_id', $_GET['headquarters']);
-            }
-            $this->request->getGet('start_date') ? $pays->where('wallet.created_at >=', $this->request->getGet('start_date') . ' 00:00:00') : $pays->where('wallet.created_at >=', date('Y-m-d') . ' 00:00:00');
-            $this->request->getGet('end_date') ? $pays->where('wallet.created_at <=', $this->request->getGet('end_date') . ' 23:59:59') : $pays->where('wallet.created_at <=', date('Y-m-d') . ' 23:59:59');
-            $pays->asObject();
-            //echo json_encode($pays->first());die();
-            // todos los gatos Modulo Gastos
-            $lineInvoices = new LineInvoice();
-            $bills = $lineInvoices->select([
-                'SUM(line_invoices.line_extension_amount) as payable_amount',
-                'products.name as name'
-            ]);
-            if (!isset($_GET['headquarters']) || $_GET['headquarters'] == 'todos') {
-                $bills->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
-            } else {
-                $bills->where('invoices.companies_id', $_GET['headquarters']);
-            }
-            $this->request->getGet('start_date') ? $bills->where('invoices.created_at >=', $this->request->getGet('start_date') . ' 00:00:00') : $bills->where('invoices.created_at >=', date('Y-m-d') . ' 00:00:00');
-            $this->request->getGet('end_date') ? $bills->where('invoices.created_at <=', $this->request->getGet('end_date') . ' 23:59:59') : $bills->where('invoices.created_at <=', date('Y-m-d') . ' 23:59:59');
-            $bills->join('invoices', 'invoices.id = line_invoices.invoices_id')
-                ->join('products', ' products.id = line_invoices.products_id')
-                ->where(['invoices.deleted_at' => null, 'invoices.type_documents_id' => 118])
-                ->orderBy('products.name', 'ASC')
-                ->groupBy('products.id')
-                ->asObject();
-            // echo json_encode($bills->get()->getResult());die();
-
-            // todos los pagos
-            $invoices = new Invoice();
-            $payments = $invoices->select([
-                'SUM(invoices.payable_amount) as payable_amount',
-                '(SELECT  IFNULL(SUM(value), 0) FROM wallet WHERE wallet.invoices_id = invoices.id  GROUP  BY wallet.invoices_id) as balance',
-                '(SELECT IFNULL(SUM(tax_amount), 0) FROM line_invoices INNER JOIN line_invoice_taxs ON line_invoice_taxs.line_invoices_id  =  line_invoices.id WHERE line_invoices.invoices_id = invoices.id AND line_invoice_taxs.taxes_id IN (5,6,7) GROUP BY line_invoices.invoices_id) AS withholdings'
-            ]);
-            $this->extracted($payments);
-            $payments->whereIn('invoices.type_documents_id', [11, 105, 106, 107])
-                ->where(['invoices.deleted_at' => null])->orderBy('invoices.id', 'DESC')
-                ->groupBy('invoices.id')
-                ->asObject();
-            
-            var_dump($payments->get()->getResult()); die();
-
-            foreach ($payments->get()->getResult() as $item) {
-                $paymentTotal = ($item->payable_amount - $item->withholdings) - $item->balance;
-            }
-
-            // cost
-            $costTotal = 0;
-            if (count($idsCost)) {
-                $cost = $this->costs($idsCost);
-                foreach ($cost as $item) {
-                    $costTotal += $item->quantity * $item->cost;
-                }
-            }
-        */
-        $userM = new User();
-        $usuarios = $userM->where('id !=', 1)->asObject()->get()->getResult();
+                $headquarters = $this->tableCompanies->select(['id', 'company'])->where(['id' => Auth::querys()->companies_id])->asObject()->get()->getResult();
+                $userM = new User();
+                $usuarios = $userM->where(['id !=' => 1, 'companies_id' => Auth::querys()->companies_id])->asObject()->get()->getResult();
+                array_unshift($usuarios, (object) ['id' => '', 'name' => 'Todos', 'username' => '']);
+                break;
+            case 16: // Sede Contabilidad
+                $headquarters = $this->tableCompanies->select(['id', 'company'])->where(['headquarters_id' => 2])->whereIn('id', $this->controllerHeadquarters->idsCompaniesHeadquarters())->asObject()->get()->getResult();
+                array_unshift($headquarters, (object) ['id' => '', 'company' => 'Todos']);
+                $types = [
+                    (object)['id' => 'ventas', 'name' => 'Ventas'],
+                    (object)['id' => 'productos', 'name' => 'Productos']
+                ];
+                $userM = new User();
+                $usuarios = $userM->where('id !=', 1)->asObject()->get()->getResult();
+                array_unshift($usuarios, (object) ['id' => '', 'name' => 'Todos', 'username' => '']);
+                break;
+            default: // Por defecto queda vendedores
+                $types = [
+                    (object)['id' => 'productos', 'name' => 'Productos']
+                ];
+                $headquarters = $this->tableCompanies->select(['id', 'company'])->where(['id' => Auth::querys()->companies_id])->asObject()->get()->getResult();
+                $userM = new User();
+                $usuarios = $userM->where(['id' => Auth::querys()->id])->asObject()->get()->getResult();
+                break;
+        }
 
         $invoiceM = new Invoice();
-        $invoiceM->select(['invoices.*', 'payment_methods.type_entry'])//, 'wallet.value as wallet_value'
-            ->join('wallet','invoices.id = wallet.invoices_id', 'left')
-            ->join('payment_methods', 'payment_methods.id = invoices.payment_methods_id', 'left');
+        $invoiceM->select(['invoices.*', 'accounting_account.type_entry'])//, 'wallet.value as wallet_value'
+            ->join('wallet','invoices.id = wallet.invoices_id and wallet.deleted_at IS NULL', 'left')
+            ->join('accounting_account', 'accounting_account.id = wallet.payment_method_id', 'left');
         $this->extracted($invoiceM);
         $invoices = $invoiceM->asObject()->get()->getResult();
 
+        $date_init = $this->request->getGet('start_date') ? $this->request->getGet('start_date').' 00:00:00' : date('Y-m-d 00:00:00');
+        $date_finish = $this->request->getGet('end_date') ? $this->request->getGet('end_date').' 23:59:59' : date('Y-m-d 23:59:59');
+        $sede = $this->request->getGet('headquarters_providers');
+        $seller = $this->request->getGet('user');
+        $queryFilter = "
+            and wallet.deleted_at IS NULL
+            and wallet.created_at >= '$date_init'
+            and wallet.created_at <= '$date_finish'
+        ";
+        if($sede)
+            $queryFilter .= " and invoices.companies_id = ".$sede;
+        if($seller)
+            $queryFilter .= " and invoices.seller_id = ".$seller;
+        $query_aux = "(invoices.payment_forms_id in (2 , 3){$queryFilter} or invoices.companies_id = 2 {$queryFilter}) or (
+            invoices.type_documents_id = 120 {$queryFilter}
+        )";
+
         $walletM = new Wallet();
-        $walletM->select(['invoices.*', 'wallet.value as wallet_value', 'payment_methods.type_entry'])
+        $walletM->select(['invoices.*', 'wallet.value as wallet_value', 'accounting_account.type_entry'])
             ->join('invoices', 'invoices.id = wallet.invoices_id', 'left')
-            ->join('payment_methods', 'payment_methods.id = wallet.payment_method_id', 'left')
-            ->where([
-                'wallet.created_at >=' => $this->request->getGet('start_date') ? $this->request->getGet('start_date').' 00:00:00' : date('Y-m-d 00:00:00'),
-                'wallet.created_at <=' => $this->request->getGet('end_date') ? $this->request->getGet('end_date').' 23:59:59' : date('Y-m-d 23:59:59'),
-            ])
-            ->where('(invoices.payment_forms_id = 2 or invoices.companies_id = 2)');
-        if ($this->permi){
-            if($this->request->getGet('headquarters_providers')) $walletM->where(['invoices.companies_id' => $this->request->getGet('headquarters_providers')]);
-            if($this->request->getGet('user_id')) $walletM->where(['invoices.user_id' => $this->request->getGet('user')]);
-        }else{
-            $walletM->where(['invoices.companies_id' => session('user')->companies_id]);
-            $walletM->where(['invoices.user_id' => session('user')->id]);
-        }
+            ->join('accounting_account', 'accounting_account.id = wallet.payment_method_id', 'left')
+            ->where($query_aux);
         $wallets = $walletM->asObject()->get()->getResult();
-        // var_dump($invoices); die;
 
         $data = (object)[
             'permiso'   => $this->permi,
             'ventas'    => (object)['total' => 0, 'total_costos' => 0],
             'gastos'    => (object)['total' => 0, 'gastos_nomina' => 0, 'otros_gastos' => 0]
         ];
-        $type = (isset($_GET['type'])) ? $_GET['type'] : '';
+        $type = isset($_GET['type']) ? $_GET['type'] : $types[0]->id;
         switch ($type) {
             case 'ventas':
             default:
                 $data->CxC = (object)[
+                    'total'     => 0,
+                    'detail'    => (object)[
+                        'efectivo'      => (object) ['total' => 0,'name'  => 'Efectivo'],
+                        'transferencia' => (object) ['total' => 0,'name'  => 'Transferencia'],
+                    ]
+                ];
+                $data->CrediContado = (object)[
                     'total'     => 0,
                     'detail'    => (object)[
                         'efectivo'      => (object) ['total' => 0,'name'  => 'Efectivo'],
@@ -787,11 +804,16 @@ class ReportsController extends BaseController
                     'efectivo'      => (object) ['total' => 0,'name'  => 'Efectivo'],
                     'transferencia' => (object) ['total' => 0,'name'  => 'Transferencia'],
                     'credito'       => (object) ['total' => 0,'name'  => 'Credito'],
+                    'crediContado'  => (object) ['total' => 0,'name'  => 'Credi-Contado'],
                 ];
                 $data->gastos->detail = (object)[
                     'efectivo'      => (object) ['total' => 0,'name'  => 'Efectivo'],
                     'transferencia' => (object) ['total' => 0,'name'  => 'Transferencia'],
                     'credito'       => (object) ['total' => 0,'name'  => 'Credito'],
+                ];
+                $data->gastos->nomina = (object)[
+                    'efectivo'      => (object) ['total' => 0,'name'  => 'Nómina Efectivo'],
+                    'transferencia' => (object) ['total' => 0,'name'  => 'Nómina Transferencia'],
                 ];
                 foreach ($invoices as $key => $invoice) {
                     switch ($invoice->type_documents_id) {
@@ -803,29 +825,54 @@ class ReportsController extends BaseController
                             if($invoice->payment_forms_id == 1){
                                 $data->ventas->detail->efectivo->total += ($invoice->type_entry != 1) ? $invoice->payable_amount : 0;
                                 $data->ventas->detail->transferencia->total += ($invoice->type_entry == 1) ? $invoice->payable_amount : 0;
+                            }else if($invoice->payment_forms_id == 3){
+                                $data->ventas->detail->crediContado->total += $invoice->payable_amount;
                             }else $data->ventas->detail->credito->total += $invoice->payable_amount;
                             break;
                         case '118':
-                            $data->gastos->total += $invoice->payable_amount;
-                            if($invoice->payment_forms_id == 1){
-                                $data->gastos->detail->efectivo->total += ($invoice->type_entry != 1) ? $invoice->payable_amount : 0;
-                                $data->gastos->detail->transferencia->total += ($invoice->type_entry == 1) ? $invoice->payable_amount : 0;
-                            }else $data->gastos->detail->credito->total += $invoice->payable_amount;
+                        // case '120':
+                            if(session('user')->role_id != 16){
+                                $data->gastos->total += $invoice->payable_amount;
+                                if($invoice->payment_forms_id == 1){
+                                    $data->gastos->detail->efectivo->total += ($invoice->type_entry != 1) ? $invoice->payable_amount : 0;
+                                    $data->gastos->detail->transferencia->total += ($invoice->type_entry == 1) ? $invoice->payable_amount : 0;
+                                }else $data->gastos->detail->credito->total += $invoice->payable_amount;
+                            }
                             break;
+                        // case '120':
+                        //     $data->gastos->total += $invoice->payable_amount;
+                        //     $data->gastos->nomina->efectivo->total += ($invoice->type_entry != 1) ? $invoice->payable_amount : 0;
+                        //     $data->gastos->nomina->transferencia->total += ($invoice->type_entry == 1) ? $invoice->payable_amount : 0;
+                        //     break;
                     }
                 }
                 foreach ($wallets as $key => $wallet) {
                     switch ($wallet->type_documents_id) {
                         case '107': // entrada por remision
-                            $data->CxP->total += $wallet->wallet_value;
-                            $data->CxP->detail->efectivo->total += ($wallet->type_entry != 1) ? $wallet->wallet_value : 0;
-                            $data->CxP->detail->transferencia->total += ($wallet->type_entry == 1) ? $wallet->wallet_value : 0;
+                            if(session('user')->role_id != 16 && session('user')->role_id != 19){
+                                $data->CxP->total += $wallet->wallet_value;
+                                $data->CxP->detail->efectivo->total += ($wallet->type_entry != 1) ? $wallet->wallet_value : 0;
+                                $data->CxP->detail->transferencia->total += ($wallet->type_entry == 1) ? $wallet->wallet_value : 0;
+                            }
                             break;
-                        case '108':
+                        case '108': // Salida por remision
                         case '1':
-                            $data->CxC->total += $wallet->wallet_value;
-                            $data->CxC->detail->efectivo->total += ($wallet->type_entry != 1) ? $wallet->wallet_value : 0;
-                            $data->CxC->detail->transferencia->total += ($wallet->type_entry == 1) ? $wallet->wallet_value : 0;
+                            if($wallet->payment_forms_id == 2){
+                                $data->CxC->total += $wallet->wallet_value;
+                                $data->CxC->detail->efectivo->total += ($wallet->type_entry != 1) ? $wallet->wallet_value : 0;
+                                $data->CxC->detail->transferencia->total += ($wallet->type_entry == 1) ? $wallet->wallet_value : 0;
+                            }else if($wallet->payment_forms_id == 3){
+                                $data->CrediContado->total += $wallet->wallet_value;
+                                $data->CrediContado->detail->efectivo->total += ($wallet->type_entry != 1) ? $wallet->wallet_value : 0;
+                                $data->CrediContado->detail->transferencia->total += ($wallet->type_entry == 1) ? $wallet->wallet_value : 0;
+                            }
+                            break;
+                        case '120':
+                            if(session('user')->role_id != 16 || session('user')->role_id != 19){
+                                $data->gastos->total += $wallet->payable_amount;
+                                $data->gastos->nomina->efectivo->total += ($wallet->type_entry != 1) ? $wallet->wallet_value : 0;
+                                $data->gastos->nomina->transferencia->total += ($wallet->type_entry == 1) ? $wallet->wallet_value : 0;
+                            }
                             break;
                         
                         default:
@@ -834,14 +881,21 @@ class ReportsController extends BaseController
                     }
                 }
                 $data->total = (object)[
-                    'bruto' => (($data->ventas->total + $data->CxC->total) - ($data->gastos->total + $data->CxP->total)),
+                    'bruto' => (($data->ventas->total + $data->CxC->total + $data->CrediContado->total) - ($data->gastos->total + $data->CxP->total)),
                     'efectivo' => (
-                        ($data->ventas->detail->efectivo->total + $data->CxC->detail->efectivo->total) 
-                        - ($data->gastos->detail->efectivo->total + $data->CxP->detail->efectivo->total)
+                        ($data->ventas->detail->efectivo->total + $data->CxC->detail->efectivo->total + $data->CrediContado->detail->efectivo->total) 
+                        - ($data->gastos->detail->efectivo->total + $data->CxP->detail->efectivo->total + $data->gastos->nomina->efectivo->total)
                     )
                 ];
                 break;
             case 'utilidad':
+                $invoiceM = new Invoice();
+                $invoiceM->select(['invoices.*','SUM(wallet.value) as wallet_value', 'accounting_account.type_entry'])//, 'wallet.value as wallet_value'
+                    ->join('wallet','invoices.id = wallet.invoices_id and wallet.deleted_at IS NULL', 'left')
+                    ->join('accounting_account', 'accounting_account.id = wallet.payment_method_id', 'left')
+                    ->groupBy('invoices.id');
+                $this->extracted($invoiceM);
+                $invoices = $invoiceM->asObject()->get()->getResult();
                 $data->gastos->detail = (object)[
                     'efectivo'      => (object) ['total' => 0,'name'  => 'Efectivo'],
                     'transferencia' => (object) ['total' => 0,'name'  => 'Transferencia'],
@@ -856,9 +910,9 @@ class ReportsController extends BaseController
                             $invoice->line_invoice = $invoiceM->getLineInvoicesReports($invoice->id);
                             foreach ($invoice->line_invoice as $key => $line_invoice) {
                                 // if(!filter_var($line_invoice->payroll, FILTER_VALIDATE_BOOLEAN))
-                                    $data->ventas->total_costos += $line_invoice->cost_amount;
+                                    $data->ventas->total_costos += ($line_invoice->quantity * $line_invoice->cost_amount);
                             }
-                            $data->ventas->total += $invoice->payable_amount;
+                            $data->ventas->total += $invoice->wallet_value;
                             break;
                         case '118':
                         // case '107':
@@ -868,6 +922,9 @@ class ReportsController extends BaseController
                                 $data->gastos->detail->transferencia->total += ($invoice->type_entry == 1) ? $invoice->payable_amount : 0;
                             }else $data->gastos->detail->credito->total += $invoice->payable_amount;
                             break;
+                        // case 107:
+                        //     $data->gastos->otros_gastos += $invoice->payable_amount;
+                        //     break;
                         // case '118':
                         //     $data->gastos->total += $invoice->payable_amount;
                         //     if($invoice->payment_forms_id == 1){
@@ -880,17 +937,17 @@ class ReportsController extends BaseController
                             break;
                     }
                 }
-                foreach ($wallets as $key => $wallet) {
-                    switch ($wallet->type_documents_id) {
-                        case '107': // entrada por remision
-                            $data->gastos->otros_gastos += $invoice->payable_amount;
-                            break;
+                // foreach ($wallets as $key => $wallet) {
+                //     switch ($wallet->type_documents_id) {
+                //         case '107': // entrada por remision
+                //             $data->gastos->otros_gastos += $wallet->wallet_value;
+                //             break;
                         
-                        default:
-                            # code...
-                            break;
-                    }
-                }
+                //         default:
+                //             # code...
+                //             break;
+                //     }
+                // }
                 break;
             case 'gastos':
                 foreach ($invoices as $key => $invoice) {
@@ -954,7 +1011,11 @@ class ReportsController extends BaseController
                     if($this->request->getGet('user')) $invoiceM->where(['invoices.user_id' => $this->request->getGet('user')]);
                 }else{
                     $invoiceM->where(['invoices.companies_id' => session('user')->companies_id]);
-                    $invoiceM->where(['invoices.user_id' => session('user')->id]);
+                    if(session('user')->role_id == 19){
+                        if($this->request->getGet('user')) $invoiceM->where(['invoices.user_id' => $this->request->getGet('user')]);
+                    }else{
+                        $invoiceM->where(['invoices.user_id' => session('user')->id]);
+                    }
                 }
 
                 if ($this->request->getGet('orderBy')) {
@@ -968,7 +1029,6 @@ class ReportsController extends BaseController
                         case 'price_amount':
                             $invoiceM->orderBy('price_amount', $this->request->getGet('DESC'));
                             break;
-                            
                         default:
                             $invoiceM->orderBy('(price_amount - cost_amount)', $this->request->getGet('DESC'));
                             break;
@@ -985,85 +1045,13 @@ class ReportsController extends BaseController
                 ];
                 break;
         }
-
-        // var_dump($data);die();
-
-        // $data_aux = (object)[
-        //     'CxP' => $CxP, 
-        //     'CxC' => $CxC,
-        //     'ventas' => $ventasT, 
-        //     'ventasEfectivo' => $ventasEfectivo, 
-        //     'ventasTransferencia' => $ventasTransferencia, 
-        //     'ventasCredito' => $ventasCredito,
-        //     'gastos' => $gastos,
-        //     'totalVentas' => ($ventasT + $CxC),
-        //     'totalGastos' => ($gastos + $CxP)
-        // ];
-        // var_dump($data_aux); die();
-        // var_dump([$invoices, $wallets]);die();
-
-
-        // echo json_encode($cost);die();
-        // $type = (isset($_GET['type'])) ? $_GET['type'] : '';
-        // switch ($type) {
-        //     case 'ventas_old':
-        //         $data = [
-        //             'sell' => $paymentsMethod,
-        //             'sellTotal' => $sellTotal,
-        //             'pays' => $pays->first(),
-        //             'bills' => [],
-        //             'payments' => 0,
-        //             'cost' => $costTotal,
-        //             'headquarters' => $headquarters
-        //         ];
-        //         break;
-        //     case 'gastos_old':
-        //         $data = [
-        //             'sell' => [],
-        //             'sellTotal' => 0,
-        //             'pays' => (object)['total' => 0],
-        //             'bills' => $bills->get()->getResult(),
-        //             'payments' => $paymentTotal,
-        //             'cost' => $costTotal,
-        //             'headquarters' => $headquarters
-        //         ];
-        //         break;
-        //     case 'utilidad_old':
-        //         $data = [
-        //             'sell' => [],
-        //             'sellTotal' => $sellTotal,
-        //             'pays' => (object)['total' => 0],
-        //             'bills' => $bills->get()->getResult(),
-        //             'payments' => 0,
-        //             'cost' => $costTotal,
-        //             'headquarters' => $headquarters
-        //         ];
-        //         break;
-        //     case 'ventas':
-        //         $data = [
-        //             'sell' => [],
-        //             'sellTotal' => 0,
-        //             'pays' => (object)['total' => 0],
-        //             'bills' => [],
-        //             'payments' => 0,
-        //             'cost' => 0,
-        //             'headquarters' => $headquarters
-        //         ];
-        //         break;
-        //     default:
-        //         $data = [
-        //             'sell' => [],
-        //             'sellTotal' => 0,
-        //             'pays' => (object)['total' => 0],
-        //             'bills' => [],
-        //             'payments' => 0,
-        //             'cost' => 0,
-        //             'headquarters' => $headquarters
-        //         ];
-        //         break;
-        // }
-        // $data['data'] = $data;
-        return view('report/sell', ['data' => $data, 'headquarters' => $headquarters, 'type_informe' => $type, 'users' => $usuarios]);
+        return view('report/sell', [
+            'data' => $data,
+            'headquarters' => $headquarters,
+            'type_informe' => $type,
+            'users' => $usuarios,
+            'types' => $types
+        ]);
     }
 
     /**

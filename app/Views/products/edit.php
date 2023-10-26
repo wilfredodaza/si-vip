@@ -51,129 +51,89 @@
                                 <div class="col s12">
                                     <form action="<?=  base_url().route_to('products-update', $product->id) ?>" method="post" enctype="multipart/form-data">
                                         <div class="row">
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 m4 l4">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="provider_id"
                                                             onchange="ShowSelected('providers')" name="provider_id" required>
-                                                        <option selected disabled value="">Seleccione proveedor
+                                                        <option selected disabled value="">Seleccione categoria
                                                         </option>
                                                         <?php foreach ($providers as $provider): ?>
                                                             <option <?= ($product->provider_id == $provider->id)?'selected':'' ?> value="<?= $provider->code ?>"><?= "[{$provider->code}] - {$provider->name_providers}" ?></option>
                                                         <?php endforeach; ?>
                                                     </select>
-                                                    <label for="provider_id">Proveedor <span class='red-text'> * </span></label>
+                                                    <label for="provider_id">Categoria <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 m4 l4">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="gender_id"
                                                             name="gender_id" onchange="ShowSelected('gender')" required>
-                                                        <option selected disabled value="">Seleccione genero
+                                                        <option selected disabled value="">Seleccione marca
                                                         </option>
                                                         <?php foreach ($gender as $item): ?>
                                                             <option <?= ($product->gender_id == $item->id)?'selected':'' ?> value="<?= $item->code ?>"><?= "[{$item->code}] - {$item->gender}" ?></option>
                                                         <?php endforeach; ?>
                                                     </select>
-                                                    <label for="gender_id">Genero <span
+                                                    <label for="gender_id">Marca <span
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="group_id"
-                                                            name="group_id" onchange="ShowSelected('groups')" required>
-                                                        <option selected disabled value="">Seleccione grupo
-                                                        </option>
-                                                        <?php foreach ($groups as $group): ?>
-                                                            <option <?= ($product->group_id == $group->id)?'selected':'' ?> value="<?= $group->code ?>"><?= "[{$group->code}] - {$group->name}" ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="group_id">Grupo <span
-                                                                class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="sub_group_id"
-                                                            name="sub_group_id" onchange="ShowSelected('subGroup')" required>
-                                                        </option>
-                                                        <?php foreach ($subGroup as $item): ?>
-                                                            <option <?= ($product->sub_group_id == $item->id)?'selected':'' ?> value="<?= $item->code ?>"><?= "[{$item->code}] - {$item->name}" ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="sub_group_id">Sub Grupo <span
-                                                                class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 m4 l4">
                                                 <div class="input-field">
                                                     <select class="select2 browser-default" id="material_id"
                                                             name="material_id" onchange="ShowSelected('materials')" required>
-                                                        <option selected disabled value="">Seleccione material
+                                                        <option selected disabled value="">Seleccione linea
                                                         </option>
                                                         <?php foreach ($materials as $item): ?>
                                                             <option <?= ($product->material_id == $item->id)?'selected':'' ?> value="<?= $item->code ?>"><?= "[{$item->code}] - {$item->name}" ?></option>
                                                         <?php endforeach; ?>
                                                     </select>
-                                                    <label for="material_id">Material <span class='red-text'> * </span></label>
+                                                    <label for="material_id">Linea <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s4 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="code_item" onchange="ShowSelected('code_item')"
-                                                            name="code_item" required>
-                                                        <?php for($i = 0; $i <= 99; $i++):
-                                                            $number = (strlen($i) == 1) ? "0{$i}" : "{$i}";
-                                                            ?>
-                                                            <option <?= ($product->code_item == $number)?'selected':'' ?> value="<?= $number  ?>"><?= $number ?></option>
-                                                        <?php endfor;?>
-                                                    </select>
-                                                    <label for="code_item">Item<span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s8 m3 l3">
+                                        </div>
+                                        <div class="row">
+                                            <div class="col s8 m4 l4">
                                                 <div class="input-field">
                                                     <input value ="<?= $product->code ?>" id="product_code" name="product_code" type="text" class="validate" required>
                                                     <label for="product_code">Código Producto <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 m4 l4">
                                                 <div class="input-field">
                                                     <input value ="<?= $product->name ?>" id="product_name" name="product_name" type="text" class="validate" required>
                                                     <label for="product_name">Nombre Producto <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col s12 m3 l3">
+                                            <div class="col s12 m4 l4">
                                                 <div class="input-field">
                                                     <input value ="<?= $product->cost ?>" id="product_cost" name="product_cost" type="text" class="validate" required>
                                                     <label for="product_cost">Costo Producto <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
+                                        </div>
+                                        <div class="row">
                                             <div class="col s12 m3 l3">
                                                 <div class="input-field">
                                                     <input value ="<?= $product->valor ?>" id="product_value" name="product_value" type="text" class="validate" required>
                                                     <label for="product_value">Valor Producto <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m2 l2">
+                                            <div class="col s12 m2 l3">
                                                 <div class="input-field">
                                                     <input value="<?= $product->value_one ?>" id="value_one" name="value_one"
                                                            type="text">
                                                     <label for="value_one">Valor tipo 1</label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m2 l2">
+                                            <div class="col s12 m2 l3">
                                                 <div class="input-field">
                                                     <input value="<?= $product->value_two ?>" id="value_two" name="value_two"
                                                            type="text">
                                                     <label for="value_two">Valor tipo 2</label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m2 l2">
+                                            <div class="col s12 m2 l3">
                                                 <div class="input-field">
                                                     <input value="<?= $product->value_three ?>" id="value_three" name="value_three"
                                                            type="text" >
@@ -203,158 +163,6 @@
                                                 <div class="input-field">
                                                     <textarea style="height: 89px !important;" id="description" rows="20" name="description" required><?= $product->description ?></textarea>
                                                     <label for="description" class="active">Descripción del producto <span class="red-text"> * </span> </label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <!--<div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="category" name="category">
-                                                        <option selected disabled value="">Seleccione una categoría</option>
-                                                        <?php foreach($categories as $category): ?>
-                                                            <option <?= ($product->category_id == $category->id)?'selected':'' ?> value="<?= $category->id ?>"><?= $category->name ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="category">Categoría <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>-->
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="unitMeasure" name="unitMeasure">
-                                                        <?php foreach($unitMeasures as $unitMeasure): ?>
-                                                            <option <?= ($unitMeasure->id == $product->unit_measures_id)?'selected':''; ?> value="<?= $unitMeasure->id ?>"><?= $unitMeasure->name ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="unitMeasure">Unidad de medida <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="typeItemDocument" name="typeItemDocument">
-                                                        <?php foreach($typeItemIdentifications as $typeItemIdentification): ?>
-                                                            <option <?= ($typeItemIdentification->id == $product->type_item_identifications_id)?'selected':''; ?> value="<?= $typeItemIdentification->id ?>"><?= $typeItemIdentification->name ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="typeItemDocument">Tipo de documento <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="product_free" name="product_free">
-                                                        <option <?= ($product->free_of_charge_indicator == 'false')?'selected':'' ?> value="no">no</option>
-                                                        <option <?= ($product->free_of_charge_indicator == 'true')?'selected':'' ?> value="si">si</option>
-                                                    </select>
-                                                    <label for="product_free">Producto Gratis <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" style="z-index: 3" id="entry_credit" name="entry_credit">
-                                                        <?php foreach($accountingAccounts as $accountingAccount):
-                                                            if($accountingAccount->nature == 'Crédito' && $accountingAccount->type_accounting_account_id == 1):
-                                                                ?>
-                                                                <option <?= ($accountingAccount->id == $product->entry_credit)?'selected':'' ?> value="<?= $accountingAccount->id ?>"><?= $accountingAccount->name ?></option>
-                                                            <?php
-                                                            endif;
-                                                        endforeach; ?>
-                                                    </select>
-                                                    <label for="entry_credit">Entrada <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="entry_debit" name="entry_debit">
-                                                        <?php foreach($accountingAccounts as $accountingAccount):
-                                                            if($accountingAccount->nature == 'Débito' && $accountingAccount->type_accounting_account_id == 1):
-                                                                ?>
-                                                                <option <?= ($accountingAccount->id == $product->entry_debit)?'selected':'' ?> value="<?= $accountingAccount->id ?>"><?= $accountingAccount->name ?></option>
-                                                            <?php
-                                                            endif;
-                                                        endforeach; ?>
-                                                    </select>
-                                                    <label for="entry_debit">Devolución<span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="iva" name="iva">
-                                                        <?php foreach($accountingAccounts as $accountingAccount):
-                                                            if($accountingAccount->type_accounting_account_id == 2):
-                                                                ?>
-                                                                <option <?= ($accountingAccount->id == $product->iva)?'selected':'' ?> value="<?= $accountingAccount->id ?>"><?= $accountingAccount->name ?></option>
-                                                            <?php
-                                                            endif;
-                                                        endforeach; ?></select>
-                                                    <label for="iva">Iva <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="reteFuente" name="reteFuente">
-                                                        <?php foreach($accountingAccounts as $accountingAccount):
-                                                            if($accountingAccount->type_accounting_account_id == 3):
-                                                                ?>
-                                                                <option <?= ($accountingAccount->id == $product->retefuente)?'selected':'' ?> value="<?= $accountingAccount->id ?>"><?= $accountingAccount->name ?></option>
-                                                            <?php
-                                                            endif;
-                                                        endforeach; ?>
-                                                    </select>
-                                                    <label for="reteFuente">Retención de fuente <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="reteIca" name="reteIca">
-                                                        <?php foreach($accountingAccounts as $accountingAccount):
-                                                            if($accountingAccount->type_accounting_account_id == 3):
-                                                                ?>
-                                                                <option <?= ($accountingAccount->id == $product->reteica)?'selected':'' ?> value="<?= $accountingAccount->id ?>"><?= $accountingAccount->name ?></option>
-                                                            <?php
-                                                            endif;
-                                                        endforeach; ?>
-                                                    </select>
-                                                    <label for="reteIca">ReteICA<span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="row">
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="reteIva" name="reteIva">
-                                                        <?php foreach($accountingAccounts as $accountingAccount):
-                                                            if($accountingAccount->type_accounting_account_id == 3):
-                                                                ?>
-                                                                <option <?= ($accountingAccount->id == $product->reteiva)?'selected':'' ?> value="<?= $accountingAccount->id ?>"><?= $accountingAccount->name ?></option>
-                                                            <?php
-                                                            endif;
-                                                        endforeach; ?>
-                                                    </select>
-                                                    <label for="reteIva">ReteIVA <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="account_pay" name="account_pay">
-                                                        <?php foreach($accountingAccounts as $accountingAccount):
-                                                            if($accountingAccount->type_accounting_account_id == 4):
-                                                                ?>
-                                                                <option <?= ($accountingAccount->id == $product->account_pay)?'selected':'' ?> value="<?= $accountingAccount->id ?>"><?= $accountingAccount->name ?></option>
-                                                            <?php
-                                                            endif;
-                                                        endforeach; ?></select>
-                                                    <label for="account_pay">Cuenta por cobrar <span class='red-text'> * </span></label>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m3 l3">
-                                                <div class="input-field">
-                                                    <select class="select2 browser-default" id="typeGenerationTransmition" name="typeGenerationTransmition">
-                                                        <?php foreach($typeGenerationTransmitions as $typeGenerationTransmition):?>
-                                                            <option <?= ($typeGenerationTransmition->id == $product->type_generation_transmition_id)?'selected':'' ?> value="<?= $typeGenerationTransmition->id ?>"><?= $typeGenerationTransmition->name ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
-                                                    <label for="typeGenerationTransmition">Tipo de operación <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
                                         </div>
@@ -529,7 +337,7 @@
                 code_item = document.getElementById("code_item").value;
                 break;
         }
-        code();
+        // code();
 
     }
     function code() {
