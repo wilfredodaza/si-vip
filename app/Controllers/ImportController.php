@@ -856,13 +856,13 @@ class ImportController extends BaseController
                     }
 
                     $data = array(
-                        'name' => trim($sheet->getCell('C'.$rowIndex)->getValue()),
-                        'tax_iva' => 'F',
+                        'name' => trim($cells[2]),
+                        'tax_iva' => 'R',
                         'code' => $serial,
                         'code_item' => $disponible[0],
-                        'valor' => trim($sheet->getCell('E'.$rowIndex)->getValue()),
-                        'cost' => trim($sheet->getCell('F'.$rowIndex)->getValue()),
-                        'description' => trim($sheet->getCell('D'.$rowIndex)->getValue() ? $sheet->getCell('D'.$rowIndex)->getValue() : $sheet->getCell('C'.$rowIndex)->getValue()),
+                        'valor' => trim($cells[4]),
+                        'cost' => trim($cells[5]),
+                        'description' => trim($cells[3] ? $cells[3] : $cells[2]),
                         'unit_measures_id' => 70,
                         'type_item_identifications_id' => 4,
                         'reference_prices_id' => 1,
@@ -870,7 +870,7 @@ class ImportController extends BaseController
                         'companies_id' => session('user')->companies_id,
                         'entry_credit' => $entryCredit->id,
                         'entry_debit' => $entryDebit->id,
-                        'iva' => $iva->id,
+                        'iva' => $sinIva->id,
                         'retefuente' => $retefuente->id,
                         'reteica' => $reteica->id,
                         'reteiva' => $reteiva->id,
@@ -881,11 +881,11 @@ class ImportController extends BaseController
                         'sub_group_id' => null,
                         'material_id' => $linea->id
                     );
-                    if ($products->insert($data)) {
-                        $data['tax_iva'] = 'R';
-                        $data['iva'] = $sinIva->id;
-                        $products->insert($data);
-                    }
+                    // if ($products->insert($data)) {
+                    //     $data['tax_iva'] = 'R';
+                    //     $data['iva'] = $sinIva->id;
+                    //     $products->insert($data);
+                    // }
 
                 }
             }
