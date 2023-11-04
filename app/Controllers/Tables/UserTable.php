@@ -18,7 +18,7 @@ class UserTable
     protected function relations()
     {
         $this->crudTable->setRelation('companies_id', 'companies', 'company');
-        $this->crudTable->setRelation('role_id', 'roles', 'name' );
+        $this->crudTable->setRelation('role_id', 'roles', 'name', ['status' => 'Activo', 'id > ?' => 1] );
     }
 
     protected function rules()
@@ -86,7 +86,7 @@ class UserTable
             });
 
         }else if(session('user')->role_id == 1){
-            $this->crudTable->setRelation('role_id', 'roles', 'name' );
+            $this->crudTable->setRelation('role_id', 'roles', 'name', ['status' => 'Activo', 'id > ?' => 1] );
         }
 
         $this->crudTable->callbackBeforeInsert(function ($stateParameters) {

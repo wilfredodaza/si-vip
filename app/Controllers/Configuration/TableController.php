@@ -543,11 +543,13 @@ class TableController extends BaseController
                         $data->data['identification_number'] = $this->_clearNumber($data->data['identification_number']);
                         $data->data['status'] = 'active';
                         $data->data['role_id'] = 20;
-                        return $data;
+                        $data->data['password'] = password_hash($data->data['password'], PASSWORD_DEFAULT);
+                        return $data; 
                     });
                     $this->crud->callbackBeforeUpdate(function ($data) {
                         $data->data['phone'] = $this->_clearNumber($data->data['phone']);
                         $data->data['identification_number'] = $this->_clearNumber($data->data['identification_number']);
+                        $data->data['password'] = password_hash($data->data['password'], PASSWORD_DEFAULT);
                         return $data;
                     });
 

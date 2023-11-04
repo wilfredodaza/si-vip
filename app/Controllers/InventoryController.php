@@ -390,7 +390,7 @@ class InventoryController extends BaseController
             $idsCompanies = $_GET['headquarter'];
         }
         $indicadores = [];
-        $indicators = $this->totalIndicatorsInventory(($manager)?$this->controllerHeadquarters->idsCompaniesHeadquarters():[$idsCompanies]);
+        $indicators = $this->totalIndicatorsInventory(isset($_GET['headquarter']) ? [$idsCompanies] : (($manager)?$this->controllerHeadquarters->idsCompaniesHeadquarters():[$idsCompanies]));
         array_push($indicadores, (object)[
             'id' => 'costo',
             'color' => 'green',
@@ -871,27 +871,43 @@ class InventoryController extends BaseController
         $input = 0;
         $output = 0;
         $invoice = new Invoice();
+        $companies = implode(',', $idsCompanies);
         $invoices = $invoice->select([
             'line_invoices.quantity',
             'products.valor',
             'products.cost',
-            'invoices.type_documents_id'
+            'invoices.type_documents_id',
+            'invoices.company_destination_id',
         ])->join('line_invoices', 'invoices.id = line_invoices.invoices_id')
             ->join('products', 'line_invoices.products_id = products.id')
-            ->whereIn('invoices.type_documents_id', [1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116]);
+            // ->whereIn('invoices.type_documents_id', [1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116, 119]);
+            ->where("(invoices.companies_id in ({$companies}) or invoices.company_destination_id in ({$companies})) and invoices.type_documents_id in (1, 2, 3, 4, 5, 102, 101, 103, 104, 107, 108, 115, 116, 119)");
 
-        $invoices->whereIn('invoices.companies_id', $idsCompanies);
+        // $invoices->whereIn('invoices.companies_id', $idsCompanies);
+        // $invoices->whereIn('invoices.company_destination_id', $idsCompanies);
         $invoices->asObject();
         $totals = $invoices->get()->getResult();
-        $idInputs = [101, 102, 4, 104,  107, 116];
-        $idOutPuts = [1, 2, 5, 103, 108,115];
+        $idInputs = [101, 102, 4, 104,  107, 119];
+        $idOutPuts = [1, 2, 5, 103, 108];
         foreach($totals as $total){
-            if(in_array($total->type_documents_id, $idInputs)){
-                $input = $input + ($total->quantity * $total->cost);
-                $output = $output + ($total->quantity * $total->valor);
+            if($total->type_documents_id == 115){
+                if(count($idsCompanies) == 1){
+                    if($total->company_destination_id == $idsCompanies[0]){ //Auth::querys()->companies_id
+                        $input = $input + ($total->quantity * $total->cost);
+                        $output = $output + ($total->quantity * $total->valor);
+                    }else{
+                        $input = $input - ($total->quantity * $total->cost);
+                        $output = $output - ($total->quantity * $total->valor);
+                    }
+                }
             }else{
-                $input = $input - ($total->quantity * $total->cost);
-                $output = $output - ($total->quantity * $total->valor);
+                if(in_array($total->type_documents_id, $idInputs)){
+                    $input = $input + ($total->quantity * $total->cost);
+                    $output = $output + ($total->quantity * $total->valor);
+                }else{
+                    $input = $input - ($total->quantity * $total->cost);
+                    $output = $output - ($total->quantity * $total->valor);
+                }
             }
         }
         return (object)[

@@ -50,6 +50,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Shared\Date;
 use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use App\Models\ProductsSerial;
+use App\Models\ProductsSerialDetail;
 
 
 class ImportController extends BaseController
@@ -81,8 +83,8 @@ class ImportController extends BaseController
         $companies = new Company();
         $headquarters = $companies
             ->select('companies.id, companies.company')
-            ->whereIn('id', $controllerHeadquarters->idsCompaniesHeadquarters())
-            ->where(['id !=' => 1])
+            // ->whereIn('id', $controllerHeadquarters->idsCompaniesHeadquarters())
+            ->where(['companies.headquarters_id' => 2])
             ->asObject()->get()->getResult();
 
 
@@ -416,6 +418,7 @@ class ImportController extends BaseController
                                         } else {
                                             $error = "El campo Teléfono es obligatorio.";
                                         }
+
                                         //validacion campo correo
                                         if (isset($cells[5]) && trim($cells[5]) != '') {
                                             if (!filter_var(trim($cells[5]), FILTER_VALIDATE_EMAIL)) {
@@ -424,6 +427,7 @@ class ImportController extends BaseController
                                         } else {
                                             $error = "El campo correo electrico es obligatorio.";
                                         }
+
                                         // if (isset($cells[6]) && trim($cells[6]) != '') {
                                         //     if (!filter_var(trim($cells[6]), FILTER_VALIDATE_EMAIL)) {
                                         //         $error = "El 'correo electrico 2' no es valido. Fila # " . $count;;
@@ -559,6 +563,10 @@ class ImportController extends BaseController
         
                                         $import = new CustomerImportController();
                                         return $import->create();
+                                    }
+
+                                    if ($_POST['tipoD'] == 8 ){
+                                        return $this->serials($this->request->getFile('file'));
                                     }
                                 }
                                 $count++;
@@ -715,8 +723,8 @@ class ImportController extends BaseController
                 }
 
                 // Linea
-                if (!empty($sheet->getCell('B'.$rowIndex)->getValue()) && trim($sheet->getCell('B'.$rowIndex)->getValue()) != '') {
-                    $code = explode('-', trim($sheet->getCell('B'.$rowIndex)->getValue()));
+                if (!empty($sheet->getCell('C'.$rowIndex)->getValue()) && trim($sheet->getCell('C'.$rowIndex)->getValue()) != '') {
+                    $code = explode('-', trim($sheet->getCell('C'.$rowIndex)->getValue()));
                     $codeLinea = $code[0];
                     $linea = $tableMaterials->where(['code' => $codeLinea])->asObject()->first();
                     if (is_null($linea)) {
@@ -730,12 +738,12 @@ class ImportController extends BaseController
                 $marca = $tableGender->where(['code' => $codeMarca])->asObject()->first();
 
                 // producto
-                if (empty($sheet->getCell('C'.$rowIndex)->getValue()) && trim($sheet->getCell('C'.$rowIndex)->getValue()) == '') {
+                if (empty($sheet->getCell('E'.$rowIndex)->getValue()) && trim($sheet->getCell('E'.$rowIndex)->getValue()) == '') {
                     array_push($error, "El campo nombres es obligatorio.  Fila # " . $rowIndex);
                 }
 
                 // precio Producto
-                if (empty($sheet->getCell('E'.$rowIndex)->getValue()) && trim($sheet->getCell('E'.$rowIndex)->getValue()) == '') {
+                if (empty($sheet->getCell('G'.$rowIndex)->getValue()) && trim($sheet->getCell('G'.$rowIndex)->getValue()) == '') {
                     /*if (!is_numeric(trim($cells[6]))) {
                         $error = "El campo 'valor' deben ser solo tipo numericos. Fila # " . $count;
                     }*/
@@ -743,7 +751,7 @@ class ImportController extends BaseController
                 } 
 
                 // costo Producto
-                if (empty($sheet->getCell('F'.$rowIndex)->getValue()) && trim($sheet->getCell('F'.$rowIndex)->getValue()) == '') {
+                if (empty($sheet->getCell('H'.$rowIndex)->getValue()) && trim($sheet->getCell('H'.$rowIndex)->getValue()) == '') {
                     /*if (!is_numeric(trim($cells[7]))) {
                         $error = "El campo 'Costo' deben ser solo tipo numericos. Fila # " . $count;
                     }¨*/
@@ -780,8 +788,8 @@ class ImportController extends BaseController
                 }
 
                 // Linea
-                if (!empty($sheet->getCell('B'.$rowIndex)->getValue()) && trim($sheet->getCell('B'.$rowIndex)->getValue()) != '') {
-                    $code = explode('-', trim($sheet->getCell('B'.$rowIndex)->getValue()));
+                if (!empty($sheet->getCell('C'.$rowIndex)->getValue()) && trim($sheet->getCell('C'.$rowIndex)->getValue()) != '') {
+                    $code = explode('-', trim($sheet->getCell('C'.$rowIndex)->getValue()));
                     $codeLinea = $code[0];
                     $linea = $tableMaterials->where(['code' => $codeLinea])->asObject()->first();
                     if (is_null($linea)) {
@@ -795,12 +803,12 @@ class ImportController extends BaseController
                 $marca = $tableGender->where(['code' => $codeMarca])->asObject()->first();
 
                 // producto
-                if (empty($sheet->getCell('C'.$rowIndex)->getValue()) && trim($sheet->getCell('C'.$rowIndex)->getValue()) == '') {
+                if (empty($sheet->getCell('E'.$rowIndex)->getValue()) && trim($sheet->getCell('E'.$rowIndex)->getValue()) == '') {
                     array_push($error, "El campo nombres es obligatorio.  Fila # " . $rowIndex);
                 }
 
                 // precio Producto
-                if (empty($sheet->getCell('E'.$rowIndex)->getValue()) && trim($sheet->getCell('E'.$rowIndex)->getValue()) == '') {
+                if (empty($sheet->getCell('G'.$rowIndex)->getValue()) && trim($sheet->getCell('G'.$rowIndex)->getValue()) == '') {
                     /*if (!is_numeric(trim($cells[6]))) {
                         $error = "El campo 'valor' deben ser solo tipo numericos. Fila # " . $count;
                     }*/
@@ -808,7 +816,7 @@ class ImportController extends BaseController
                 } 
 
                 // costo Producto
-                if (empty($sheet->getCell('F'.$rowIndex)->getValue()) && trim($sheet->getCell('F'.$rowIndex)->getValue()) == '') {
+                if (empty($sheet->getCell('H'.$rowIndex)->getValue()) && trim($sheet->getCell('G'.$rowIndex)->getValue()) == '') {
                     /*if (!is_numeric(trim($cells[7]))) {
                         $error = "El campo 'Costo' deben ser solo tipo numericos. Fila # " . $count;
                     }¨*/
@@ -856,13 +864,13 @@ class ImportController extends BaseController
                     }
 
                     $data = array(
-                        'name' => trim($cells[2]),
+                        'name' => trim($sheet->getCell('E'.$rowIndex)->getValue()),
                         'tax_iva' => 'R',
-                        'code' => $serial,
+                        'code' => empty($sheet->getCell('D'.$rowIndex)->getValue()) && trim($sheet->getCell('D'.$rowIndex)->getValue()) == '' ? $serial : $sheet->getCell('D'.$rowIndex)->getValue(),
                         'code_item' => $disponible[0],
-                        'valor' => trim($cells[4]),
-                        'cost' => trim($cells[5]),
-                        'description' => trim($cells[3] ? $cells[3] : $cells[2]),
+                        'valor' => trim($sheet->getCell('G'.$rowIndex)->getValue()),
+                        'cost' => trim($sheet->getCell('H'.$rowIndex)->getValue()),
+                        'description' => trim($sheet->getCell('F'.$rowIndex)->getValue() ? $sheet->getCell('F'.$rowIndex)->getValue() : $sheet->getCell('E'.$rowIndex)->getValue()),
                         'unit_measures_id' => 70,
                         'type_item_identifications_id' => 4,
                         'reference_prices_id' => 1,
@@ -881,6 +889,7 @@ class ImportController extends BaseController
                         'sub_group_id' => null,
                         'material_id' => $linea->id
                     );
+                    $products->insert($data);
                     // if ($products->insert($data)) {
                     //     $data['tax_iva'] = 'R';
                     //     $data['iva'] = $sinIva->id;
@@ -1032,13 +1041,13 @@ class ImportController extends BaseController
             ];
             $invoiceId = $model->insert($dataInvoice);
             $l = 0;
+            $lineExtesionAmount = 0;
+            $taxExclusiveAmount = 0;
+            $taxInclusiveAmount = 0;
+            $payableAmount = 0;
+            $tax = 0;
             foreach ($documents as $document) {
 
-                $lineExtesionAmount = 0;
-                $taxExclusiveAmount = 0;
-                $taxInclusiveAmount = 0;
-                $payableAmount = 0;
-                $tax = 0;
 
                 foreach ($document as $line) {
                     $line = (object)$line;
@@ -1128,6 +1137,75 @@ class ImportController extends BaseController
                     ->update();
                 $l++;
 
+            }
+            return redirect()->back()->with('success', 'El documento excel fue cargado correctamente.');
+        } catch (\exception $e) {
+            return redirect()->back()->with('errors', $e->getMessage());
+        }
+
+    }
+
+    public function serials($file)
+    {
+        $errors = [];
+
+        try {
+            $controllerHeadquarters = new HeadquartersController();
+            if(!$file) {
+                return redirect()->back()->with('errors', 'Por favor ingresa un documento');
+            }
+
+            $excel                  = IOFactory::load($file);
+            $documents              = [];
+            $sheet                  = $excel->getSheet(2);
+            $largestRowNumber       = $sheet->getHighestRow();
+            $errors = [];
+            for ($rowIndex = 2; $rowIndex <= $largestRowNumber; $rowIndex++) {
+                
+                $model = new Product();
+                $productId = $model->select(['id','cost'])
+                    ->where([
+                        'code' => $sheet->getCell('D'.$rowIndex)->getValue(),
+                        //'companies_id'          => Auth::querys()->companies_id,
+                        'tax_iva' => 'R'
+                    ])
+                    ->asObject()
+                    ->first();
+                if(empty($productId)){
+                    array_push($errors, "El producto {$sheet->getCell('C'.$rowIndex)->getValue()} no existe.");
+                }else{
+                    if(empty($sheet->getCell('A'.$rowIndex)->getValue()))
+                        array_push($errors, "El campo Código del Producto de la celda A{$rowIndex} es obligatorio.");
+                }
+            }
+            if (count($errors) > 0) {
+                return redirect()->back()->with('errors', implode('<br>', $errors));
+            }
+
+            for ($rowIndex = 2; $rowIndex <= $largestRowNumber; $rowIndex++) {
+                $model = new Product();
+                $productId = $model->select(['id','cost'])
+                    ->where([
+                        'code' => $sheet->getCell('D'.$rowIndex)->getValue(),
+                        //'companies_id'          => Auth::querys()->companies_id,
+                        'tax_iva' => 'R'
+                    ])
+                    ->asObject()
+                    ->first();
+
+                $pSerialM = new ProductsSerial();
+                $id = $pSerialM->insert([
+                    'products_id' => $productId->id,
+                    'serial' => $sheet->getCell('A'.$rowIndex)->getValue()
+                ]);
+
+                // return redirect()->back()->with('errors', $id);
+
+                $pSerialDetailM = new ProductsSerialDetail();
+                $pSerialDetailM->save([
+                    'products_serial_id' => $id,
+                    'invoices_id' => 1
+                ]);
             }
             return redirect()->back()->with('success', 'El documento excel fue cargado correctamente.');
         } catch (\exception $e) {

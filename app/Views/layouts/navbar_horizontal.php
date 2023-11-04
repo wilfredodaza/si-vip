@@ -35,10 +35,10 @@
                             <?php if(session('module') != 12): ?><i class="material-icons">settings</i><?php else: ?><i class="material-icons">keyboard_return</i><?php endif; ?>
                         </a>
                     </li> -->
-                    <li>
+                    <!-- <li>
                         <a class="waves-effect waves-block waves-light notification-button" href="javascript:void(0);" data-target="notifications-dropdown">
                             <i class="material-icons">notifications_none
-                                <?php
+                                <php
                                 $m = 0;
                                 foreach (notification('companies') as $item):
                                     if($item->view == 'false'):
@@ -46,10 +46,10 @@
                                     endif;
                                 endforeach;
                                 ?>
-                                <small class="notification-badge"><?= $m ?></small>
+                                <small class="notification-badge">< $m ?></small>
                             </i>
                         </a>
-                    </li>
+                    </li> -->
                     <li>
                         <a class="waves-effect waves-block waves-light profile-button" href="javascript:void(0);" data-target="profile-dropdown">
                             <span class="avatar-status avatar-online">
