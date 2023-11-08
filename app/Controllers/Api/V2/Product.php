@@ -11,6 +11,7 @@ use CodeIgniter\HTTP\ResponseInterface;
 use CodeIgniter\RESTful\ResourceController;
 use App\Models\AccountingAcount;
 use App\Models\ProductsSerial;
+use App\Models\SerialType;
 
 
 class Product extends ResourceController
@@ -146,7 +147,7 @@ class Product extends ResourceController
         // if(Auth::querys()->role_id != 15){
             $serilas = $pSerialM
             // has un select para las tablas products_serial y products_serial_detail.invoices_id y invoices.company_destination_id
-            ->select(['products_serial.*', 'products_serial_detail.invoices_id', 'invoices.company_destination_id'])
+            ->select(['products_serial.*', 'products_serial.serial as name', 'products_serial_detail.invoices_id', 'invoices.company_destination_id'])
             // has un where para el campo products_id sea igual a la vaiable que se envia
             // que el status sea igual a 1
             // y el company_destination_id sea igual al Auth::querys()->companies_id
@@ -175,6 +176,12 @@ class Product extends ResourceController
             // ->get()->getResult();
             // return $serilas;
         // }
+    }
+
+    public function serialType(){
+        $serialTypeM = new SerialType();
+        $serials_type = $serialTypeM->get()->getResult();
+        return $this->respond(['status' => 200, 'code' => 200, 'data' => $serials_type]);
     }
 
     public function create()

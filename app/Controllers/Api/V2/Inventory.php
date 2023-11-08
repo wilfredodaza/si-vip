@@ -98,9 +98,13 @@ class Inventory extends ResourceController
             if ($json->type_document_id == 107) {
                 $serials = [];
                 foreach ($json->invoice_lines  as $key => $detail) {
+                    $serials_value = [];
+                    foreach ($detail->serials as $key => $serial) {
+                        array_push($serials_value, $serial->value.'-'.$serial->type_serial);
+                    }
                     if(count($detail->serials) > 0) {
                         $pSerialM = new ProductsSerial();
-                        $data = $pSerialM->whereIn('serial', $detail->serials)->get()->getResult();
+                        $data = $pSerialM->whereIn('CONCAT(serial,"-", serial_type_id)', $serials_value)->get()->getResult();
                         if(count($data) > 0) {
                             foreach ($data as $key => $value) {
                                 array_push($serials, $value->serial);
@@ -579,7 +583,8 @@ class Inventory extends ResourceController
                         $pSerialM = new ProductsSerial();
                         $id = $pSerialM->insert([
                             'products_id' => $value->product_id,
-                            'serial' => $serial
+                            'serial' => $serial->value,
+                            'serial_type_id' => $serial->type_serial
                         ]);
                     }
                     $pSerialDetailM = new ProductsSerialDetail();

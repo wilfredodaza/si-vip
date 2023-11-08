@@ -287,8 +287,8 @@ class ProductsController extends BaseController
                     throw  new \Exception('El producto con el código: ' . $_POST['product_code'] . ' ya se encuentra creado.');
                 }
             }
-            $productCopy = $this->tableProducts->where(['code' => $productOriginal->code, 'code_item' => $productOriginal->code_item, 'id !=' => $id])->asObject()->first();
-            //echo json_encode($productCopy);die();
+            // $productCopy = $this->tableProducts->where(['code' => $productOriginal->code, 'code_item' => $productOriginal->code_item, 'id !=' => $id])->asObject()->first();
+            // var_dump($productCopy);die();
             $data = [
                 'name' => $_POST['product_name'],
                 'code' => "{$_POST['product_code']}",
@@ -311,8 +311,8 @@ class ProductsController extends BaseController
                     $data['foto'] = $imagen;
                 }
             }
-            if ($this->tableProducts->set($data)->whereIn('id', [$productOriginal->id, $productCopy->id])->update()) {
-                return redirect()->to(base_url() . route_to('products-edit', $id))->with('success', 'Se cambio la foto exitosamente.');
+            if ($this->tableProducts->set($data)->where(['id' => $productOriginal->id])->update()) {
+                return redirect()->to(base_url() . route_to('products-edit', $id))->with('success', 'Se cambio el producto exitosamente.');
             } else {
                 throw  new \Exception('No se pudo guardar el producto');
             }

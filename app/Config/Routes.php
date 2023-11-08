@@ -67,6 +67,7 @@
         $routes->post('me', 'Api\Auth::verifyToken');
         // $routes->post('auth/verify', 'Api\Auth::verifyToken');
         $routes->group('v1', function ($routes) {
+            $routes->get('serial_type', 'Api\V2\Product::serialType');
             $routes->get('resolutions/(:num)', 'Api\Resolution::resolutions/$1');
             $routes->get('customers/', 'Api\Customer::index');
             $routes->get('company', 'Api\Company::index');

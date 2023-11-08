@@ -15,6 +15,7 @@ class ProductsSerial extends Model
         'products_id',
         'serial',
         'status',
+        'serial_type_id'
     ];
 
 }
