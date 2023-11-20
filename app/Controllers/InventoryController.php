@@ -89,11 +89,32 @@ class InventoryController extends BaseController
             'users.name as user_name'
         ];
         $model = new Invoice();
+        $model->select(['customers.name', 'customers.id'])->distinct()
+            ->where(['invoices.companies_id' => Auth::querys()->companies_id])
+            ->orWhere(['invoices.company_destination_id' => Auth::querys()->companies_id])
+            ->join('customers', 'customers.id = invoices.customers_id');
+        $customers = $model->get()->getResult();
+
+        $model = new Invoice();
+        $model->select(['type_documents.name', 'type_documents.id'])->distinct()
+            ->where(['invoices.companies_id' => Auth::querys()->companies_id])
+            ->orWhere(['invoices.company_destination_id' => Auth::querys()->companies_id])
+            ->join('type_documents', 'type_documents.id = invoices.type_documents_id', 'left');
+        $type_documents_name = $model->get()->getResult();
 
         $type_documents =  Auth::querys()->role_id == 20 ? '108' : '107, 108, 115, 116, 119';
         $type_documents = Auth::querys()->role_id == 19 ? '108, 115, 119' : $type_documents;
         $aux_query = Auth::querys()->role_id == 20 ? ' and invoices.user_id = ' . Auth::querys()->id : '';
 
+        $aux_query .= $_GET['resolution'] ? ' and invoices.resolution = '.$_GET['resolution'] : '';
+        $aux_query .= $_GET['customers'] ? ' and invoices.customers_id = '.$_GET['customers'] : '';
+        $aux_query .= $_GET['type_documents'] ? ' and invoices.type_documents_id = '.$_GET['type_documents'] : '';
+        $aux_query .= $_GET['start_date'] ? " and invoices.created_at >= '".$this->request->getGet('start_date')." 00:00:00'": "";
+        $aux_query .= $_GET['end_date'] ? " and invoices.created_at <= '".$this->request->getGet('end_date')." 23:59:59'": "";
+        // var_dump([$aux_query]); die;
+
+
+        $model = new Invoice();
         $invoices = $model
             ->select($data)
             ->join('documents', 'invoices.id = documents.invoice_id', 'left')
@@ -107,6 +128,16 @@ class InventoryController extends BaseController
             if($manager){
                 // $invoices->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
                 $invoices->whereIn('invoices.type_documents_id', ['107', '108', '115', '116', '119']);
+                if(!empty($_GET['resolution']))
+                    $invoices->where(['invoices.resolution' => $_GET['resolution']]);
+                if(!empty($_GET['customers']))
+                    $invoices->where(['invoices.customers_id' => $_GET['customers']]);
+                if(!empty($_GET['type_documents']))
+                    $invoices->where(['invoices.type_documents_id' => $_GET['type_documents']]);
+                if(!empty($_GET['start_date']))
+                    $invoices->where(['invoices.created_at >=' => $this->request->getGet('start_date')." 00:00:00"]);
+                if(!empty($_GET['end_date']))
+                    $invoices->where(['invoices.created_at <=' => $this->request->getGet('end_date')." 23:59:59"]);
             }else{
                 // $invoices->where('(invoices.companies_id in (2, '.Auth::querys()->companies_id.') or (invoices.company_destination_id in (3, '.Auth::querys()->companies_id.') ))');
                 $invoices->where('
@@ -133,7 +164,9 @@ class InventoryController extends BaseController
             'company' => $company,
             'documents' => $invoices->paginate(10),
             'pager' => $invoices->pager,
-            'manager' => $manager
+            'manager' => $manager,
+            'customers' => $customers,
+            'type_documents_name' => $type_documents_name
         ];
         return view('inventory/index', $data);
     }
@@ -492,6 +525,7 @@ class InventoryController extends BaseController
             // $manager = false;
             $idsCompanies = $_GET['headquarter'];
         }
+        // var_dump($idsCompanies); die;
         $indicadores = [];
         $indicators = $this->totalIndicatorsInventory(isset($_GET['headquarter']) ? [$idsCompanies] : (($manager)?$this->controllerHeadquarters->idsCompaniesHeadquarters():[$idsCompanies]));
         array_push($indicadores, (object)[
@@ -522,7 +556,7 @@ class InventoryController extends BaseController
             LEFT JOIN invoices ON invoices.id = line2.invoices_id  
             WHERE prod2.id = products.id and invoices.company_destination_id IN (' . $idsCompanies . ')  and invoices.type_documents_id IN (101, 102, 4, 104,  107, 119)
             GROUP BY  prod2.id), 0) AS input',
-            !$manager ?
+            !$manager || isset($_GET['headquarter']) ?
                     'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
                 LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
                 LEFT JOIN invoices ON invoices.id = line2.invoices_id  
@@ -534,7 +568,7 @@ class InventoryController extends BaseController
             LEFT JOIN invoices ON invoices.id = line2.invoices_id
             WHERE prod2.id = products.id and invoices.companies_id IN (' . $idsCompanies . ')  and (invoices.type_documents_id IN (103, 108) or (invoices.type_documents_id IN (1, 2, 5) and invoices.invoice_status_id != 1))
             GROUP BY  prod2.id), 0) AS output',
-            !$manager ?
+            !$manager || isset($_GET['headquarter']) ?
                 'IFNULL((SELECT SUM(line2.quantity) FROM products AS prod2
             LEFT JOIN line_invoices AS line2 ON prod2.id = line2.products_id  
             LEFT JOIN invoices ON invoices.id = line2.invoices_id
