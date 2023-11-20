@@ -20,3 +20,32 @@ span.my-badge {
 .button-modal svg {
     margin-left: 5px;
 }
+
+.kardex .dt-buttons {
+    clear: both;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.kardex-serials {
+    max-height: 200px;
+    overflow-y: auto;
+    position: relative;
+}
+
+.kardex-serials table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.kardex-serials th, .kardex-serials td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.kardex-serials thead {
+    position: sticky;
+    top: 0;
+    background-color: #f2f2f2;
+}

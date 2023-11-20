@@ -113,12 +113,12 @@
                 <div class="card">
                     <div class="card-content">
                         <?php if($validation): ?>
-                        <a href="<?= base_url() ?>/inventory/create"
-                           class="waves-effect waves-light blue darken-2 mr-1 darken-1 pull-right btn  sept-2 active-red"
-                           style="margin-bottom:20px; padding-right: 10px; padding-left: 10px;" data-target="modal1">
-                            <i class="material-icons right">add</i>
-                            Entrada Remisión
-                        </a>
+                            <a href="<?= base_url() ?>/inventory/create"
+                            class="waves-effect waves-light blue darken-2 mr-1 darken-1 pull-right btn  sept-2 active-red"
+                            style="margin-bottom:20px; padding-right: 10px; padding-left: 10px;" data-target="modal1">
+                                <i class="material-icons right">add</i>
+                                Entrada Remisión
+                            </a>
                         <?php endif ?>
                         <a href="<?= base_url() ?>/inventory/create/out"
                            class="waves-effect waves-light red darken-2 mr-1 darken-1 pull-right btn  sept-2 active-red"
@@ -137,7 +137,7 @@
                                     <th class="text-center sept-5">Origen</th>
                                     <th class="text-center">Destino</th>
                                     <th class="text-center">Cliente/Proovedor</th>
-                                    <th class="text-center">Valor</th>
+                                    <th class="text-center">Valor Venta</th>
                                     <th class="text-center sept-3">Acciones</th>
                                 </tr>
                                 </thead>

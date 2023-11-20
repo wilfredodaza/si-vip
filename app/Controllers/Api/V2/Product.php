@@ -147,7 +147,14 @@ class Product extends ResourceController
         // if(Auth::querys()->role_id != 15){
             $serilas = $pSerialM
             // has un select para las tablas products_serial y products_serial_detail.invoices_id y invoices.company_destination_id
-            ->select(['products_serial.*', 'products_serial.serial as name', 'products_serial_detail.invoices_id', 'invoices.company_destination_id'])
+            ->select([
+                'products_serial.*',
+                'products_serial.serial as name',
+                'products_serial_detail.invoices_id',
+                'invoices.company_destination_id',
+                'serial_type.name as serial_type_name',
+                'serial_type.id as type_serial',
+            ])
             // has un where para el campo products_id sea igual a la vaiable que se envia
             // que el status sea igual a 1
             // y el company_destination_id sea igual al Auth::querys()->companies_id
@@ -164,6 +171,8 @@ class Product extends ResourceController
             ->join('products_serial_detail', 'products_serial_detail.products_serial_id = products_serial.id and products_serial_detail.invoices_id = (select max(invoices_id) from products_serial_detail where products_serial_id = products_serial.id)', 'left')
             // realiza un join a la tabla invoices teniendo como referencia al campo invoices_id de la tabla products_serial_detail y ya
             ->join('invoices', 'invoices.id = products_serial_detail.invoices_id', 'left')
+            
+            ->join('serial_type', 'serial_type.id = products_serial.serial_type_id', 'left')
 
             ->get()->getResult();
             return $serilas;

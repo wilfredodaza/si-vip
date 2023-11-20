@@ -130,7 +130,21 @@
                                                                 class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 l3">
+                                            
+                                            <div class="col s12 m6 l4">
+                                                <div class="input-field">
+                                                    <input type="file" class="dropify" name="photo" data-height="125"/>
+                                                </div>
+                                            </div>
+                                            <div class="col s12 m6 l5">
+                                                <div class="input-field">
+                                                    <textarea style="height: 89px !important;" id="description"
+                                                              rows="20" name="description" required></textarea>
+                                                    <label for="description" class="active">Descripción del producto
+                                                        <span class="red-text"> * </span> </label>
+                                                </div>
+                                            </div>
+                                            <!-- <div class="col s12 l3">
                                                 <div class="input-field">
                                                     <input placeholder="$ 0" id="value_one" name="value_one"
                                                            type="text">
@@ -150,7 +164,7 @@
                                                            type="text" >
                                                     <label for="value_three">Valor tipo 3</label>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                             <!--<div class="col s12 m3 l3">
                                                 <div class="input-field">
                                                     <input placeholder="" id="product_brand" name="product_brand"
@@ -167,19 +181,6 @@
                                             </div>-->
                                         </div>
                                         <div class="row">
-                                            <div class="col s12 m6 l6">
-                                                <div class="input-field">
-                                                    <input type="file" class="dropify" name="photo" data-height="125"/>
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m6 l6">
-                                                <div class="input-field">
-                                                    <textarea style="height: 89px !important;" id="description"
-                                                              rows="20" name="description" required></textarea>
-                                                    <label for="description" class="active">Descripción del producto
-                                                        <span class="red-text"> * </span> </label>
-                                                </div>
-                                            </div>
                                         </div>
                                         <div class="row">
                                             <!-- <div class="col s12 m3 l3">

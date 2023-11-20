@@ -61,24 +61,30 @@
                             <p class="">
                                 <?php if (isset($_GET['headquarter']) || isset($_GET['code']) || isset($_GET['name'])): ?>
                                     <a href="<?= base_url() . route_to('inventory-availability') ?>"
-                                       class="btn right btn-light-red btn-small ml-1"
-                                       style="padding-left: 10px;padding-right: 10px; margin-right: 10px; ">
-                                        <i class="material-icons left">close</i>
-                                        Quitar Filtro
+                                       class="btn right btn-light-red btn-small ml-1 tooltipped" data-position="bottom" data-tooltip="Quitar Filtro"
+                                       style="padding-left: 10px; padding-right: 10px; ">
+                                        <i class="material-icons">close</i>
                                     </a>
                                 <?php endif; ?>
                                 <button data-target="filter"
-                                                                             style="margin-left: 5px;"
-                                                                             class="right btn btn-small btn-light-indigo modal-trigger step-5 active-red">
-                                    Filtrar <i class="material-icons right">filter_list</i>
+                                    style="padding-left: 10px; padding-right: 10px; "
+                                    class="right btn btn-small ml-1 btn-light-indigo modal-trigger step-5 active-red tooltipped" data-position="bottom" data-tooltip="Filtrar">
+                                    <i class="material-icons">filter_list</i>
                                 </button>
-                                <a href="<?= base_url('inventory/out_transfer') ?>" <?= ($manager) ? 'disabled' : '' ?>
-                                   class="btn-small  btn-light-indigo right"
-                                   style="margin-bottom:20px; padding-right: 10px; padding-left: 10px;">
-                                    <i class="material-icons right">add</i>
-                                    Realizar transferencia
+                                <a
+                                    href="<?= base_url(['inventory','availability','download']) ?><?= isset($_GET['headquarter']) ? '?headquarter='.$_GET['headquarter'] : '' ?>"
+                                    style="padding-left: 10px;padding-right: 10px;"
+                                    class="right ml-1 btn btn-small btn-light-blue tooltipped" data-position="bottom" data-tooltip="Descargar">
+                                    <i class="material-icons">cloud_download</i>
                                 </a>
-                                Aquí podrás ver la disponibilidad de los productos con los que actualmente cuentas.
+                                <a href="<?= base_url('inventory/out_transfer') ?>" <?= ($manager) ? 'disabled' : '' ?>
+                                   class="btn-small ml-1  btn-light-indigo right tooltipped" data-position="bottom" data-tooltip="Realizar transferencia"
+                                   style="margin-bottom:10px; padding-right: 10px; padding-left: 10px;">
+                                    <i class="material-icons">add</i>
+                                </a>
+                                <span class="mr-1">Aquí podrás ver la disponibilidad de los productos con los que actualmente cuentas.</span>
+                                <br>
+                                <p><b>Cantidad de productos: <?= $indicators->total ?></b></p>
                             </p>
                             <div class="row">
                                 <div class="col s12">
@@ -132,6 +138,7 @@
                                         <p class="center red-text pt-1">No hay ningún producto con disponibilidad.</p>
                                     <?php endif ?>
                                     <?= $pager->links() ?>
+                                    
                                 </div>
                             </div>
 
@@ -151,7 +158,7 @@
                     <div class="input-field">
                         <select class="select2 browser-default validate" id="headquarterId" name="headquarterId"
                                 required>
-                            <option selected disabled value="">Seleccione una sede</option>
+                            <option selected value="">Seleccione una sede</option>
                             <?php foreach ($headquarters as $headquarter): ?>
                                 <option <?= ($headquarter->id == company()->id) ? 'disabled' : '' ?>
                                         value="<?= $headquarter->id ?>"><?= $headquarter->company ?></option>
