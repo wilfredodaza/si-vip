@@ -126,6 +126,11 @@
                             <i class="material-icons right">add</i>
                             Salida Remisión
                         </a>
+                        <button data-target="filter"
+                            style="margin-left: 5px;"
+                            class="right btn btn-small btn-light-indigo modal-trigger step-5 active-red">
+                            Filtrar <i class="material-icons right">filter_list</i>
+                        </button>
                         <div class="row">
                             <table class="responsive-table">
                                 <thead>
@@ -398,8 +403,61 @@
         <span style="width: 100%; text-align: center; color: white;  display: block; ">Cargando documento</span>
     </div>
 
+        <!-- modal filtro -->
+<form action="" method="GET" autocomplete="off">
+    <div id="filter" class="modal" role="dialog" style="height:auto; width: 600px">
+        <div class="modal-content">
+            <h5>Filtrar</h5>
+            <div class="row">
+                <div class="col s6 input-field">
+                    <select class="select2 browser-default validate" name="customers" id="customers_id">
+                        <option value="">Seleccione un Cliente/Proveedor</option>
+                        <?php foreach($customers as $customer): ?>
+                            <option value="<?= $customer->id ?>" <?= isset($_GET['customers']) && !empty($_GET['customers']) && $_GET['customers'] == $customer->id ? 'selected' : ''  ?> ><?= $customer->name ?></option>
+                        <?php endforeach ?>
+                    </select>
+                    <label for="customers_id">Cliente/Proveedor</label>
+                </div>
+                <div class="col s6 input-field">
+                    <select class="select2 browser-default validate" name="type_documents" id="type_documents_id">
+                        <option value="">Seleccione un tipo de documento</option>
+                        <?php foreach($type_documents_name as $type): ?>
+                            <option value="<?= $type->id ?>" <?= isset($_GET['type_documents']) && !empty($_GET['type_documents']) && $_GET['type_documents'] == $type->id ? 'selected' : ''  ?>><?= $type->name ?></option>
+                        <?php endforeach ?>
+                    </select>
+                    <label for="type_documents_id">Tipo de documento</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12 m6 input-field">
+                    <input type="date" id="start_date" name="start_date"
+                           value="<?= $_GET['start_date'] ?? '' ?>">
+                    <label for="start_date">Fecha de inicio</label>
+                </div>
+                <div class="col s12 m6 input-field">
+                    <input id="end_date" type="date" name="end_date"
+                           value="<?= $_GET['end_date'] ?? '' ?>">
+                    <label for="end_date">Fecha fin</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col s12 input-field">
+                    <label for="resolution">Documento</label>
+                    <input type="text" id="resolution" name="resolution" value="<?= $_GET['resolution'] ?? '' ?>">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <a href="#!" class="modal-action modal-close waves-effect  btn-flat btn-light-indigo ">Cerrar</a>
+            <button class="btn indigo">Buscar</button>
+
+        </div>
+    </div>
+</form>
+
 <?= $this->endSection() ?>
 <?= $this->section('scripts') ?>
+            <script src="<?= base_url('/js/advance-ui-modals.js') ?>"></script>
     <script src="<?= base_url() ?>/app-assets/vendors/data-tables/js/jquery.dataTables.min.js"></script>
     <script src="<?= base_url() ?>/app-assets/vendors/data-tables/extensions/responsive/js/dataTables.responsive.min.js"></script>
     <script src="<?= base_url() ?>/app-assets/vendors/data-tables/js/dataTables.select.min.js"></script>

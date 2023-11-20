@@ -563,7 +563,7 @@ class ReportsController extends BaseController
             'default_font' => 'Roboto',
             'margin_left' => 5,
             'margin_right' => 5,
-            'margin_top' => 32,
+            'margin_top' => 45,
             'margin_bottom' => 10,
             'margin_header' => 5,
             'margin_footer' => 5
@@ -576,21 +576,33 @@ class ReportsController extends BaseController
         $mpdf->SetHTMLHeader('
         <table width="100%">
             <tr>
+                <td width="100%" align="center" style="background: #4571C2"></td>
+            </tr>
+            <tr>
                 <td width="100%" align="center">
+                    <div style="padding:5px; background:red; width:100% "></div>
                     <div>
-                        <div class="text-center">
-                            <h2 class="text-center">'.configInfo()['name_app'].'</h2><br>
-                            <p>
-                            Email: '.$document->company_email .' <br>
-                            Telefono: '.$document->company_phone .'<br>
-                            Sede: '.$document->company_name .'
-                            </p>
-                        </div>
+                        <div><img src="'.base_url(['images', 'logo2.jpg']).'"/></div>
                     </div>
+                    <div style="padding:5px; background:black; width:100% "></div>
                 </td>
             </tr>
+            <tr>
+                <td width="100%" align="center" style="background:black"></td>
+            </tr>
         </table>
-        <hr>');
+        ');
+
+        
+    //     <div class="text-center">
+    //     <h2 class="text-center">'.configInfo()['name_app'].'</h2><br>
+    //     <p>
+    //     Email: '.$document->company_email .' <br>
+    //     Telefono: '.$document->company_phone .'<br>
+    //     Sede: '.$document->company_name .'
+    //     </p>
+    // </div>
+
         // $mpdf->SetHTMLHeader(view('invoice/previsualizador/header', [
         //     'invoice'       => $document,
         // ]));
