@@ -311,6 +311,16 @@ class Inventory extends ResourceController
 
         $i = 0;
         foreach ($lineInvoice as $item) {
+            if($invoice->type_documents_id == 107){
+                $serials = $this->getSerial($item->products_id, $invoice->id);
+                $data['invoice_lines'][$i]['serials'] = $serials;
+                $data['invoice_lines'][$i]['serials_sales'] = [];
+            }else if($invoice->type_documents_id == 108){
+                $serials = $this->getSerial($item->products_id, $invoice->id);
+                $serialsSales = $this->getSerialsSales($item->products_id, $invoice->id);
+                $data['invoice_lines'][$i]['serials'] = $serials;
+                $data['invoice_lines'][$i]['serials_sales'] = $serialsSales;
+            }
             $data['invoice_lines'][$i]['product_id'] = $item->products_id;
             $data['invoice_lines'][$i]['invoice_line_id'] = $item->id;
             $data['invoice_lines'][$i]['unit_measure_id'] = 70;
@@ -357,6 +367,57 @@ class Inventory extends ResourceController
         $data['legal_monetary_totals']['payable_amount'] = $invoice->payable_amount;
 
         return $this->respond(['status' => 201, 'code' => 201, 'data' => $data]);
+    }
+
+    public function getSerial($id_product, $id_invoice){
+        
+        $pSerialM = new ProductsSerial();
+        $serials = $pSerialM
+            ->select([
+                'products_serial.*',
+                'products_serial.serial',
+                'serial_type.name as serial_type_name',
+                'serial_type.id as type_serial',
+                'products_serial_detail.invoices_id',
+                'products_serial_detail.id as pro_serial_det_id',
+                '(SELECT COUNT(id) FROM products_serial_detail WHERE products_serial_id = products_serial.id) as total_details', // Contador de detalles
+                '0 as isDeleted',
+            ])
+            ->where([
+                'products_serial.products_id' => $id_product,
+                'products_serial_detail.invoices_id' => $id_invoice,
+            ])
+            ->join('products_serial_detail', 'products_serial_detail.products_serial_id = products_serial.id', 'left')
+            ->join('serial_type', 'serial_type.id = products_serial.serial_type_id', 'left')
+            ->groupBy('products_serial.id') // Agrupa por products_serial para contar detalles por cada uno
+            ->get()->getResult();
+
+        return $serials;
+    }
+
+    public function getSerialsSales($id_product, $id_invoice){
+        $pSerialM = new ProductsSerial();
+        $serials = $pSerialM
+            ->select([
+                'products_serial.*',
+                'products_serial.serial as name',
+                'serial_type.name as serial_type_name',
+                'serial_type.id as type_serial',
+                'products_serial_detail.invoices_id',
+                'products_serial_detail.id as pro_serial_det_id',
+                'invoices.company_destination_id'
+            ])
+            ->where([
+                'products_serial.products_id' => $id_product,
+                'invoices.company_destination_id' => Auth::querys()->companies_id,
+                'invoices.type_documents_id !=' => 115
+            ])
+            ->orWhere('(invoices.type_documents_id = 115 and invoices.invoice_status_id = 21 and invoices.company_destination_id = '.Auth::querys()->companies_id.')')
+            ->join('products_serial_detail', 'products_serial_detail.products_serial_id = products_serial.id and products_serial_detail.invoices_id = (select max(invoices_id) from products_serial_detail where products_serial_id = products_serial.id and invoices_id != '.$id_invoice.')', 'left')
+            ->join('invoices', 'invoices.id = products_serial_detail.invoices_id', 'left')
+            ->join('serial_type', 'serial_type.id = products_serial.serial_type_id', 'left')
+            ->get()->getResult();
+        return $serials;
     }
 
     public function update($id = null)
@@ -636,16 +697,67 @@ class Inventory extends ResourceController
         foreach ($json->idDelete as $item) {
             if ($json->type_document_id == 115 || $json->type_document_id == 116) {
                 $lineInvoices = $this->tableLineInvoices->where(['id' => $item])->asObject()->first();
-                $lineInvoicesHeadquartes = $this->tableLineInvoices
-                    ->where(['products_id' => $lineInvoices->products_id, 'invoices_id' => $transfer->resolution_credit])
-                    ->asObject()->first();
-                $this->tableLineInvoices->where(['id' => $lineInvoicesHeadquartes->id])->delete();
-                $this->tableLineInvoicesTax->where(['line_invoices_id' => $lineInvoicesHeadquartes->id])->delete();
+                if(!empty($lineInvoices)){
+                    $lineInvoicesHeadquartes = $this->tableLineInvoices
+                        ->where(['products_id' => $lineInvoices->products_id, 'invoices_id' => $transfer->resolution_credit])
+                        ->asObject()->first();
+                    $this->tableLineInvoices->where(['id' => $lineInvoicesHeadquartes->id])->delete();
+                    $this->tableLineInvoicesTax->where(['line_invoices_id' => $lineInvoicesHeadquartes->id])->delete();
+                }
             }
-            $this->tableLineInvoices->where(['id' => $item])->delete();
-            $this->tableLineInvoicesTax->where(['line_invoices_id' => $item])->delete();
+
+            if($json->type_document_id == 107){
+                $lineInvoices = $this->tableLineInvoices->where(['id' => $item])->asObject()->first();
+                if(!empty($lineInvoices)){
+                    $serials = $this->getSerial($lineInvoices->products_id, $idInvoice);
+                    foreach ($serials as $key => $serial) {
+                        $proSerialDet = new ProductsSerialDetail();
+                        $proSerial = new ProductsSerial();
+                        $proSerialDet->where(['id' => $serial->pro_serial_det_id])->delete();
+                        $proSerial->where(['id' => $serial->id])->delete();
+                    }
+                    $this->tableLineInvoices->where(['id' => $item])->delete();
+                    $this->tableLineInvoicesTax->where(['line_invoices_id' => $item])->delete();
+                }
+            }
+
+            if($json->type_document_id == 108){
+                $lineInvoices = $this->tableLineInvoices->where(['id' => $item])->asObject()->first();
+                if(!empty($lineInvoices)){
+                    $serials = $this->getSerial($lineInvoices->products_id, $idInvoice);
+                    foreach ($serials as $key => $serial) {
+                        $proSerialDet = new ProductsSerialDetail();
+                        $proSerial = new ProductsSerial();
+                        $proSerialDet->where(['id' => $serial->pro_serial_det_id])->delete();
+                        $proSerial->set(['status' => 1])->where(['id' => $serial->id])->update();
+                    }
+                    $this->tableLineInvoices->where(['id' => $item])->delete();
+                    $this->tableLineInvoicesTax->where(['line_invoices_id' => $item])->delete();
+                }
+            }
+
+
         }
         foreach ($invoiceLines as $value) {
+            if($json->type_document_id == 107){
+                $serials = $this->getSerial($value->product_id, $idInvoice);
+                foreach ($serials as $key => $serial) {
+                    if($serial->total_details == 1){
+                        $proSerialDet = new ProductsSerialDetail();
+                        $proSerial = new ProductsSerial();
+                        $proSerialDet->where(['id' => $serial->pro_serial_det_id])->delete();
+                        $proSerial->where(['id' => $serial->id])->delete();
+                    }
+                }
+            }else if ($json->type_document_id == 108){
+                $serials = $this->getSerial($value->product_id, $idInvoice);
+                foreach ($serials as $key => $serial) {
+                    $proSerialDet = new ProductsSerialDetail();
+                    $proSerial = new ProductsSerial();
+                    $proSerialDet->where(['id' => $serial->pro_serial_det_id])->delete();
+                    $proSerial->set(['status' => 1])->where(['id' => $serial->id])->update();
+                }
+            }
             if (isset($value->invoice_line_id)) {
                 $idProduct = $value->product_id;
                 //$this->validateCreateRemision($isCo, $json, $value, $idInvoice);
@@ -759,6 +871,32 @@ class Inventory extends ResourceController
                         $lineInvoiceTax = new LineInvoiceTax();
                         $lineInvoiceTax->insert($tax);
                     }
+                }
+            }
+            foreach ($value->serials as $key => $serial) {
+                if($json->type_document_id == 107 && $serial->total_details == 1){
+                    $pSerialM = new ProductsSerial();
+                    $id = $pSerialM->insert([
+                        'products_id' => $value->product_id,
+                        'serial' => $serial->serial,
+                        'serial_type_id' => $serial->type_serial
+                    ]);
+                    $pSerialDetailM = new ProductsSerialDetail();
+                    $pSerialDetailM->save([
+                        'products_serial_id' => $id,
+                        'invoices_id' => $idInvoice
+                    ]);
+                }else if($json->type_document_id == 108){
+                    $pSerialM = new ProductsSerial();
+                    $pSerialM->save([
+                        'id' => $serial->id,
+                        'status' => 0
+                    ]);
+                    $pSerialDetailM = new ProductsSerialDetail();
+                    $pSerialDetailM->save([
+                        'products_serial_id' => $serial->id,
+                        'invoices_id' => $idInvoice
+                    ]);
                 }
             }
         }

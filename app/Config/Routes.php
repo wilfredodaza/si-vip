@@ -648,6 +648,8 @@
     $routes->post('inventory/report_result', 'InventoryController::result');
     $routes->get('inventory/details/(:num)', 'InventoryController::details/$1');
     $routes->get('inventory/availability', 'InventoryController::availability' , ['as' => 'inventory-availability']);
+    
+    $routes->get('inventory/availability/download', 'InventoryController::Downloadavailability');
     $routes->get('inventory/kardex/(:num)', 'InventoryController::kardex/$1');
     $routes->get('inventory/kardexTable/(:num)', 'InventoryController::kardexTable/$1');
     $routes->get('inventory/create', 'InventoryController::create');

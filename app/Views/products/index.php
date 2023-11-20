@@ -72,7 +72,7 @@
                                                 <td class="center" >
                                                     <div class="btn-group" role="group">
                                                         <a href="<?=  base_url().route_to('products-show', $product['productId']) ?>"
-                                                           class="btn btn-small  yellow darken-1  tooltipped" data-position="top" data-tooltip="Resumen producto">
+                                                           class="btn btn-small  yellow darken-1  tooltipped" data-position="top" data-tooltip="Politica Costo">
                                                             <i class="material-icons">remove_red_eye</i>
                                                         </a>
                                                         <a href="<?=  base_url().route_to('products-edit', $product['productId']) ?>"

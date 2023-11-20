@@ -15,6 +15,11 @@ use App\Models\Product;
 use App\Models\Company;
 use App\Models\AccountingAcount;
 use App\Models\Resolution;
+use App\Models\ProductsSerial;
+
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class InventoryController extends BaseController
 {
@@ -368,6 +373,104 @@ class InventoryController extends BaseController
      * method GET
      * @return string view
      */
+
+     public function Downloadavailability(){
+        $company = isset($_GET['headquarter']) ? $_GET['headquarter'] : null;
+        $rol= session('user')->role_id;
+        $manager = ($rol == 15 ) ? true : false;
+        $idsCompanies = '';
+        if(isset($_GET['headquarter'])){
+           $idsCompanies = $_GET['headquarter'];
+        }else{
+            foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters() as $id => $item) {
+                if ($id == 0) {
+                    $idsCompanies = $item;
+                } else {
+                    $idsCompanies = $idsCompanies . ',' . $item;
+                }
+            }
+            if(!$manager){
+                $idsCompanies = $company;
+            }
+        }
+        $productModal = new Product();
+        $products = $productModal
+        ->select(['id', 'code', 'name'])
+        ->where(['kind_product_id' => NULL])
+        ->asObject()->get()->getResult();
+        $fileName = 'InventarioDisponibilidad.xlsx';
+        foreach($products as $product){
+            $product->balance = $this->availabilityProduct($product->id, $idsCompanies, true);
+        }
+        $styleArray = [
+            'borders' => [
+                'bottom' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                'top' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                'right' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                'left' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+            ],
+            'font' => [
+                'bold' => true,
+            ],
+            'alignment' => [
+                'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+            ],
+            'fill' => [
+                'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                'startColor' => [
+                    'argb' => '4472C4',
+                ],
+
+            ]
+        ];
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Productos Disponibles');
+        $sheet->setCellValue('A1', 'Código del producto')->getStyle('A1')->getFont()->setBold(true)->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE);
+        $sheet->setCellValue('B1', 'Descripción del producto')->getStyle('B1')->getFont()->setBold(true)->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE);
+        $sheet->setCellValue('C1', 'Cantidad')->getStyle('C1')->getFont()->setBold(true)->getColor()->setARGB(\PhpOffice\PhpSpreadsheet\Style\Color::COLOR_WHITE);
+        $sheet->getStyle('A1:C1')->applyFromArray($styleArray, false);
+        $sheet->getColumnDimension('B')->setWidth(25);
+        $sheet->getColumnDimension('A')->setWidth(35);
+        $sheet->getColumnDimension('C')->setWidth(15);
+        $sheet->getRowDimension('1')->setRowHeight(30);
+        $rows = 2;
+        foreach ($products as $val){
+            $sheet->setCellValue('A' . $rows, $val->code);
+            $sheet->setCellValue('B' . $rows, $val->name);
+            $sheet->setCellValue('C' . $rows, $val->balance);
+            $styleArray1 = [
+                'borders' => [
+                    'bottom' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                    'top' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                    'right' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                    'left' => ['borderStyle' => 'thin', 'color' => ['argb' => 'bdbdbd']],
+                ],
+                'alignment' => [
+                    'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_LEFT,
+                    'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                ],
+                'fill' => [
+                    'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                    'startColor' => [
+                        'argb' => 'B4C6E7',
+                    ],
+    
+                ]
+            ];
+            if($rows % 2 != 0){
+                $styleArray1['fill']['startColor']['argb'] = 'D9E1F2';
+            }
+            $sheet->getStyle('A'.$rows.':C'.$rows)->applyFromArray($styleArray1, false);
+            $rows++;
+        }
+        $writer = IOFactory::createWriter($spreadsheet, 'Xlsx');
+        $writer->save(WRITEPATH . 'uploads/'.$fileName);
+        $path = WRITEPATH . 'uploads/'.$fileName;
+        return $this->response->download($path, null);
+    }
+
     public function availability()
     {
         $product = new Product();
@@ -407,6 +510,7 @@ class InventoryController extends BaseController
             'observaciones' => '',
             'total' => $indicators->output
         ]);
+        $quantity = $indicators->total;
         $products = $product->select([
             'products.id',
             'products.name',
@@ -497,7 +601,8 @@ class InventoryController extends BaseController
             'headquarters' => $headquarters,
             'productsTransfer' => $productsTransfer,
             'manager' => $manager,
-            'indicadores' => $indicadores
+            'indicadores' => $indicadores,
+            'indicators' => $indicators
         ]);
     }
 
@@ -519,20 +624,21 @@ class InventoryController extends BaseController
         }
         // other documents
         $dataProducts = $this->products->select('
-            invoices.resolution, 
-            customers.name as customer_name,
-            line_invoices.quantity, 
-            invoices.created_at,
-            invoices.companies_id,
-            invoices.company_destination_id,
-            invoices.type_documents_id,
-            type_documents.name as type_document_name,
-            products.name,
-            companies.company as company_name,
-            com.company as company_destination_name,
-            documents.provider,
-            users.name as userName,
-            invoices.id as invoice_id
+                invoices.resolution, 
+                customers.name as customer_name,
+                line_invoices.quantity, 
+                invoices.created_at,
+                invoices.companies_id,
+                invoices.company_destination_id,
+                invoices.type_documents_id,
+                type_documents.name as type_document_name,
+                products.name,
+                products.id as id_product,
+                companies.company as company_name,
+                com.company as company_destination_name,
+                documents.provider,
+                users.name as userName,
+                invoices.id as invoice_id
             ')
             ->join('line_invoices', 'line_invoices.products_id = products.id', 'left')
             ->join('invoices', 'line_invoices.invoices_id = invoices.id')
@@ -554,47 +660,44 @@ class InventoryController extends BaseController
             $dataProducts->where('(invoices.companies_id ='. $idCompany.' or invoices.company_destination_id ='. $idCompany.')');
         }
         $dataProducts->orderBy('invoices.created_at', 'ASC')->asObject();
-        $products = $dataProducts->get()->getResult();
-        //echo json_encode($_GET['headquarter']);die();
-        // transfer documents
-        // $dataTransfer = $this->products->select('
-        //         invoices.resolution, 
-        //         customers.name as customer_name,
-        //         line_invoices.quantity, 
-        //         invoices.created_at,
-        //         invoices.type_documents_id,
-        //         type_documents.name as type_document_name,
-        //         products.name,
-        //         companies.company as company_name,
-        //         documents.provider,
-        //         users.name as userName
-        //     ')
-        //     ->join('line_invoices', 'line_invoices.products_id = products.id')
-        //     ->join('invoices', 'line_invoices.invoices_id = invoices.id')
-        //     ->join('documents', 'documents.invoice_id = invoices.id', 'left')
-        //     ->join('companies', 'companies.id = invoices.companies_id', 'left')
-        //     ->join('companies as com', 'companies.id = invoices.company_destination_id', 'left')
-        //     ->join('customers', 'invoices.customers_id = customers.id', 'left')
-        //     ->join('users', 'invoices.user_id = users.id', 'left')
-        //     ->join('type_documents', 'type_documents.id = invoices.type_documents_id')
-        //     ->whereIn('invoices.type_documents_id', [115, 116]);
-        // if ($manager) {
-        //     $dataTransfer->where(['products.id' => $id, 'invoices.invoice_status_id' => 21])->whereIn('invoices.companies_id', $this->controllerHeadquarters->idsCompaniesHeadquarters());
-        // } else {
-        //     $dataTransfer->where(['invoices.companies_id' => $idCompany, 'products.id' => $id, 'invoices.invoice_status_id' => 21]);
-        // }
-        // $dataTransfer->orderBy('invoices.created_at', 'ASC')->asObject();
-        // $transfer = $dataTransfer->get()->getResult();
-        $aux = [];
-        $transfer = [];
-        $kardex = array_merge($products, $transfer);
+        $kardex = $dataProducts->get()->getResult();
         foreach ($kardex as $key => $row) {
             $aux[$key] = $row->created_at;
         }
         array_multisort($aux, SORT_ASC, $kardex);
         $balance = 0;
         $date = [];
+        $pSerialM = new ProductsSerial();
+        $serials = $pSerialM
+                ->select([
+                    'products_serial.*',
+                    'products_serial.serial',
+                    'serial_type.name as serial_type_name',
+                    'serial_type.id as type_serial',
+                ])
+                ->where([
+                    'products_serial.products_id' => $id,
+                ])
+                ->join('serial_type', 'serial_type.id = products_serial.serial_type_id', 'left')
+                ->get()->getResult();
+        $pSerialM = new ProductsSerial();
         foreach ($kardex as $item) {
+            $item->serials = $pSerialM
+                ->select([
+                    'products_serial.*',
+                    'products_serial.serial',
+                    'serial_type.name as serial_type_name',
+                    'serial_type.id as type_serial',
+                    'products_serial_detail.invoices_id',
+                    'products_serial_detail.id as pro_serial_det_id',
+                ])
+                ->where([
+                    'products_serial.products_id' => $item->id_product,
+                    'products_serial_detail.invoices_id' => $item->invoice_id,
+                ])
+                ->join('products_serial_detail', 'products_serial_detail.products_serial_id = products_serial.id', 'left')
+                ->join('serial_type', 'serial_type.id = products_serial.serial_type_id', 'left')
+                ->get()->getResult();
             $item->input = 0;
             $item->out = 0;
             if ($item->type_documents_id == 107 || $item->type_documents_id == 108 || $item->type_documents_id == 115 || $item->type_documents_id == 116 || $item->type_documents_id == 119) {
@@ -655,7 +758,7 @@ class InventoryController extends BaseController
             $item->balance = $balance;
         }
         //echo json_encode($kardex);die();
-        return json_encode(array_reverse($kardex));
+        return json_encode(['data' => array_reverse($kardex), 'serials' => $serials]);
     }
 
     public function out_transfer()
@@ -726,22 +829,25 @@ class InventoryController extends BaseController
         }
     }
 
-    public function availabilityProduct($idProduct, $idCompany)
+    public function availabilityProduct($idProduct, $idCompany, $validador = false)
     {
         $product = new Product();
         $manager = $this->controllerHeadquarters->permissionManager(Auth::querys()->role_id);
-        if($manager){
-            $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
-            $idsCompanies = '';
-            foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany) as $id => $item) {
-                if ($id == 0) {
-                    $idsCompanies = $item;
-                } else {
-                    $idsCompanies = $idsCompanies . ',' . $item;
+        if($validador) $idsCompanies = $idCompany;
+        else{
+            if($manager){
+                $countIds = count($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany));
+                $idsCompanies = '';
+                foreach ($this->controllerHeadquarters->idsCompaniesHeadquarters($idCompany) as $id => $item) {
+                    if ($id == 0) {
+                        $idsCompanies = $item;
+                    } else {
+                        $idsCompanies = $idsCompanies . ',' . $item;
+                    }
                 }
+            }else{
+                $idsCompanies = $idCompany;
             }
-        }else{
-            $idsCompanies = Auth::querys()->companies_id;
         }
         $products = $product->select([
             'products.id',
@@ -889,30 +995,36 @@ class InventoryController extends BaseController
         $totals = $invoices->get()->getResult();
         $idInputs = [101, 102, 4, 104,  107, 119];
         $idOutPuts = [1, 2, 5, 103, 108];
+        $quantity = 0;
         foreach($totals as $total){
             if($total->type_documents_id == 115){
                 if(count($idsCompanies) == 1){
                     if($total->company_destination_id == $idsCompanies[0]){ //Auth::querys()->companies_id
                         $input = $input + ($total->quantity * $total->cost);
                         $output = $output + ($total->quantity * $total->valor);
+                        $quantity = $quantity + $total->quantity;
                     }else{
                         $input = $input - ($total->quantity * $total->cost);
                         $output = $output - ($total->quantity * $total->valor);
+                        $quantity = $quantity - $total->quantity;
                     }
                 }
             }else{
                 if(in_array($total->type_documents_id, $idInputs)){
                     $input = $input + ($total->quantity * $total->cost);
                     $output = $output + ($total->quantity * $total->valor);
+                    $quantity = $quantity + $total->quantity;
                 }else{
                     $input = $input - ($total->quantity * $total->cost);
                     $output = $output - ($total->quantity * $total->valor);
+                    $quantity = $quantity - $total->quantity;
                 }
             }
         }
         return (object)[
             'input' => $input,
-            'output' => $output
+            'output' => $output,
+            'total' => $quantity
         ];
     }
 

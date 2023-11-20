@@ -119,7 +119,18 @@
                                                     <label for="product_value">Valor Producto <span class='red-text'> * </span></label>
                                                 </div>
                                             </div>
-                                            <div class="col s12 m2 l3">
+                                            <div class="col s12 m6 l4">
+                                                <div class="input-field">
+                                                    <input type="file" class="dropify" name="photo" value="<?= $product->foto ?>" data-height="125" data-default-file="<?= base_url('assets/upload/products/'.$product->foto) ?>" />
+                                                </div>
+                                            </div>
+                                            <div class="col s12 m6 l5">
+                                                <div class="input-field">
+                                                    <textarea style="height: 89px !important;" id="description" rows="20" name="description" required><?= $product->description ?></textarea>
+                                                    <label for="description" class="active">Descripción del producto <span class="red-text"> * </span> </label>
+                                                </div>
+                                            </div>
+                                            <!-- <div class="col s12 m2 l3">
                                                 <div class="input-field">
                                                     <input value="<?= $product->value_one ?>" id="value_one" name="value_one"
                                                            type="text">
@@ -139,7 +150,7 @@
                                                            type="text" >
                                                     <label for="value_three">Valor tipo 3</label>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                             <!--<div class="col s12 m3 l3">
                                                 <div class="input-field">
                                                     <input value ="<?= $product->brandname ?>" id="product_brand" name="product_brand" type="text" class="validate">
@@ -154,17 +165,7 @@
                                             </div>-->
                                         </div>
                                         <div class="row">
-                                            <div class="col s12 m6 l6">
-                                                <div class="input-field">
-                                                    <input type="file" class="dropify" name="photo" value="<?= $product->foto ?>" data-height="125" data-default-file="<?= base_url('assets/upload/products/'.$product->foto) ?>" />
-                                                </div>
-                                            </div>
-                                            <div class="col s12 m6 l6">
-                                                <div class="input-field">
-                                                    <textarea style="height: 89px !important;" id="description" rows="20" name="description" required><?= $product->description ?></textarea>
-                                                    <label for="description" class="active">Descripción del producto <span class="red-text"> * </span> </label>
-                                                </div>
-                                            </div>
+                                            
                                         </div>
                                         <div class="row">
                                             <div class="col s2 m12 l12">
