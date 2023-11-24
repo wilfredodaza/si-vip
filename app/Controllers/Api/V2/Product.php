@@ -101,7 +101,7 @@ class Product extends ResourceController
         $arrayProducts = [];
         try {
             foreach ($products as $item) {
-                $item->valor = ($this->request->getGet('type') !== null) ? $item->cost : $item->valor;
+                $item->valor = ($this->request->getGet('type') !== null || $this->request->getGet('tax_iva') !== null) ? $item->cost : $item->valor;
                 $product = (object) [
                     'id'                            => $item->id,
                     'code'                          => $item->code,

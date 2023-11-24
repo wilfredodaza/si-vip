@@ -112,7 +112,7 @@
             <div class="col s12">
                 <div class="card">
                     <div class="card-content">
-                        <?php if($validation): ?>
+                        <?php if($validation || session('user')->role_id == 19): ?>
                             <a href="<?= base_url() ?>/inventory/create"
                             class="waves-effect waves-light blue darken-2 mr-1 darken-1 pull-right btn  sept-2 active-red"
                             style="margin-bottom:20px; padding-right: 10px; padding-left: 10px;" data-target="modal1">

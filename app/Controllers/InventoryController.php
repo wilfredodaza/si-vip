@@ -106,11 +106,11 @@ class InventoryController extends BaseController
         $type_documents = Auth::querys()->role_id == 19 ? '108, 115, 119' : $type_documents;
         $aux_query = Auth::querys()->role_id == 20 ? ' and invoices.user_id = ' . Auth::querys()->id : '';
 
-        $aux_query .= $_GET['resolution'] ? ' and invoices.resolution = '.$_GET['resolution'] : '';
-        $aux_query .= $_GET['customers'] ? ' and invoices.customers_id = '.$_GET['customers'] : '';
-        $aux_query .= $_GET['type_documents'] ? ' and invoices.type_documents_id = '.$_GET['type_documents'] : '';
-        $aux_query .= $_GET['start_date'] ? " and invoices.created_at >= '".$this->request->getGet('start_date')." 00:00:00'": "";
-        $aux_query .= $_GET['end_date'] ? " and invoices.created_at <= '".$this->request->getGet('end_date')." 23:59:59'": "";
+        $aux_query .= !empty($_GET['resolution']) ? ' and invoices.resolution = '.$_GET['resolution'] : '';
+        $aux_query .= !empty($_GET['customers']) ? ' and invoices.customers_id = '.$_GET['customers'] : '';
+        $aux_query .= !empty($_GET['type_documents']) ? ' and invoices.type_documents_id = '.$_GET['type_documents'] : '';
+        $aux_query .= !empty($_GET['start_date']) ? " and invoices.created_at >= '".$this->request->getGet('start_date')." 00:00:00'": "";
+        $aux_query .= !empty($_GET['end_date']) ? " and invoices.created_at <= '".$this->request->getGet('end_date')." 23:59:59'": "";
         // var_dump([$aux_query]); die;
 
 
