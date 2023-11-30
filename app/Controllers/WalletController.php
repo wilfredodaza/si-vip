@@ -251,6 +251,25 @@ class WalletController extends BaseController
         $wallet = new Wallet();
         $info = $wallet->save($data);
 
+
+        $invoiceM = new Invoice();
+        $invoice = $invoiceM->select([
+            'invoices.id',
+            'invoices.payable_amount',
+            'invoices.resolution',
+            'SUM(wallet.value) as wallet_value'
+        ])
+        ->where(['invoices.id' => $data['invoices_id']])
+        ->join('wallet','invoices.id = wallet.invoices_id', 'left')
+        ->groupBy('invoices.id')->asObject()->first();
+
+        if(($invoice->payable_amount - $invoice->wallet_value) <= 0){
+            $invoiceM = new Invoice();
+            $invoiceM->set(['status_wallet' => 'Paga'])->where(['id' => $invoice->id])->update();
+            $invoiceM->set(['status_wallet' => 'Paga'])->where(['resolution_id' => $invoice->resolution, 'type_documents_id' => 115])->update();
+        }
+
+
         if ($info) {
             return redirect()->back()->with('success', 'Datos actualizados correcamente.');
         } else {

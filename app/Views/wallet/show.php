@@ -122,7 +122,7 @@
                                             <p class="red-text red-text text-center center py-2 mt-1" >No hay datos
                                                 registrados.</p>
                                         <?php endif; ?>
-                                        <div class="divider mt-2"></div>
+                                        <!-- <div class="divider mt-2"></div>
                                         <h6>Notas Crédito</h6>
                                         <div class="divider"></div>
                                         <table class="responsive-table">
@@ -152,7 +152,7 @@
                                                 </tr>
                                                 <?php  $i++; endforeach; ?>
                                             </tbody>
-                                        </table>
+                                        </table> -->
                                         <?php if (count($creditNotes) == 0): ?>
                                             <p class="red-text red-text text-center center py-2 mt-1" >No hay datos
                                                 registrados.</p>

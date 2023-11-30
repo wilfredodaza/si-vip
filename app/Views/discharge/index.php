@@ -253,20 +253,20 @@
 
                         <select class="browser-default" id="payment_method_id" name="payment_method_id">
                             <option value="" disabled>Seleccione ...</option>
-                            <optgroup label="Metodos">
+                            <!-- <optgroup label="Metodos"> -->
                                 <?php foreach ($paymentMethod as $item): ?>
                                     <option value="<?= $item->id ?>">[<?= $item->code ?>]
                                         - <?= ucfirst($item->name) ?> </option>
                                 <?php endforeach; ?>
-                            </optgroup>
-                            <optgroup label="Facturas">
+                            <!-- </optgroup> -->
+                            <!-- <optgroup label="Facturas">
                                 <?php foreach ($paysInvoices as $paysInvoice): ?>
                                     <?php if ($paysInvoice->payable_amount > 0): ?>
                                         <option value="<?= "fact-".$paysInvoice->id ?>">[<?= $paysInvoice->resolution ?>]
                                             - $<?= number_format($paysInvoice->payable_amount, '2', ',', '.') ?> </option>
                                     <?php endif; ?>
                                 <?php endforeach; ?>
-                            </optgroup>
+                            </optgroup> -->
                         </select>
                         <label for="payment_method_id" class="active">Medio de pago <span
                                     class="text-red red-text darken-1">*</span></label>

@@ -120,7 +120,7 @@
                                                                            for="phone">Teléfono</label>
                                                                 </div>
                                                             </div>
-                                                            <div class="row">
+                                                            <!-- <div class="row">
                                                                 <div class="col m4 s12 input-field">
                                                                     <input type="text" class="" name="quota" id="quota"
                                                                            value="<?= (!is_null($customer->quota)) ? $customer->quota : 0 ?>">
@@ -145,7 +145,7 @@
                                                                         <?php endforeach; ?>
                                                                     </select>
                                                                 </div>
-                                                            </div>
+                                                            </div> -->
                                                             <div class="row">
                                                                 <div class="col m4 s12 input-field">
                                                                     <label for="type_client_status" class="active">Tipo de cliente</label>
