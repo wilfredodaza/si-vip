@@ -17,6 +17,8 @@
                     <form class="login-form" action="<?= base_url() ?>/validation" method="POST">
                         <div class="row">
                             <div class="input-field col s12">
+                                
+                            <img src="<?= base_url(['images', 'logo3.jpg']) ?>" alt="" style="width:100%" class="w-100">
                             <?php if (session('success')): ?>
                                 <div class="card-alert card green">
                                     <div class="card-content white-text">
@@ -30,7 +32,6 @@
                             <?php endif; ?>
                                 <h5 class="ml-4 " style="text-align:center;">
                                 CEL COMPANY<small>SIVIP</small>
-                                    
                                 </h5>
                             </div>
                         </div>
